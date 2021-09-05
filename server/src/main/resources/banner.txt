@@ -1,0 +1,11 @@
+
+${AnsiColor.BRIGHT_YELLOW}------------------------------------------------------------------
+${AnsiColor.BRIGHT_GREEN}
+ _______ __           __   __   __
+|     __|  |--.--.--.|  |_|  |_|  |.-----.
+|__     |     |  |  ||   _|   _|  ||  -__|
+|_______|__|__|_____||____|____|__||_____|
+
+${AnsiColor.CYAN} :: Spring Boot ::                ${spring-boot.formatted-version}
+${AnsiColor.BRIGHT_YELLOW}------------------------------------------------------------------
+${AnsiColor.DEFAULT}
