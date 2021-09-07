@@ -5,3 +5,7 @@ spring:
     username: root
     password: 123@ningyu.me
     url: jdbc:mysql://localhost:3306/shuttle_server
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
