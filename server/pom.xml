@@ -11,7 +11,7 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <springboot.version>2.5.4</springboot.version>
+        <spring.boot.version>2.5.4</spring.boot.version>
     </properties>
 
     <dependencyManagement>
@@ -20,7 +20,7 @@
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>${springboot.version}</version>
+                <version>${spring.boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -96,7 +96,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${springboot.version}</version>
+                <version>${spring.boot.version}</version>
                 <configuration>
                     <excludes>
                         <exclude>
