@@ -9,7 +9,10 @@ import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 import java.util.Date;
 
-@Table(name = "driver")
+/**
+ * 司机
+ */
+@Table(name = "driver", uniqueConstraints = {@UniqueConstraint(name = "UniqueNameAndMobile", columnNames = {"name", "mobile"})})
 @Entity
 @Data
 public class Driver
@@ -57,14 +60,13 @@ public class Driver
     /**
      * 员工编号
      */
+    @Column(unique = true)
     private String staffNo;
     
     /**
      * 电子邮箱
      */
     @Pattern(regexp = "(^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.(?:[a-zA-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)$)", message = "手机号码不合法")
+    @Column(unique = true)
     private String email;
-    
-    @OneToOne(mappedBy = "driver")
-    private Vehicle vehicle;
 }

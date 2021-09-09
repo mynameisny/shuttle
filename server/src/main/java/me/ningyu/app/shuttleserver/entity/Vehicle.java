@@ -28,11 +28,4 @@ public class Vehicle
      * 座位数（不包括司机）
      */
     private int seats;
-    
-    /**
-     * 这辆车当前的驾驶员
-     */
-    @OneToOne
-    @JoinColumn(name = "driver_id")
-    private Driver driver;
 }
