@@ -35,7 +35,6 @@ public class Driver
      * 出生日期
      */
     @NotNull(message = "出生日期不能为空")
-    @Past(message = "出生日期必须是一个过去的日期")
     @Temporal(TemporalType.DATE)
     private Date birthDate;
     

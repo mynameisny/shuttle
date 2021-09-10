@@ -41,7 +41,6 @@ public class CitizenIDCard
      * 出生日期
      */
     @NotNull(message = "出生日期不能为空")
-    @Past(message = "出生日期必须是一个过去的日期")
     @Temporal(TemporalType.DATE)
     private Date birthDate;
     
@@ -69,7 +68,7 @@ public class CitizenIDCard
     @NotNull(message = "签发期限起始日期不能为空")
     @Temporal(TemporalType.DATE)
     private Date validThroughBegin;
-    
+
     /**
      * 签发期限截止日期
      */
