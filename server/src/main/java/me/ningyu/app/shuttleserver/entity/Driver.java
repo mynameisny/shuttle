@@ -45,11 +45,6 @@ public class Driver
     private CitizenIDCard card;
     
     /**
-     * 身份证保存路径
-     */
-    private String cardPath;
-    
-    /**
      * 手机号码
      */
     @NotBlank(message = "手机号码不能为空")

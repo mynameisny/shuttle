@@ -75,6 +75,11 @@ public class CitizenIDCard
     @NotNull(message = "签发期限截止日期不能为空")
     @Temporal(TemporalType.DATE)
     private Date validThroughEnd;
+
+    /**
+     * 身份证保存路径
+     */
+    private String cardPath;
     
     @OneToOne
     @JoinColumn(name = "driver_id")
