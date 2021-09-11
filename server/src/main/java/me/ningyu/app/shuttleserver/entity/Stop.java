@@ -22,11 +22,18 @@ public class Stop
     private String name;
     
     private String description;
-    
+
+    private String baiduPosition;
+
+    private String gaodePosition;
+
+    private String googlePosition;
+
     @ManyToOne
     @JoinColumn(name = "route_id")
     private Route route;
-    
+
     @OneToMany(mappedBy = "stop")
-    private List<MediaResource> mediaResourceList;
+    private List<StopResource> mediaResourceList;
+
 }

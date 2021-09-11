@@ -20,7 +20,10 @@ public class Route
     
     @NotBlank(message = "路线名称不能为空")
     private String name;
-    
+
+    /**
+     * 路线描述
+     */
     private String description;
     
     /**
