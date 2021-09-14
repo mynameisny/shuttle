@@ -5,6 +5,7 @@ import lombok.Data;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 路线
@@ -26,15 +27,6 @@ public class Route
      */
     private String description;
     
-    /**
-     * 去程站点
-     */
     @OneToMany(mappedBy = "route")
-    private List<Stop> forwards;
-    
-    /**
-     * 回程站点
-     */
-    @OneToMany(mappedBy = "route")
-    private List<Stop> backwards;
+    private Set<Line> lineList;
 }

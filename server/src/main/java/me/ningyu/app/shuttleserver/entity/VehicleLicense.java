@@ -115,7 +115,7 @@ public class VehicleLicense
      * 外观尺寸：高
      */
     @NotNull
-    private int hight;
+    private int height;
 
     /**
      * 备注

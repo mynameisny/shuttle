@@ -4,7 +4,10 @@ import lombok.Data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 站点
@@ -29,11 +32,14 @@ public class Stop
 
     private String googlePosition;
 
-    @ManyToOne
-    @JoinColumn(name = "route_id")
-    private Route route;
-
     @OneToMany(mappedBy = "stop")
     private List<StopResource> mediaResourceList;
+
+    @ManyToMany
+    @JoinTable(name = "rel_line_stop",
+            joinColumns = {@JoinColumn(name = "stop_id", referencedColumnName = "id", nullable = false)},
+            inverseJoinColumns = {@JoinColumn(name = "line_id", referencedColumnName = "id", nullable = false)}
+    )
+    private List<Line> lines = new ArrayList<>();
 
 }
