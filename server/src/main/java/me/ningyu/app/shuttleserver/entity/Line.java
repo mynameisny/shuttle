@@ -15,10 +15,8 @@ public class Line
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * 方向：去程（forward）、返程（backward）
-     */
-    private String direct;
+    @Enumerated(value = EnumType.STRING)
+    private LineDirect direct;
 
     @ManyToOne
     @JoinColumn(name = "route_id")
