@@ -2,9 +2,8 @@ package me.ningyu.app.shuttleserver.entity;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.Set;
 
 @Table(name = "passenger")
 @Entity
@@ -21,4 +20,11 @@ public class Passenger extends BaseUser
      * 是否为车长
      */
     private boolean isConductor;
+    
+    @ManyToMany
+    @JoinTable(name = "rel_line_passenger",
+            joinColumns = {@JoinColumn(name = "passenger_id", referencedColumnName = "id", nullable = false)},
+            inverseJoinColumns = {@JoinColumn(name = "line_id", referencedColumnName = "id", nullable = false)}
+    )
+    private Set<Line> lines;
 }
