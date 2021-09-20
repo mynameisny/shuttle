@@ -1,7 +1,6 @@
 package me.ningyu.app.shuttleserver.entity;
 
 import lombok.Data;
-import me.ningyu.app.shuttleserver.model.vehicle.Vendor;
 
 import javax.persistence.*;
 import java.util.List;
@@ -36,5 +35,6 @@ public class Brand
     /**
      * 厂商
      */
+    @OneToMany(mappedBy = "brand")
     private List<Vendor> vendorList;
 }

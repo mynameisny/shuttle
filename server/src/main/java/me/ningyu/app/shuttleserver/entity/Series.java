@@ -6,12 +6,12 @@ import javax.persistence.*;
 import java.util.List;
 
 /**
- * 品牌厂商
+ * 车系
  */
-@Table(name = "vendor")
+@Table(name = "series")
 @Entity
 @Data
-public class Vendor
+public class Series
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,21 +23,22 @@ public class Vendor
     private String name;
 
     /**
+     * 类型
+     */
+    private SeriesType seriesType;
+
+    /**
      * 简介
      */
     private String brief;
 
-    /**
-     * 所属品牌
-     */
     @ManyToOne
-    @JoinColumn(name = "brand_id")
-    private Brand brand;
+    @JoinColumn(name = "vendor_id")
+    private Vendor vendor;
 
     /**
-     * 车系
+     * 车型
      */
-    @OneToMany
-    @JoinColumn(name = "vendor")
-    private List<Series> seriesList;
+    @OneToMany(mappedBy = "series")
+    private List<Model> modelList;
 }
