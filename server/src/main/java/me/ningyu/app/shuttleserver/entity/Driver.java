@@ -21,4 +21,5 @@ public class Driver extends BaseUser
      * 驾龄
      */
     private int drivingExperience;
+
 }

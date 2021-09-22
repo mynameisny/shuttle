@@ -28,4 +28,11 @@ public class Vehicle
      * 座位数（不包括司机）
      */
     private int seats;
+
+    /**
+     * 行驶证
+     */
+    @OneToOne
+    @JoinColumn(name = "vehicle_license_id")
+    private VehicleLicense vehicleLicense;
 }

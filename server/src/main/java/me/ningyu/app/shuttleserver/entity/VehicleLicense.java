@@ -121,4 +121,10 @@ public class VehicleLicense
      * 备注
      */
     private String remark;
+
+    /**
+     * 所属车辆
+     */
+    @OneToOne(mappedBy = "vehicleLicense")
+    private Vehicle vehicle;
 }
