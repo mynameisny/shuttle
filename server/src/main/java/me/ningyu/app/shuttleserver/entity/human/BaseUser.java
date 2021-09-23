@@ -1,6 +1,7 @@
-package me.ningyu.app.shuttleserver.entity;
+package me.ningyu.app.shuttleserver.entity.human;
 
 import lombok.Data;
+import me.ningyu.app.shuttleserver.entity.document.CitizenIDCard;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;

@@ -1,4 +1,4 @@
-package me.ningyu.app.shuttleserver.entity;
+package me.ningyu.app.shuttleserver.entity.vehicle;
 
 import lombok.Data;
 

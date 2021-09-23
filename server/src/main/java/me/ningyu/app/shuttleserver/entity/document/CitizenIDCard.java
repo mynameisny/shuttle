@@ -1,11 +1,11 @@
-package me.ningyu.app.shuttleserver.entity;
+package me.ningyu.app.shuttleserver.entity.document;
 
 import lombok.Data;
+import me.ningyu.app.shuttleserver.entity.human.Driver;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 import java.util.Date;
 

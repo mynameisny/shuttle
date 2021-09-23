@@ -1,6 +1,6 @@
 package me.ningyu.app.shuttleserver.repository;
 
-import me.ningyu.app.shuttleserver.entity.CitizenIDCard;
+import me.ningyu.app.shuttleserver.entity.document.CitizenIDCard;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 

@@ -1,6 +1,7 @@
-package me.ningyu.app.shuttleserver.entity;
+package me.ningyu.app.shuttleserver.entity.vehicle;
 
 import lombok.Data;
+import me.ningyu.app.shuttleserver.entity.document.VehicleLicense;
 
 import javax.persistence.*;
 

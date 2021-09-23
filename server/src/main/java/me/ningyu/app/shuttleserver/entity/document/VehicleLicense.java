@@ -1,6 +1,7 @@
-package me.ningyu.app.shuttleserver.entity;
+package me.ningyu.app.shuttleserver.entity.document;
 
 import lombok.Data;
+import me.ningyu.app.shuttleserver.entity.vehicle.Vehicle;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;

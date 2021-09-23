@@ -1,4 +1,4 @@
-package me.ningyu.app.shuttleserver.entity;
+package me.ningyu.app.shuttleserver.entity.pathway;
 
 import lombok.Data;
 
