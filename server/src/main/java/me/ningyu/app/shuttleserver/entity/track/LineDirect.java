@@ -1,4 +1,4 @@
-package me.ningyu.app.shuttleserver.entity.pathway;
+package me.ningyu.app.shuttleserver.entity.track;
 
 public enum LineDirect
 {

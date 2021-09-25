@@ -1,7 +1,7 @@
 package me.ningyu.app.shuttleserver.entity.human;
 
 import lombok.Data;
-import me.ningyu.app.shuttleserver.entity.pathway.Line;
+import me.ningyu.app.shuttleserver.entity.track.Line;
 
 import javax.persistence.*;
 import java.util.Set;
