@@ -2,8 +2,8 @@ package me.ningyu.app.locator.entity;
 
 import lombok.Data;
 
-import javax.persistence.*;
 import javax.persistence.Entity;
+import javax.persistence.*;
 
 @Table(name = "addpoint")
 @Entity
@@ -54,4 +54,11 @@ public class Addpoint
      * 定位精度，GPS或定位SDK返回的值，单位米
      */
     private Double radius;
+
+    /**
+     *  entity移动所产生的连续轨迹被称为track，track由一系列轨迹点（point）组成
+     */
+    @ManyToOne
+    @JoinColumn(name = "track_id")
+    private Track track;
 }
