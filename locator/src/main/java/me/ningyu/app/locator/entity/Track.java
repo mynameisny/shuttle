@@ -17,4 +17,6 @@ public class Track
 
     @OneToMany(mappedBy = "track")
     private List<Addpoint> addpoints;
+
+    private String name;
 }
