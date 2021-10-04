@@ -43,3 +43,4 @@ POST http://localhost:8080/api/users
 
 ## 参考
 - java - Post an entity with Spring Data REST which has relations - Stack Overflow https://stackoverflow.com/questions/44497114/post-an-entity-with-spring-data-rest-which-has-relations
+- https://cloud.baidu.com/doc/IVC/s/Qjwvxoeq3
