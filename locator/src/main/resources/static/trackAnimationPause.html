@@ -53,6 +53,7 @@
 <body>
 <div id="container"></div>
 <ul class="drawing-panel" style="z-index: 99;">
+    <li class = "btn" onclick = "startAni()">开始</li>
     <li class = "btn" onclick = "pauseAni()">暂停</li>
     <li class = "btn" onclick = "continueAni()">继续</li>
 </ul>
@@ -118,6 +119,9 @@
         delay: 300
     });
     function start () {
+        trackAni.start();
+    }
+    function startAni () {
         trackAni.start();
     }
     function pauseAni () {
