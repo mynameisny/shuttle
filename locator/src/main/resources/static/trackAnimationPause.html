@@ -118,6 +118,13 @@
         duration: 20000,
         delay: 300
     });
+
+    bmap.addEventListener('click', function (e) {
+        console.log(e);
+        //TODO 如何区别点中的是图标还是地图？
+        alert('点击位置经纬度：' + e.latlng.lng + ',' + e.latlng.lat);
+    });
+
     function start () {
         trackAni.start();
     }
