@@ -50,14 +50,20 @@
     <script src="http://mapopen.bj.bcebos.com/github/BMapGLLib/TrackAnimation/src/TrackAnimation.min.js"></script>
     <script src="http://api.map.baidu.com/api?type=webgl&v=1.0&ak=Nrg9lzq937GI7ywo8em0ZZO5"></script>
 </head>
+
 <body>
-<div id="container"></div>
-<ul class="drawing-panel" style="z-index: 99;">
-    <li class = "btn" onclick = "startAni()">开始</li>
-    <li class = "btn" onclick = "pauseAni()">暂停</li>
-    <li class = "btn" onclick = "continueAni()">继续</li>
-</ul>
-</body>
+    <div id="container"></div>
+    <ul class="drawing-panel" style="z-index: 99;">
+       <!-- <li class = "btn" onclick = "startAni()" style="display: none">开始</li>
+        <li class = "btn" onclick = "pauseAni()">暂停</li>
+        <li class = "btn" onclick = "continueAni()" disabled>继续</li>-->
+        <li>
+            <button id="startBtn" onclick = "startAni()" style="display: none">开始</button>
+            <button id="pauseBtn" onclick = "pauseAni()" style="display: block">暂停</button>
+            <button id="continueBtn" onclick = "continueAni()" style="display: block" disabled>继续</button>
+        </li>
+    </ul>
+    </body>
 </html>
 
 <script>
@@ -133,8 +139,16 @@
     }
     function pauseAni () {
         trackAni.pause();
+        document.getElementById("pauseBtn").disabled = true;
+        document.getElementById("continueBtn").disabled = false;
     }
     function continueAni () {
         trackAni.continue();
+        document.getElementById("continueBtn").disabled = true;
+        document.getElementById("pauseBtn").disabled = false;
     }
+
+    // trackAni._status = 1执行中
+    // trackAni._status = 2已暂停
+    // trackAni._status = 3已结束
 </script>
