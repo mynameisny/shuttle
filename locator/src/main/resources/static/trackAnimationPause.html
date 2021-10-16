@@ -69,7 +69,14 @@
 <script>
     var bmap = new BMapGL.Map("container");
     bmap.centerAndZoom(new BMapGL.Point(116.297611, 40.047363), 17);
-    bmap.enableScrollWheelZoom(true);
+    bmap.enableScrollWheelZoom(true)
+
+    var scaleCtrl = new BMapGL.ScaleControl();  // 添加比例尺控件
+    bmap.addControl(scaleCtrl);
+    var zoomCtrl = new BMapGL.ZoomControl();  // 添加比例尺控件
+    bmap.addControl(zoomCtrl);
+
+
     var path = [{
         'lng': 116.297611,
         'lat': 40.047363
