@@ -6,6 +6,8 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Date;
+
 
 /**
  * 站点
@@ -37,6 +39,6 @@ public class Stop
     @JoinColumn(name = "line_id")
     private Line line;
 
-    @Temporal(value = TemporalType.TIME)
-    private LocalDateTime arrivalTime;
+    @Temporal(value = TemporalType.DATE)
+    private Date arrivalTime;
 }
