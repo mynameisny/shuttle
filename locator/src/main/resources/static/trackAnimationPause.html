@@ -107,6 +107,9 @@
         var marker = new BMapGL.Marker(new BMapGL.Point(path[i].lng, path[i].lat));
         bmap.addOverlay(marker);
 
+        var label = new BMapGL.Label("我是文字标注哦",{offset:new BMapGL.Size(20,-10)});
+        marker.setLabel(label);
+
         var sContent = `<h4 style='margin:0 0 5px 0;'>天安门</h4>
     <img style='float:right;margin:0 4px 22px' id='imgDemo' src='images/bus.jpg' width='139' height='104'/>
     <p style='margin:0;line-height:1.5;font-size:13px;text-indent:2em'>
