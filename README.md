@@ -47,3 +47,4 @@ POST http://localhost:8080/api/users
 - https://cloud.baidu.com/doc/IVC/s/Qjwvxoeq3
 - https://lbs.amap.com/demo/jsapi-v2/example/marker/replaying-historical-running-data
 - https://lbsyun.baidu.com/index.php?title=jspopularGL/guide/trackAnimation
+- vue-element-admin https://panjiachen.github.io/vue-element-admin-site/zh/
