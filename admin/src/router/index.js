@@ -345,6 +345,11 @@ export const asyncRoutes = [
     component: () => import('@/views/pdf/download'),
     hidden: true
   },
+  {
+    path: '/vehicle/index',
+    component: () => import('@/views/vehicle'),
+    hidden: true
+  },
 
   {
     path: '/theme',
