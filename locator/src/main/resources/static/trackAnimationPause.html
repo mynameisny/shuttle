@@ -46,9 +46,24 @@
             background-color: rgba(27, 142, 236, 0.8);
             color: #fff;
         }
+
+        #result{
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 0px 7px;
+            min-width: 350px;
+            height: 70px;
+            line-height: 35px;
+            background: #fff;
+            box-shadow: 0 2px 6px 0 rgba(27, 142, 236, 0.5);
+            border-radius: 7px;
+            z-index: 99;
+        }
     </style>
     <script src="http://mapopen.bj.bcebos.com/github/BMapGLLib/TrackAnimation/src/TrackAnimation.min.js"></script>
     <script src="http://api.map.baidu.com/api?type=webgl&v=1.0&ak=Nrg9lzq937GI7ywo8em0ZZO5"></script>
+    <script src="https://code.bdstatic.com/npm/jquery@1.12.4/dist/jquery.min.js"></script>
 </head>
 
 <body>
@@ -63,6 +78,12 @@
             <button id="continueBtn" onclick = "continueAni()" style="display: block" disabled>继续</button>
         </li>
     </ul>
+
+    <div id='result'>
+        点击展示详细的地址：
+        <div id='result_l'></div>
+    </div>
+
     </body>
 </html>
 
@@ -99,6 +120,9 @@
         'lng': 116.307223,
         'lat': 40.056379
     }];
+
+    var geoc = new BMapGL.Geocoder();
+
     var point = [];
     for (var i = 0; i < path.length; i++) {
         point.push(new BMapGL.Point(path[i].lng, path[i].lat));
@@ -139,6 +163,12 @@
         console.log(e);
         //TODO 如何区别点中的是图标还是地图？
         alert('点击位置经纬度：' + e.latlng.lng + ',' + e.latlng.lat);
+
+        var pt = e.latlng;
+        geoc.getLocation(pt, function(rs){
+            var addComp = rs.addressComponents;
+            $('#result_l').text(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);
+        });
     });
 
     function start () {
