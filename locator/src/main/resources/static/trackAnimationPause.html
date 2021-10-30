@@ -98,6 +98,19 @@
     bmap.addControl(zoomCtrl);
 
 
+    var cr = new BMapGL.CopyrightControl({
+        anchor: BMAP_ANCHOR_TOP_RIGHT,
+        offset: new BMapGL.Size(20, 20)
+    });   //设置版权控件位置
+    bmap.addControl(cr); //添加版权控件
+    var bs = bmap.getBounds();   //返回地图可视区域
+    cr.addCopyright({
+        id: 1,
+        content: "<img src='../img/baidu.jpg' width='50px' height='50px'/><a href='#' style='font-size:16px;color:#000'>@我是自定义版权控件呀</a>",
+        bounds: bs
+    });
+
+
     var path = [{
         'lng': 116.297611,
         'lat': 40.047363
