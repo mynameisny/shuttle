@@ -201,6 +201,11 @@
         document.getElementById("pauseBtn").disabled = false;
     }
 
+    function getMapCenter() {
+        var cen = map.getCenter(); // 获取地图中心点
+        alert('地图中心点: (' + cen.lng.toFixed(5) + ', ' + cen.lat.toFixed(5) + ')');
+    }
+
     // trackAni._status = 1执行中
     // trackAni._status = 2已暂停
     // trackAni._status = 3已结束
