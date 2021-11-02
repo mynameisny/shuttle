@@ -12,3 +12,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  influx:
+    url: http://localhost:8086
+    token: ""
+    org: ""
+    bucket: ""
