@@ -9,6 +9,12 @@
     <name>locator</name>
     <description>shuttle locator</description>
 
+    <parent>
+        <groupId>me.ningyu.app</groupId>
+        <artifactId>shuttle-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
     <properties>
         <java.version>1.8</java.version>
         <spring.boot.version>2.5.4</spring.boot.version>
