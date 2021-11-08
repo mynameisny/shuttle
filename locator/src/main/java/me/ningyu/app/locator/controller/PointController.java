@@ -23,4 +23,10 @@ public class PointController
         List<Object> result = new ArrayList<>();
         return ResponseEntity.ok(result);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable String id)
+    {
+        return ResponseEntity.noContent().build();
+    }
 }
