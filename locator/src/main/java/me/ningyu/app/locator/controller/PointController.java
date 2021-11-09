@@ -17,16 +17,22 @@ public class PointController
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable String id)
+    {
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@RequestBody Point point)
+    {
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping
     public ResponseEntity<?> list()
     {
         List<Object> result = new ArrayList<>();
         return ResponseEntity.ok(result);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable String id)
-    {
-        return ResponseEntity.noContent().build();
     }
 }
