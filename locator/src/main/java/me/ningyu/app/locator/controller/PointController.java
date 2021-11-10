@@ -24,7 +24,13 @@ public class PointController
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@RequestBody Point point)
+    public ResponseEntity<?> update(@PathVariable String id, @RequestBody Point point)
+    {
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> updatePart(@PathVariable String id, @RequestBody Point point)
     {
         return ResponseEntity.ok().build();
     }
