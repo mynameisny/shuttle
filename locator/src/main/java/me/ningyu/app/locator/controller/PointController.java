@@ -30,7 +30,7 @@ public class PointController
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updatePart(@PathVariable String id, @RequestBody Point point)
+    public ResponseEntity<?> updatePart (@PathVariable String id, @RequestBody Point point)
     {
         return ResponseEntity.ok().build();
     }
