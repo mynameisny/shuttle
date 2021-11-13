@@ -77,9 +77,9 @@
             <version>3.12.0</version>
         </dependency>
         <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-influx</artifactId>
-            <scope>runtime</scope>
+            <groupId>com.influxdb</groupId>
+            <artifactId>influxdb-client-java</artifactId>
+            <version>3.4.0</version>
         </dependency>
         <dependency>
             <groupId>com.querydsl</groupId>

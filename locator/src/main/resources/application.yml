@@ -9,3 +9,8 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+  influx:
+    url: http://localhost:8086
+    token: SHROsMFwG6iTpz-_WSR3GsHxywZ0oUu68vYaKu1R4v6b4jrgfgKyjs1B0au1L9Ble0hI1RtG6YvAhNfma0RkVw==
+    org: tony
+    bucket: shuttle_locator
