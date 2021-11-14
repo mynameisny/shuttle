@@ -34,7 +34,7 @@ public class TimeSeriesRepository
     public void save(String measurement, Map<String, Object> fields)
     {
         WriteOptions writeOptions = WriteOptions.builder().batchSize(5000).flushInterval(1000).bufferLimit(10000).jitterInterval(1000).retryInterval(5000).build();
-        try (WriteApi writeApi = influxDBClient.getWriteApi(writeOptions))
+        try (WriteApi writeApi = influxDBClient.makeWriteApi(writeOptions))
         {
             Point point = Point.measurement(measurement).addFields(fields).time(Instant.now(), WritePrecision.NS);
             writeApi.writePoint(bucket, org, point);

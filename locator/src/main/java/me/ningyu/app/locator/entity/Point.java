@@ -5,10 +5,10 @@ import lombok.Data;
 import javax.persistence.Entity;
 import javax.persistence.*;
 
-@Table(name = "addpoint")
+@Table(name = "point")
 @Entity
 @Data
-public class Addpoint
+public class Point
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
