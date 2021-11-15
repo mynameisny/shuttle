@@ -25,6 +25,21 @@ public class TimeSeriesRepository
     @Value("${spring.influx.bucket:''}")
     private String bucket;
 
+    @Value("${spring.influx.batchSize:5000}")
+    private int batchSize;
+
+    @Value("${spring.influx.flushInterval:1000}")
+    private int flushInterval;
+
+    @Value("${spring.influx.bufferLimit:10000}")
+    private int bufferLimit;
+
+    @Value("${spring.influx.jitterInterval:1000}")
+    private int jitterInterval;
+
+    @Value("${spring.influx.retryInterval:5000}")
+    private int retryInterval;
+
 
     public TimeSeriesRepository(InfluxDBClient influxDBClient)
     {
@@ -33,7 +48,7 @@ public class TimeSeriesRepository
 
     public void save(String measurement, Map<String, Object> fields)
     {
-        WriteOptions writeOptions = WriteOptions.builder().batchSize(5000).flushInterval(1000).bufferLimit(10000).jitterInterval(1000).retryInterval(5000).build();
+        WriteOptions writeOptions = WriteOptions.builder().batchSize(batchSize).flushInterval(flushInterval).bufferLimit(bufferLimit).jitterInterval(jitterInterval).retryInterval(retryInterval).build();
         try (WriteApi writeApi = influxDBClient.makeWriteApi(writeOptions))
         {
             Point point = Point.measurement(measurement).addFields(fields).time(Instant.now(), WritePrecision.NS);
