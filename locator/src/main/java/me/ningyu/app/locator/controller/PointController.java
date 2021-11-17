@@ -2,6 +2,7 @@ package me.ningyu.app.locator.controller;
 
 import com.querydsl.core.types.Predicate;
 import me.ningyu.app.locator.controller.binder.PointSearchBinding;
+import me.ningyu.app.locator.service.PointService;
 import me.ningyu.app.locator.vo.Point;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -15,6 +16,14 @@ import java.util.List;
 @RequestMapping("/points")
 public class PointController
 {
+    private final PointService pointService;
+
+    public PointController(PointService pointService)
+    {
+        this.pointService = pointService;
+    }
+
+
     @PostMapping
     public ResponseEntity<?> add(@RequestBody Point point)
     {
