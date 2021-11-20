@@ -7,7 +7,7 @@ import me.ningyu.app.locator.entity.Track;
 import javax.persistence.*;
 
 @Data
-public class Point
+public class PointDto
 {
     /**
      * 纬度
