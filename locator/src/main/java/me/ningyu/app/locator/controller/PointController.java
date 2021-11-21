@@ -2,13 +2,16 @@ package me.ningyu.app.locator.controller;
 
 import com.querydsl.core.types.Predicate;
 import me.ningyu.app.locator.controller.binder.PointSearchBinding;
+import me.ningyu.app.locator.entity.Point;
 import me.ningyu.app.locator.service.PointService;
 import me.ningyu.app.locator.vo.PointDto;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,10 +28,11 @@ public class PointController
 
 
     @PostMapping
-    public ResponseEntity<?> add(@RequestBody PointDto pointDto)
+    public ResponseEntity<?> add(@RequestBody PointDto pointDto, UriComponentsBuilder builder)
     {
-        pointService.save(pointDto);
-        return ResponseEntity.ok().build();
+        Point saved = pointService.save(pointDto);
+        URI location = builder.replacePath("/points/{id}").buildAndExpand(saved.getId()).toUri();
+        return ResponseEntity.created(location).body(saved);
     }
 
     @DeleteMapping("/{id}")
