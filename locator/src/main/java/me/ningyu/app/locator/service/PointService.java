@@ -7,6 +7,8 @@ import me.ningyu.app.locator.vo.PointDto;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+
 @Service
 @Slf4j
 public class PointService
@@ -19,10 +21,17 @@ public class PointService
     }
 
 
+    @Transactional
     public Point save(PointDto pointDto)
     {
         Point entity = new Point();
         BeanUtils.copyProperties(pointDto, entity);
         return pointRepository.save(entity);
+    }
+
+    @Transactional
+    public void remove(Long id)
+    {
+        pointRepository.deleteById(id);
     }
 }
