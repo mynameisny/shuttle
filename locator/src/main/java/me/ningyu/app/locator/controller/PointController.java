@@ -5,10 +5,16 @@ import me.ningyu.app.locator.controller.binder.PointSearchBinding;
 import me.ningyu.app.locator.entity.Point;
 import me.ningyu.app.locator.service.PointService;
 import me.ningyu.app.locator.vo.PointDto;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -59,5 +65,15 @@ public class PointController
     {
         List<Object> result = new ArrayList<>();
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> findById(@PathVariable Long id)
+    {
+        PointDto point = new PointDto();
+        Point entity = pointService.findById(id);
+        BeanUtils.copyProperties(entity, point);
+
+        return ResponseEntity.ok().body(point);
     }
 }

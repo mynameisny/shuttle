@@ -34,4 +34,8 @@ public class PointService
     {
         pointRepository.deleteById(id);
     }
+
+    public Point findById(Long id)
+    {
+    }
 }
