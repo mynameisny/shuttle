@@ -37,5 +37,6 @@ public class PointService
 
     public Point findById(Long id)
     {
+        return pointRepository.findById(id).get();
     }
 }
