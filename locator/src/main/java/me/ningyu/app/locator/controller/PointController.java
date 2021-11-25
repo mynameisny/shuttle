@@ -6,6 +6,7 @@ import me.ningyu.app.locator.entity.Point;
 import me.ningyu.app.locator.service.PointService;
 import me.ningyu.app.locator.vo.PointDto;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
@@ -61,9 +62,16 @@ public class PointController
     }
 
     @GetMapping
-    public ResponseEntity<?> list(@QuerydslPredicate(root = PointDto.class, bindings = PointSearchBinding.class) Predicate predicate, Sort sort)
+    public ResponseEntity<?> list(@QuerydslPredicate(root = PointDto.class, bindings = PointSearchBinding.class) Predicate predicate, Pageable pageable)
     {
-        List<Object> result = new ArrayList<>();
+        List<Point> points = pointService.list(predicate, pageable);
+        List<PointDto> result = new ArrayList<>();
+        for (Point point : points)
+        {
+            PointDto dto = new PointDto();
+            BeanUtils.copyProperties(point, dto);
+            result.add(dto);
+        }
         return ResponseEntity.ok(result);
     }
 
