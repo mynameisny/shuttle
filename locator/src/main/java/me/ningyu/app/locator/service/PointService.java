@@ -6,11 +6,11 @@ import me.ningyu.app.locator.entity.Point;
 import me.ningyu.app.locator.repository.PointRepository;
 import me.ningyu.app.locator.vo.PointDto;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -43,7 +43,7 @@ public class PointService
         return pointRepository.findById(id).get();
     }
 
-    public List<Point> list(Predicate predicate, Pageable pageable)
+    public Page<Point> list(Predicate predicate, Pageable pageable)
     {
         return pointRepository.findAll(predicate, pageable);
     }

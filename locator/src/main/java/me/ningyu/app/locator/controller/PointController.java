@@ -6,6 +6,7 @@ import me.ningyu.app.locator.entity.Point;
 import me.ningyu.app.locator.service.PointService;
 import me.ningyu.app.locator.vo.PointDto;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -21,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @RestController
 @RequestMapping("/points")
@@ -50,8 +52,9 @@ public class PointController
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable String id, @RequestBody PointDto pointDto)
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody PointDto pointDto)
     {
+        pointService.findById(id);
         return ResponseEntity.ok().build();
     }
 
@@ -64,15 +67,16 @@ public class PointController
     @GetMapping
     public ResponseEntity<?> list(@QuerydslPredicate(root = PointDto.class, bindings = PointSearchBinding.class) Predicate predicate, Pageable pageable)
     {
-        List<Point> points = pointService.list(predicate, pageable);
-        List<PointDto> result = new ArrayList<>();
-        for (Point point : points)
+        Page<Point> page = pointService.list(predicate, pageable);
+
+        page.map(point ->
         {
             PointDto dto = new PointDto();
             BeanUtils.copyProperties(point, dto);
-            result.add(dto);
-        }
-        return ResponseEntity.ok(result);
+            return dto;
+        });
+
+        return ResponseEntity.ok(page);
     }
 
     @GetMapping("/{id}")
