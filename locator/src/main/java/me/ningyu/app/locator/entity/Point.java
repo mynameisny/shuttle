@@ -61,4 +61,9 @@ public class Point
     @ManyToOne
     @JoinColumn(name = "track_id")
     private Track track;
+
+    /**
+     * 位置
+     */
+    private String address;
 }

@@ -47,4 +47,9 @@ public class PointService
     {
         return pointRepository.findAll(predicate, pageable);
     }
+
+    public Point update(Point entity)
+    {
+        return pointRepository.save(entity);
+    }
 }
