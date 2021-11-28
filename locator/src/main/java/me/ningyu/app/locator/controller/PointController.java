@@ -68,6 +68,15 @@ public class PointController
     @PatchMapping("/{id}")
     public ResponseEntity<?> updatePart(@PathVariable String id, @RequestBody PointDto pointDto)
     {
+        Point entity = pointService.findById(id);
+        if (entity == null)
+        {
+            throw new RuntimeException(String.format("找不到%d的坐标点", id));
+        }
+
+        BeanUtils.copyProperties(entity, pointDto);
+        Point updated = pointService.update(entity);
+
         return ResponseEntity.ok().build();
     }
 
