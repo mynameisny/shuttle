@@ -66,7 +66,7 @@ public class PointController
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updatePart(@PathVariable String id, @RequestBody PointDto pointDto)
+    public ResponseEntity<?> updatePart(@PathVariable Long id, @RequestBody PointDto pointDto)
     {
         Point entity = pointService.findById(id);
         if (entity == null)
@@ -77,7 +77,7 @@ public class PointController
         BeanUtils.copyProperties(entity, pointDto);
         Point updated = pointService.update(entity);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(updated);
     }
 
     @GetMapping
