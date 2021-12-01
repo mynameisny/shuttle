@@ -1,6 +1,8 @@
 package me.ningyu.app.locator.controller;
 
 import com.querydsl.core.types.Predicate;
+import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.Operation;
 import me.ningyu.app.locator.controller.binder.PointSearchBinding;
 import me.ningyu.app.locator.entity.Point;
 import me.ningyu.app.locator.service.PointService;
@@ -15,6 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 
+@Api(tags = "坐标管理接口")
 @RestController
 @RequestMapping("/points")
 public class PointController
@@ -27,6 +30,7 @@ public class PointController
     }
 
 
+    @Operation(summary = "添加坐标点")
     @PostMapping
     public ResponseEntity<?> add(@RequestBody PointDto pointDto, UriComponentsBuilder builder)
     {
