@@ -27,10 +27,10 @@ public class SwaggerConfig
                 .select()
                 .apis(RequestHandlerSelectors.withMethodAnnotation(Operation.class))
                 .paths(PathSelectors.any())
-                .build()
-                .globalRequestParameters(getGlobalRequestParameters())
-                .globalResponses(HttpMethod.GET, getGlobalResponseMessage())
-                .globalResponses(HttpMethod.POST, getGlobalResponseMessage());
+                .build();
+                //.globalRequestParameters(getGlobalRequestParameters())
+                //.globalResponses(HttpMethod.GET, getGlobalResponseMessage())
+                //.globalResponses(HttpMethod.POST, getGlobalResponseMessage());
     }
 
     /**

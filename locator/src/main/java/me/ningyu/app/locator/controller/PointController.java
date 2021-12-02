@@ -2,7 +2,11 @@ package me.ningyu.app.locator.controller;
 
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import me.ningyu.app.locator.controller.binder.PointSearchBinding;
 import me.ningyu.app.locator.entity.Point;
 import me.ningyu.app.locator.service.PointService;
@@ -31,8 +35,11 @@ public class PointController
 
 
     @Operation(summary = "添加坐标点")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201")
+    })
     @PostMapping
-    public ResponseEntity<?> add(@RequestBody PointDto pointDto, UriComponentsBuilder builder)
+    public ResponseEntity<Point> add(@RequestBody PointDto pointDto, UriComponentsBuilder builder)
     {
         Point saved = pointService.save(pointDto);
         URI location = builder.replacePath("/points/{id}").buildAndExpand(saved.getId()).toUri();
