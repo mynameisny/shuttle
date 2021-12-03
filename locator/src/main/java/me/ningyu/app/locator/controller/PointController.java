@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -35,9 +36,6 @@ public class PointController
 
 
     @Operation(summary = "添加坐标点")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201")
-    })
     @PostMapping
     public ResponseEntity<Point> add(@RequestBody PointDto pointDto, UriComponentsBuilder builder)
     {
@@ -46,6 +44,7 @@ public class PointController
         return ResponseEntity.created(location).body(saved);
     }
 
+    @ApiOperation(value = "删除指定id的坐标", notes = "物理删除，请谨慎")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id)
     {
@@ -82,6 +81,7 @@ public class PointController
         return ResponseEntity.ok(updated);
     }
 
+    @ApiOperation(value = "查询满足条件的坐标点")
     @GetMapping
     public ResponseEntity<?> list(@QuerydslPredicate(root = PointDto.class, bindings = PointSearchBinding.class) Predicate predicate, Pageable pageable)
     {
