@@ -12,6 +12,9 @@ import javax.persistence.*;
 @ApiModel("坐标对象")
 public class PointDto
 {
+    @ApiModelProperty(value = "坐标的ID")
+    private Long id;
+
     @ApiModelProperty(value = "纬度")
     private Long latitude;
 

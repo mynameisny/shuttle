@@ -37,9 +37,9 @@ public class PointController
 
     @Operation(summary = "添加坐标点")
     @PostMapping
-    public ResponseEntity<Point> add(@RequestBody PointDto pointDto, UriComponentsBuilder builder)
+    public ResponseEntity<?> add(@RequestBody PointDto pointDto, UriComponentsBuilder builder)
     {
-        Point saved = pointService.save(pointDto);
+        PointDto saved = pointService.save(pointDto);
         URI location = builder.replacePath("/points/{id}").buildAndExpand(saved.getId()).toUri();
         return ResponseEntity.created(location).body(saved);
     }

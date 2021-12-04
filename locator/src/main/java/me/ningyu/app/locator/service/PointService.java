@@ -25,11 +25,15 @@ public class PointService
 
 
     @Transactional
-    public Point save(PointDto pointDto)
+    public PointDto save(PointDto pointDto)
     {
         Point entity = new Point();
         BeanUtils.copyProperties(pointDto, entity);
-        return pointRepository.save(entity);
+        Point point = pointRepository.save(entity);
+
+        PointDto dto = new PointDto();
+        BeanUtils.copyProperties(entity, dto);
+        return dto;
     }
 
     @Transactional
