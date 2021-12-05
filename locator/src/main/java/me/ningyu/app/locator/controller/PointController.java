@@ -44,7 +44,7 @@ public class PointController
         return ResponseEntity.created(location).body(saved);
     }
 
-    @ApiOperation(value = "删除指定id的坐标", notes = "物理删除，请谨慎")
+    @Operation(description = "删除指定ID的坐标", summary = "物理删除，请谨慎")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id)
     {
@@ -52,6 +52,7 @@ public class PointController
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "修改指定ID的坐标点（覆盖更新）")
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody PointDto pointDto)
     {
@@ -66,6 +67,7 @@ public class PointController
         return ResponseEntity.ok().body(updated);
     }
 
+    @Operation(summary = "修改指定ID的坐标点（部分更新）")
     @PatchMapping("/{id}")
     public ResponseEntity<?> updatePart(@PathVariable Long id, @RequestBody PointDto pointDto)
     {
@@ -81,7 +83,7 @@ public class PointController
         return ResponseEntity.ok(updated);
     }
 
-    @ApiOperation(value = "查询满足条件的坐标点")
+    @Operation(summary = "查询满足条件的坐标点")
     @GetMapping
     public ResponseEntity<?> list(@QuerydslPredicate(root = PointDto.class, bindings = PointSearchBinding.class) Predicate predicate, Pageable pageable)
     {
