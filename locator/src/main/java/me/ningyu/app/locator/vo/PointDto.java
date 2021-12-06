@@ -13,7 +13,7 @@ import javax.persistence.*;
 public class PointDto
 {
     @ApiModelProperty(value = "坐标的ID")
-    private Long id;
+    private String id;
 
     @ApiModelProperty(value = "纬度")
     private Long latitude;
@@ -23,4 +23,7 @@ public class PointDto
 
     @ApiModelProperty("定位时设备的时间(Unix时间戳)")
     private Long locTime;
+
+    @ApiModelProperty("设备ID")
+    private String deviceId;
 }

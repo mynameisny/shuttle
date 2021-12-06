@@ -11,8 +11,8 @@ import javax.persistence.*;
 public class Point
 {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private String id;
 
     /**
      * 纬度

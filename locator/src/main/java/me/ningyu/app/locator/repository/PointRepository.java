@@ -6,5 +6,5 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PointRepository extends JpaRepository<Point, Long>, QuerydslPredicateExecutor<Point>
+public interface PointRepository extends JpaRepository<Point, String>, QuerydslPredicateExecutor<Point>
 {}

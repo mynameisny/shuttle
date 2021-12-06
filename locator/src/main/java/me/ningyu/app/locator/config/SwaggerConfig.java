@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
-@EnableOpenApi
 public class SwaggerConfig
 {
     @Bean

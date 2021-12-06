@@ -37,12 +37,12 @@ public class PointService
     }
 
     @Transactional
-    public void remove(Long id)
+    public void remove(String id)
     {
         pointRepository.deleteById(id);
     }
 
-    public Point findById(Long id)
+    public Point findById(String id)
     {
         return pointRepository.findById(id).get();
     }

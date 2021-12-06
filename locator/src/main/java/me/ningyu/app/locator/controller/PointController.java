@@ -36,6 +36,9 @@ public class PointController
 
 
     @Operation(summary = "添加坐标点")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "latitude", value = "经度")
+    })
     @PostMapping
     public ResponseEntity<?> add(@RequestBody PointDto pointDto, UriComponentsBuilder builder)
     {
@@ -46,7 +49,7 @@ public class PointController
 
     @Operation(description = "删除指定ID的坐标", summary = "物理删除，请谨慎")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id)
+    public ResponseEntity<?> delete(@PathVariable String id)
     {
         pointService.remove(id);
         return ResponseEntity.noContent().build();
@@ -54,7 +57,7 @@ public class PointController
 
     @Operation(summary = "修改指定ID的坐标点（覆盖更新）")
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody PointDto pointDto)
+    public ResponseEntity<?> update(@PathVariable String id, @RequestBody PointDto pointDto)
     {
         Point entity = pointService.findById(id);
         if (entity == null)
@@ -69,7 +72,7 @@ public class PointController
 
     @Operation(summary = "修改指定ID的坐标点（部分更新）")
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updatePart(@PathVariable Long id, @RequestBody PointDto pointDto)
+    public ResponseEntity<?> updatePart(@PathVariable String id, @RequestBody PointDto pointDto)
     {
         Point entity = pointService.findById(id);
         if (entity == null)
@@ -100,7 +103,7 @@ public class PointController
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> findById(@PathVariable Long id)
+    public ResponseEntity<?> findById(@PathVariable String id)
     {
         PointDto point = new PointDto();
         Point entity = pointService.findById(id);
