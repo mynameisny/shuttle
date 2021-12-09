@@ -24,18 +24,18 @@ public class Variable
     private Integer version;
 
     @CreatedDate
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "create_time")
+    private LocalDateTime createTime;
 
     @LastModifiedDate
-    @Column(name = "last_modified_at")
-    private LocalDateTime modifiedAt;
+    @Column(name = "update_time")
+    private LocalDateTime updateTime;
 
     @CreatedBy
     @Column(name = "created_by")
     private String createdBy;
 
     @LastModifiedBy
-    @Column(name = "last_modified_by")
-    private String lastModifiedBy;
+    @Column(name = "modified_by")
+    private String modifiedBy;
 }
