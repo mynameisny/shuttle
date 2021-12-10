@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
-public class Variable
+public class Variable extends Identifiable
 {
     @Version
     private Integer version;

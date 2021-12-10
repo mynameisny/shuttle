@@ -1,19 +1,18 @@
 package me.ningyu.app.locator.entity;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.*;
 
-@Table(name = "point")
 @Entity
-@Data
-public class Point
+@Table(name = "locator_point")
+@Inheritance(strategy = InheritanceType.JOINED)
+@Getter
+@Setter
+public class Point extends Variable
 {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private String id;
-
     /**
      * 纬度
      */
