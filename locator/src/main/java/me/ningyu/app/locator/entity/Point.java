@@ -55,13 +55,6 @@ public class Point extends Variable
     private Double radius;
 
     /**
-     *  entity移动所产生的连续轨迹被称为track，track由一系列轨迹点（point）组成
-     */
-    @ManyToOne
-    @JoinColumn(name = "track_id")
-    private Track track;
-
-    /**
      * 位置
      */
     private String address;
