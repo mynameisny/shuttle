@@ -58,4 +58,10 @@ public class Point extends Variable
      * 位置
      */
     private String address;
+
+    /**
+     * 上报坐标的设备
+     */
+    @ManyToOne
+    private Device device;
 }
