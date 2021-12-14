@@ -1,7 +1,9 @@
-package me.ningyu.app.locator.entity;
+package me.ningyu.app.locator.domain.map.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.ningyu.app.locator.domain.Variable;
+import me.ningyu.app.locator.domain.device.entity.Device;
 
 import javax.persistence.Entity;
 import javax.persistence.*;

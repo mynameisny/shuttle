@@ -1,4 +1,4 @@
-package me.ningyu.app.locator.entity;
+package me.ningyu.app.locator.domain.map.entity;
 
 public enum CoordType
 {

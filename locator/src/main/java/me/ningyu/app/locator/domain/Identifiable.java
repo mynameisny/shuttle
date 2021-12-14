@@ -1,4 +1,4 @@
-package me.ningyu.app.locator.entity;
+package me.ningyu.app.locator.domain;
 
 import lombok.Getter;
 import lombok.Setter;

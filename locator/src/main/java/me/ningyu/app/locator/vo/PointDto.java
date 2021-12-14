@@ -3,10 +3,6 @@ package me.ningyu.app.locator.vo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import me.ningyu.app.locator.entity.CoordType;
-import me.ningyu.app.locator.entity.Track;
-
-import javax.persistence.*;
 
 @Data
 @ApiModel("坐标对象")

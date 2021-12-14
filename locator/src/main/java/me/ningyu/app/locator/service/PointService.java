@@ -2,8 +2,8 @@ package me.ningyu.app.locator.service;
 
 import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
-import me.ningyu.app.locator.entity.Point;
-import me.ningyu.app.locator.repository.PointRepository;
+import me.ningyu.app.locator.domain.map.entity.Point;
+import me.ningyu.app.locator.domain.map.repository.PointRepository;
 import me.ningyu.app.locator.vo.PointDto;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;

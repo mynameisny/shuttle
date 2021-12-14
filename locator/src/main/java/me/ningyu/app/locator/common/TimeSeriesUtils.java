@@ -1,4 +1,4 @@
-package me.ningyu.app.locator.repository;
+package me.ningyu.app.locator.common;
 
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.QueryApi;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class TimeSeriesRepository
+public class TimeSeriesUtils
 {
     private final InfluxDBClient influxDBClient;
 
@@ -41,7 +41,7 @@ public class TimeSeriesRepository
     private int retryInterval;
 
 
-    public TimeSeriesRepository(InfluxDBClient influxDBClient)
+    public TimeSeriesUtils(InfluxDBClient influxDBClient)
     {
         this.influxDBClient = influxDBClient;
     }
