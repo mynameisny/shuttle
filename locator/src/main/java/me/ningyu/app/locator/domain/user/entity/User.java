@@ -29,7 +29,7 @@ public class User extends Variable
     private UserType userType;
 
     @Enumerated(EnumType.STRING)
-    private Gender gender;
+    private GenderType genderType;
 
     /**
      * 组织机构名称.
