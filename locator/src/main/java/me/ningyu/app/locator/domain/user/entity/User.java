@@ -1,19 +1,18 @@
 package me.ningyu.app.locator.domain.user.entity;
 
-import lombok.Getter;
-import lombok.Setter;
 import me.ningyu.app.locator.domain.Variable;
 
-import javax.persistence.*;
-import javax.persistence.Entity;
+import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.MappedSuperclass;
 
-@Entity
-@Table(name = "locator_user")
-@Inheritance(strategy = InheritanceType.JOINED)
-@Getter
-@Setter
+@MappedSuperclass
 public class User extends Variable
 {
+    /**
+     * 用户编号
+     */
     private String code;
 
     /**
@@ -29,7 +28,7 @@ public class User extends Variable
     private UserType userType;
 
     @Enumerated(EnumType.STRING)
-    private GenderType genderType;
+    private Gender gender;
 
     /**
      * 组织机构名称.
@@ -44,7 +43,7 @@ public class User extends Variable
     /**
      * 手机号
      */
-    private String mobilePhone;
+    private String mobile;
 
     /**
      * 邮箱

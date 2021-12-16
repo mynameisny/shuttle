@@ -1,6 +1,6 @@
 package me.ningyu.app.locator.domain.user.entity;
 
-public enum GenderType
+public enum Gender
 {
     MALE, FEMALE
 }
