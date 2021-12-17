@@ -16,6 +16,9 @@ import javax.persistence.*;
 @AllArgsConstructor
 public class Passenger extends User
 {
+    /**
+     * 员工编号
+     */
     @Column(unique = true)
     private String staffNo;
 
