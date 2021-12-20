@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import me.ningyu.app.locator.controller.binder.PointSearchBinding;
 import me.ningyu.app.locator.domain.map.entity.Point;
 import me.ningyu.app.locator.service.PointService;
-import me.ningyu.app.locator.vo.PointDto;
+import me.ningyu.app.locator.common.vo.PointDto;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

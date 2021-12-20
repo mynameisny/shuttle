@@ -19,11 +19,6 @@ import javax.persistence.*;
 public class Vehicle extends Variable
 {
     /**
-     * 车型
-     */
-    private String model;
-
-    /**
      * 车牌号
      */
     private String licensePlateNumber;
@@ -37,5 +32,5 @@ public class Vehicle extends Variable
      * 品牌
      */
     @ManyToOne
-    private Brand brand;
+    private Model model;
 }

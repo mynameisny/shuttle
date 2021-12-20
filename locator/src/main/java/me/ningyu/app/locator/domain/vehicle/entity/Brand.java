@@ -11,7 +11,10 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 
-
+/**
+ * 品牌
+ * 比如：奔池、宝马、奥迪、大众
+ */
 @Entity
 @Table(name = "locator_brand")
 @Inheritance(strategy = InheritanceType.JOINED)

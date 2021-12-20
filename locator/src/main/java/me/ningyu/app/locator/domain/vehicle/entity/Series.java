@@ -1,11 +1,16 @@
 package me.ningyu.app.locator.domain.vehicle.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import me.ningyu.app.locator.domain.Variable;
-import me.ningyu.app.locator.enums.SeriesType;
 
-import javax.persistence.*;
-import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
 
 /**
  * 车系

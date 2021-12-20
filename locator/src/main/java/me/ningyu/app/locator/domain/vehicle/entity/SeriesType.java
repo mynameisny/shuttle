@@ -1,4 +1,4 @@
-package me.ningyu.app.locator.enums;
+package me.ningyu.app.locator.domain.vehicle.entity;
 
 public enum SeriesType
 {

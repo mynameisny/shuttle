@@ -1,4 +1,4 @@
-package me.ningyu.app.locator.vo;
+package me.ningyu.app.locator.common.vo;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
