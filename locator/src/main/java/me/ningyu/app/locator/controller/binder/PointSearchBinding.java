@@ -3,7 +3,7 @@ package me.ningyu.app.locator.controller.binder;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringPath;
-import me.ningyu.app.locator.entity.QPoint;
+import me.ningyu.app.locator.domain.map.entity.QPoint;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 
