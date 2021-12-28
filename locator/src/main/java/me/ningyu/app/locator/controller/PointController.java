@@ -5,6 +5,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.controller.binder.PointSearchBinding;
 import me.ningyu.app.locator.domain.map.entity.Point;
 import me.ningyu.app.locator.service.PointService;
@@ -22,6 +23,7 @@ import java.net.URI;
 @Api(tags = "坐标管理接口")
 @RestController
 @RequestMapping("/points")
+@Slf4j
 public class PointController
 {
     private final PointService pointService;
