@@ -15,4 +15,29 @@ import javax.persistence.Table;
 @Getter
 @Setter
 public class Station extends Variable
-{}
+{
+    /**
+     * 站点名称
+     */
+    private String name;
+
+    /**
+     * 站点地址
+     */
+    private String address;
+
+    /**
+     * 站眯描述
+     */
+    private String description;
+
+    /**
+     * 纬度
+     */
+    private Long latitude;
+
+    /**
+     * 经度
+     */
+    private Long longitude;
+}
