@@ -4,10 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import me.ningyu.app.locator.domain.Variable;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.Map;
 
 @Entity
 @Table(name = "locator_station")
@@ -40,4 +38,9 @@ public class Station extends Variable
      * 经度
      */
     private Long longitude;
+
+    @ElementCollection
+    @CollectionTable(name = "locator_image")
+    @MapKeyColumn(name = "station_id")
+    private Map<String, String> images;
 }
