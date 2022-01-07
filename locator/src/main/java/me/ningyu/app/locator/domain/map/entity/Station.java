@@ -5,6 +5,7 @@ import lombok.Setter;
 import me.ningyu.app.locator.domain.Variable;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -41,6 +42,5 @@ public class Station extends Variable
 
     @ElementCollection
     @CollectionTable(name = "locator_image")
-    @MapKeyColumn(name = "station_id")
-    private Map<String, String> images;
+    private List<String> imageURL;
 }
