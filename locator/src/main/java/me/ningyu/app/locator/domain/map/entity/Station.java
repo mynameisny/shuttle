@@ -26,7 +26,7 @@ public class Station extends Variable
     private String address;
 
     /**
-     * 站眯描述
+     * 站点描述
      */
     private String description;
 
