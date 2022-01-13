@@ -14,4 +14,8 @@ public class StationService
     {
         return null;
     }
+
+    public void remove(String id)
+    {
+    }
 }
