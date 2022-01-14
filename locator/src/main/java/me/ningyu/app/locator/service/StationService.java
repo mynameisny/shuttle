@@ -18,4 +18,9 @@ public class StationService
     public void remove(String id)
     {
     }
+
+    public Station update(String id, StationDto dto)
+    {
+        return null;
+    }
 }

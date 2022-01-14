@@ -40,4 +40,11 @@ public class StationController
         stationService.remove(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable String id, @RequestBody StationDto dto)
+    {
+        Station station = stationService.update(id, dto);
+        return ResponseEntity.ok(station);
+    }
 }
