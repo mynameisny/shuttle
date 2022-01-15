@@ -23,4 +23,9 @@ public class StationService
     {
         return null;
     }
+
+    public StationDto get(String id)
+    {
+        return null;
+    }
 }

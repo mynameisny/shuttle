@@ -47,4 +47,11 @@ public class StationController
         Station station = stationService.update(id, dto);
         return ResponseEntity.ok(station);
     }
+
+    @RequestMapping ("/{id}")
+    public ResponseEntity<?> get(@PathVariable String id)
+    {
+        StationDto stationDto = stationService.get(id);
+        return ResponseEntity.ok(stationDto);
+    }
 }
