@@ -5,6 +5,8 @@ import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @Slf4j
 public class StationService
@@ -25,6 +27,11 @@ public class StationService
     }
 
     public StationDto get(String id)
+    {
+        return null;
+    }
+
+    public List<StationDto> list()
     {
         return null;
     }

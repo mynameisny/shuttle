@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 
 @Api(tags = "站点管理接口")
@@ -53,5 +54,12 @@ public class StationController
     {
         StationDto stationDto = stationService.get(id);
         return ResponseEntity.ok(stationDto);
+    }
+
+    @RequestMapping
+    public ResponseEntity<?> list()
+    {
+        List<StationDto> list = stationService.list();
+        return ResponseEntity.ok(list);
     }
 }
