@@ -1,11 +1,17 @@
 package me.ningyu.app.locator.controller;
 
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.PointDto;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.service.StationService;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -57,9 +63,19 @@ public class StationController
     }
 
     @RequestMapping
-    public ResponseEntity<?> list()
+    public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable, Sort sort)
     {
         List<StationDto> list = stationService.list();
         return ResponseEntity.ok(list);
+    }
+
+    private static class StationBinding implements QuerydslBinderCustomizer<QStation>
+    {
+        @Override
+        public void customize(QuerydslBindings bindings, QStation root)
+        {
+            bindings.bind(root.tenantId).first(StringExpression::containsIgnoreCase);
+            bindings.bind(root.tenantGroupId).first(StringExpression::containsIgnoreCase);
+        }
     }
 }
