@@ -1,15 +1,19 @@
 package me.ningyu.app.locator.controller;
 
+import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
+import javafx.beans.binding.LongExpression;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.PointDto;
 import me.ningyu.app.locator.common.vo.StationDto;
+import me.ningyu.app.locator.domain.map.entity.QStation;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.service.StationService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
@@ -74,8 +78,7 @@ public class StationController
         @Override
         public void customize(QuerydslBindings bindings, QStation root)
         {
-            bindings.bind(root.tenantId).first(StringExpression::containsIgnoreCase);
-            bindings.bind(root.tenantGroupId).first(StringExpression::containsIgnoreCase);
+
         }
     }
 }

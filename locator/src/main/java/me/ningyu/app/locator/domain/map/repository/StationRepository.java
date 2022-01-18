@@ -1,6 +1,5 @@
 package me.ningyu.app.locator.domain.map.repository;
 
-import me.ningyu.app.locator.domain.map.entity.Point;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
