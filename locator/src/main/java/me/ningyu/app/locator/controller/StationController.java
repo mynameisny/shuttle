@@ -1,12 +1,9 @@
 package me.ningyu.app.locator.controller;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
-import javafx.beans.binding.LongExpression;
 import lombok.extern.slf4j.Slf4j;
-import me.ningyu.app.locator.common.vo.PointDto;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.QStation;
 import me.ningyu.app.locator.domain.map.entity.Station;
@@ -19,6 +16,7 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+import sun.tools.tree.LongExpression;
 
 import java.net.URI;
 import java.util.List;
@@ -69,7 +67,7 @@ public class StationController
     @RequestMapping
     public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable, Sort sort)
     {
-        List<StationDto> list = stationService.list();
+        List<StationDto> list = stationService.list(predicate, pageable, sort);
         return ResponseEntity.ok(list);
     }
 
@@ -78,7 +76,9 @@ public class StationController
         @Override
         public void customize(QuerydslBindings bindings, QStation root)
         {
-
+            bindings.bind(root.address).first(StringExpression::containsIgnoreCase);
+            //bindings.bind(root.tenantId).first(StringExpression::containsIgnoreCase);
+            //bindings.bind(root.tenantGroupId).first(StringExpression::containsIgnoreCase);
         }
     }
 }

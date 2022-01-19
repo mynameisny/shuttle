@@ -1,8 +1,11 @@
 package me.ningyu.app.locator.service;
 
+import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,7 +34,7 @@ public class StationService
         return null;
     }
 
-    public List<StationDto> list()
+    public List<StationDto> list(Predicate predicate, Pageable pageable, Sort sort)
     {
         return null;
     }
