@@ -1,6 +1,7 @@
 package me.ningyu.app.locator.controller;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -77,8 +78,8 @@ public class StationController
         public void customize(QuerydslBindings bindings, QStation root)
         {
             bindings.bind(root.address).first(StringExpression::containsIgnoreCase);
-            //bindings.bind(root.tenantId).first(StringExpression::containsIgnoreCase);
-            //bindings.bind(root.tenantGroupId).first(StringExpression::containsIgnoreCase);
+            bindings.bind(root.latitude).first(NumberExpression::eq);
+            bindings.bind(root.longitude).first(NumberExpression::eq);
         }
     }
 }
