@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
+import me.ningyu.app.locator.domain.map.repository.StationRepository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,13 @@ import java.util.List;
 @Slf4j
 public class StationService
 {
+    private final StationRepository stationRepository;
+
+    public StationService(StationRepository stationRepository)
+    {
+        this.stationRepository = stationRepository;
+    }
+
 
     public Station add(StationDto dto)
     {
@@ -34,8 +42,9 @@ public class StationService
         return null;
     }
 
-    public List<StationDto> list(Predicate predicate, Pageable pageable, Sort sort)
+    public List<StationDto> list(Predicate predicate, Pageable pageable)
     {
+        stationRepository.findAll(predicate, pageable);
         return null;
     }
 }

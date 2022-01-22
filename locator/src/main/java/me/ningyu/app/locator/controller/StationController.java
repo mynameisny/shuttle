@@ -66,9 +66,9 @@ public class StationController
     }
 
     @RequestMapping
-    public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable, Sort sort)
+    public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
     {
-        List<StationDto> list = stationService.list(predicate, pageable, sort);
+        List<StationDto> list = stationService.list(predicate, pageable);
         return ResponseEntity.ok(list);
     }
 
