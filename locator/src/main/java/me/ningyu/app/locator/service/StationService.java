@@ -5,11 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.map.repository.StationRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @Slf4j
@@ -42,9 +40,8 @@ public class StationService
         return null;
     }
 
-    public List<StationDto> list(Predicate predicate, Pageable pageable)
+    public Page<Station> list(Predicate predicate, Pageable pageable)
     {
-        stationRepository.findAll(predicate, pageable);
-        return null;
+        return stationRepository.findAll(predicate, pageable);
     }
 }

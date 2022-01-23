@@ -9,6 +9,7 @@ import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.QStation;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.service.StationService;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -68,7 +69,7 @@ public class StationController
     @RequestMapping
     public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
     {
-        List<StationDto> list = stationService.list(predicate, pageable);
+        Page<Station> list = stationService.list(predicate, pageable);
         return ResponseEntity.ok(list);
     }
 
