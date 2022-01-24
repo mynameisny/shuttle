@@ -5,9 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.map.repository.StationRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -37,7 +40,10 @@ public class StationService
 
     public StationDto get(String id)
     {
-        return null;
+        Station station = Optional.of(stationRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("站点%s不存在", id)));
+        StationDto dto = new StationDto();
+        BeanUtils.copyProperties(station, dto);
+        return dto;
     }
 
     public Page<Station> list(Predicate predicate, Pageable pageable)
