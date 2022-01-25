@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Service
@@ -29,8 +30,14 @@ public class StationService
         return null;
     }
 
+    @Transactional
     public void remove(String id)
     {
+        Station station = Optional.of(stationRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("站点%s不存在", id)));
+        if (station != null)
+        {
+            stationRepository.deleteById(id);
+        }
     }
 
     public Station update(String id, StationDto dto)
