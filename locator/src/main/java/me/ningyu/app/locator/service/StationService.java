@@ -24,7 +24,7 @@ public class StationService
         this.stationRepository = stationRepository;
     }
 
-
+    @Transactional
     public Station add(StationDto dto)
     {
         Station entity = new Station();
@@ -42,6 +42,7 @@ public class StationService
         }
     }
 
+    @Transactional
     public Station update(String id, StationDto dto)
     {
         return null;
