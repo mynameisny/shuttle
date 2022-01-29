@@ -45,7 +45,9 @@ public class StationService
     @Transactional
     public Station update(String id, StationDto dto)
     {
-        return null;
+        Station station = Optional.of(stationRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("站点%s不存在", id)));
+        BeanUtils.copyProperties(station, dto);
+        return stationRepository.save(station);
     }
 
     public StationDto get(String id)
