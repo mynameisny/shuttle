@@ -40,6 +40,10 @@ public class StationService
         {
             stationRepository.deleteById(id);
         }
+        else
+        {
+            new RuntimeException(String.format("站点%s不存在", id));
+        }
     }
 
     @Transactional
