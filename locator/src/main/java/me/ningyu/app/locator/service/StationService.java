@@ -36,14 +36,7 @@ public class StationService
     public void remove(String id)
     {
         Station station = Optional.of(stationRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("站点%s不存在", id)));
-        if (station != null)
-        {
-            stationRepository.deleteById(id);
-        }
-        else
-        {
-            new RuntimeException(String.format("站点%s不存在", id));
-        }
+        stationRepository.deleteById(id);
     }
 
     @Transactional

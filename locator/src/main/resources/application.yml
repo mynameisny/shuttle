@@ -3,7 +3,7 @@ server:
 spring:
   datasource:
     username: root
-    password: 123456
+    password: 123@ningyu.me
     url: jdbc:mysql://localhost:3306/shuttle_locator
   jpa:
     show-sql: true
