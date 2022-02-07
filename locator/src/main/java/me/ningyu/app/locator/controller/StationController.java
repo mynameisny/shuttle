@@ -34,6 +34,12 @@ public class StationController
         this.stationService = stationService;
     }
 
+    /**
+     * 添加一个站点
+     * @param dto
+     * @param builder
+     * @return
+     */
     @PostMapping
     public ResponseEntity<?> add(@RequestBody StationDto dto, UriComponentsBuilder builder)
     {
