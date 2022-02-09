@@ -15,6 +15,7 @@ import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -41,7 +42,7 @@ public class StationController
      * @return
      */
     @PostMapping
-    public ResponseEntity<?> add(@RequestBody StationDto dto, UriComponentsBuilder builder)
+    public ResponseEntity<?> add(@RequestBody @Validated StationDto dto, UriComponentsBuilder builder)
     {
         Station saved = stationService.add(dto);
         URI location = builder.replacePath("/points/{id}").buildAndExpand(saved.getId()).toUri();
@@ -56,7 +57,7 @@ public class StationController
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable String id, @RequestBody StationDto dto)
+    public ResponseEntity<?> update(@PathVariable String id, @Validated @RequestBody StationDto dto)
     {
         Station station = stationService.update(id, dto);
         return ResponseEntity.ok(station);
