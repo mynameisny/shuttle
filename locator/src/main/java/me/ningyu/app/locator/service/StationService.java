@@ -2,6 +2,7 @@ package me.ningyu.app.locator.service;
 
 import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
+import me.ningyu.app.locator.common.exception.NotfoundException;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.map.repository.StationRepository;
@@ -35,7 +36,7 @@ public class StationService
     @Transactional
     public void remove(String id)
     {
-        Optional.of(stationRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("站点%s不存在", id)));
+        Optional.of(stationRepository.findById(id)).get().orElseThrow(() -> new NotfoundException(String.format("站点%s不存在", id)));
         stationRepository.deleteById(id);
     }
 
