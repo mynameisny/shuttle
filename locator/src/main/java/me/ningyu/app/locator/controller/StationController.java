@@ -24,7 +24,7 @@ import java.net.URI;
 
 @Api(tags = "站点管理接口")
 @RestController
-@RequestMapping(name = "/points")
+@RequestMapping("/stations")
 @Slf4j
 public class StationController
 {
@@ -63,14 +63,14 @@ public class StationController
         return ResponseEntity.ok(station);
     }
 
-    @RequestMapping ("/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable String id)
     {
         StationDto stationDto = stationService.get(id);
         return ResponseEntity.ok(stationDto);
     }
 
-    @RequestMapping
+    @GetMapping
     public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
     {
         Page<Station> list = stationService.list(predicate, pageable);
