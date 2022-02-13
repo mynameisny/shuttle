@@ -6,7 +6,6 @@ import me.ningyu.app.locator.domain.Variable;
 
 import javax.persistence.*;
 import java.util.List;
-import java.util.Map;
 
 @Entity
 @Table(name = "locator_station")
@@ -33,12 +32,12 @@ public class Station extends Variable
     /**
      * 纬度
      */
-    private Long latitude;
+    private Float latitude;
 
     /**
      * 经度
      */
-    private Long longitude;
+    private Float longitude;
 
     @ElementCollection
     @CollectionTable(name = "locator_image")

@@ -27,10 +27,10 @@ public class StationDto
     /**
      * 纬度
      */
-    private Long latitude;
+    private Float latitude;
 
     /**
      * 经度
      */
-    private Long longitude;
+    private Float longitude;
 }
