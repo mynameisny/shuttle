@@ -11,13 +11,13 @@ import javax.persistence.MappedSuperclass;
 import java.io.Serializable;
 
 @MappedSuperclass
-@GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
+//@GenericGenerator(name = "system_uuid", strategy = "uuid")
 @Getter
 @Setter
 public class Identifiable implements Serializable
 {
     @Id
-    @GeneratedValue(generator = "uuid")
-    @Column(length = 36)
+    @GeneratedValue(generator="system-uuid")
+    @GenericGenerator(name="system-uuid", strategy = "uuid")
     private String id;
 }

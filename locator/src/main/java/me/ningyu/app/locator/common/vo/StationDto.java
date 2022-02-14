@@ -2,9 +2,6 @@ package me.ningyu.app.locator.common.vo;
 
 import lombok.Data;
 
-import javax.persistence.CollectionTable;
-import javax.persistence.ElementCollection;
-
 @Data
 public class StationDto
 {
