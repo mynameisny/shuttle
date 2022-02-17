@@ -8,6 +8,7 @@ import me.ningyu.app.locator.domain.vehicle.repository.BrandRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Service
@@ -23,9 +24,10 @@ public class BrandService
         return brandRepository.save(entity);
     }
 
+    @Transactional
     public void remove(String id)
     {
-        Optional.of(brandRepository.findById(id)).get().orElseThrow(() -> new NotfoundException(String.format("品牌%s不存在", id)));
+        Optional.of(brandRepository.findById(id)).get().orElseThrow(() -> new NotfoundException(String.format("站点%s不存在", id)));
         brandRepository.deleteById(id);
     }
 }
