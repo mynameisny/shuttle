@@ -3,6 +3,7 @@ package me.ningyu.app.locator.service;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.exception.NotfoundException;
 import me.ningyu.app.locator.common.vo.BrandDto;
+import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.vehicle.entity.Brand;
 import me.ningyu.app.locator.domain.vehicle.repository.BrandRepository;
 import org.springframework.beans.BeanUtils;
@@ -27,7 +28,14 @@ public class BrandService
     @Transactional
     public void remove(String id)
     {
-        Optional.of(brandRepository.findById(id)).get().orElseThrow(() -> new NotfoundException(String.format("站点%s不存在", id)));
+        Optional.of(brandRepository.findById(id)).get().orElseThrow(() -> new NotfoundException(String.format("品牌%s不存在", id)));
         brandRepository.deleteById(id);
+    }
+
+    public Brand update(String id, BrandDto dto)
+    {
+        Brand brand = Optional.of(brandRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("品牌%s不存在", id)));
+        BeanUtils.copyProperties(brand, dto);
+        return brandRepository.save(brand);
     }
 }
