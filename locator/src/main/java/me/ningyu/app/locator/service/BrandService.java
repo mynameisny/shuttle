@@ -3,6 +3,7 @@ package me.ningyu.app.locator.service;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.exception.NotfoundException;
 import me.ningyu.app.locator.common.vo.BrandDto;
+import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.vehicle.entity.Brand;
 import me.ningyu.app.locator.domain.vehicle.repository.BrandRepository;
@@ -37,5 +38,13 @@ public class BrandService
         Brand brand = Optional.of(brandRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("品牌%s不存在", id)));
         BeanUtils.copyProperties(brand, dto);
         return brandRepository.save(brand);
+    }
+
+    public BrandDto get(String id)
+    {
+        Brand brand = Optional.of(brandRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("品牌%s不存在", id)));
+        BrandDto dto = new BrandDto();
+        BeanUtils.copyProperties(brand, dto);
+        return dto;
     }
 }

@@ -49,4 +49,11 @@ public class BrandController
         Brand brand = brandService.update(id, dto);
         return ResponseEntity.ok(brand);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> get(@PathVariable String id)
+    {
+        BrandDto brandDto = brandService.get(id);
+        return ResponseEntity.ok(brandDto);
+    }
 }
