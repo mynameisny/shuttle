@@ -1,5 +1,6 @@
 package me.ningyu.app.locator.service;
 
+import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.exception.NotfoundException;
 import me.ningyu.app.locator.common.vo.BrandDto;
@@ -8,6 +9,8 @@ import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.vehicle.entity.Brand;
 import me.ningyu.app.locator.domain.vehicle.repository.BrandRepository;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -46,5 +49,10 @@ public class BrandService
         BrandDto dto = new BrandDto();
         BeanUtils.copyProperties(brand, dto);
         return dto;
+    }
+
+    public Page<Brand> list(Predicate predicate, Pageable pageable)
+    {
+        return brandRepository.findAll(predicate, pageable);
     }
 }
