@@ -4,8 +4,6 @@ import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.exception.NotfoundException;
 import me.ningyu.app.locator.common.vo.BrandDto;
-import me.ningyu.app.locator.common.vo.StationDto;
-import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.vehicle.entity.Brand;
 import me.ningyu.app.locator.domain.vehicle.repository.BrandRepository;
 import org.springframework.beans.BeanUtils;
@@ -21,6 +19,11 @@ import java.util.Optional;
 public class BrandService
 {
     private BrandRepository brandRepository;
+
+    public BrandService(BrandRepository brandRepository)
+    {
+        this.brandRepository = brandRepository;
+    }
 
     public Brand add(BrandDto dto)
     {
