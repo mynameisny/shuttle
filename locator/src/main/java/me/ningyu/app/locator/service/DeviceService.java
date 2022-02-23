@@ -1,11 +1,17 @@
 package me.ningyu.app.locator.service;
 
 import lombok.extern.slf4j.Slf4j;
+import me.ningyu.app.locator.common.exception.NotfoundException;
 import me.ningyu.app.locator.common.vo.DeviceDto;
 import me.ningyu.app.locator.domain.device.entity.Device;
 import me.ningyu.app.locator.domain.device.repository.DeviceRepository;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -23,5 +29,12 @@ public class DeviceService
         Device entity = new Device();
         BeanUtils.copyProperties(dto, entity);
         return deviceRepository.save(entity);
+    }
+
+    @DeleteMapping("/{id}")
+    public void remove(@PathVariable String id)
+    {
+        Optional.of(deviceRepository.findById(id)).get().orElseThrow(() -> new NotfoundException(String.format("设备%s不存在", id)));
+        deviceRepository.deleteById(id);
     }
 }

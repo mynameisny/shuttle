@@ -7,10 +7,7 @@ import me.ningyu.app.locator.domain.device.entity.Device;
 import me.ningyu.app.locator.service.DeviceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -36,5 +33,12 @@ public class DeviceController
         Device saved = deviceService.add(dto);
         URI location = builder.replacePath("/devices/{id}").buildAndExpand(saved.getId()).toUri();
         return ResponseEntity.created(location).body(saved);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> remove(@PathVariable String id)
+    {
+        deviceService.remove(id);
+        return ResponseEntity.noContent().build();
     }
 }
