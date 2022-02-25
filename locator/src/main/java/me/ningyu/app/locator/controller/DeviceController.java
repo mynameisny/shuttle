@@ -3,7 +3,9 @@ package me.ningyu.app.locator.controller;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.DeviceDto;
+import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.device.entity.Device;
+import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.service.DeviceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -40,5 +42,19 @@ public class DeviceController
     {
         deviceService.remove(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable String id, @Validated @RequestBody DeviceDto dto)
+    {
+        Device device = deviceService.update(id, dto);
+        return ResponseEntity.ok(device);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> get(@PathVariable String id)
+    {
+        DeviceDto deviceDto = deviceService.get(id);
+        return ResponseEntity.ok(deviceDto);
     }
 }
