@@ -1,11 +1,15 @@
 package me.ningyu.app.locator.service;
 
+import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.exception.NotfoundException;
 import me.ningyu.app.locator.common.vo.DeviceDto;
 import me.ningyu.app.locator.domain.device.entity.Device;
 import me.ningyu.app.locator.domain.device.repository.DeviceRepository;
+import me.ningyu.app.locator.domain.map.entity.Station;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,5 +54,10 @@ public class DeviceService
         DeviceDto dto = new DeviceDto();
         BeanUtils.copyProperties(device, dto);
         return dto;
+    }
+
+    public Page<Device> list(Predicate predicate, Pageable pageable)
+    {
+        return deviceRepository.findAll(predicate, pageable);
     }
 }
