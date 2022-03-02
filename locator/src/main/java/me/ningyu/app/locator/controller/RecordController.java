@@ -2,10 +2,12 @@ package me.ningyu.app.locator.controller;
 
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
+import me.ningyu.app.locator.common.vo.BrandDto;
 import me.ningyu.app.locator.common.vo.RecordDto;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.record.entity.Record;
+import me.ningyu.app.locator.domain.vehicle.entity.Brand;
 import me.ningyu.app.locator.service.RecordService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -40,5 +42,12 @@ public class RecordController
     {
         recordService.remove(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable String id, @Validated @RequestBody BrandDto dto)
+    {
+        Record record = recordService.update(id, dto);
+        return ResponseEntity.ok(record);
     }
 }
