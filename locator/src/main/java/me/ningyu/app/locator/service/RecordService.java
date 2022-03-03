@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.exception.NotfoundException;
 import me.ningyu.app.locator.common.vo.BrandDto;
 import me.ningyu.app.locator.common.vo.RecordDto;
+import me.ningyu.app.locator.common.vo.StationDto;
+import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.record.entity.Record;
 import me.ningyu.app.locator.domain.record.repository.RecordRepository;
 import me.ningyu.app.locator.domain.vehicle.entity.Brand;
@@ -42,8 +44,16 @@ public class RecordService
     @Transactional
     public Record update(String id, BrandDto dto)
     {
-        Record brand = Optional.of(recordRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("品牌%s不存在", id)));
+        Record brand = Optional.of(recordRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("记录%s不存在", id)));
         BeanUtils.copyProperties(brand, dto);
         return recordRepository.save(brand);
+    }
+
+    public RecordDto get(String id)
+    {
+        Record record = Optional.of(recordRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("记录%s不存在", id)));
+        RecordDto dto = new RecordDto();
+        BeanUtils.copyProperties(record, dto);
+        return dto;
     }
 }

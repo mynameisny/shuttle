@@ -50,4 +50,11 @@ public class RecordController
         Record record = recordService.update(id, dto);
         return ResponseEntity.ok(record);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> get(@PathVariable String id)
+    {
+        RecordDto recordDto = recordService.get(id);
+        return ResponseEntity.ok(recordDto);
+    }
 }
