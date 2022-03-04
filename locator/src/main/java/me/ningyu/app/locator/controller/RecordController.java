@@ -1,14 +1,24 @@
 package me.ningyu.app.locator.controller;
 
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.BrandDto;
 import me.ningyu.app.locator.common.vo.RecordDto;
 import me.ningyu.app.locator.common.vo.StationDto;
+import me.ningyu.app.locator.domain.map.entity.QStation;
 import me.ningyu.app.locator.domain.map.entity.Station;
+import me.ningyu.app.locator.domain.record.entity.QRecord;
 import me.ningyu.app.locator.domain.record.entity.Record;
 import me.ningyu.app.locator.domain.vehicle.entity.Brand;
 import me.ningyu.app.locator.service.RecordService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -56,5 +66,21 @@ public class RecordController
     {
         RecordDto recordDto = recordService.get(id);
         return ResponseEntity.ok(recordDto);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> list(@QuerydslPredicate(root = Record.class, bindings = RecordController.RecordBinding.class) Predicate predicate, Pageable pageable)
+    {
+        Page<Record> list = recordService.list(predicate, pageable);
+        return ResponseEntity.ok(list);
+    }
+
+    private static class RecordBinding implements QuerydslBinderCustomizer<QRecord>
+    {
+        @Override
+        public void customize(QuerydslBindings bindings, QRecord root)
+        {
+            bindings.bind(root.name).first(StringExpression::containsIgnoreCase);
+        }
     }
 }

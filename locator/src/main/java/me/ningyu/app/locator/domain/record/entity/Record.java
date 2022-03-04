@@ -15,5 +15,5 @@ import javax.persistence.*;
 @Setter
 public class Record extends Variable
 {
-
+    private String name;
 }
