@@ -16,6 +16,11 @@ public class User extends Variable
     private String code;
 
     /**
+     * 用户名称
+     */
+    private String name;
+
+    /**
      * 用户锁定.
      */
     private Boolean locked;
