@@ -3,6 +3,7 @@ package me.ningyu.app.locator.service;
 
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.exception.NotfoundException;
+import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.common.vo.UserDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.user.entity.User;
@@ -44,5 +45,13 @@ public class UserService
         User user = Optional.of(userRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("站点%s不存在", id)));
         BeanUtils.copyProperties(user, dto);
         return userRepository.save(user);
+    }
+
+    public UserDto get(String id)
+    {
+        User user = Optional.of(userRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("站点%s不存在", id)));
+        UserDto dto = new UserDto();
+        BeanUtils.copyProperties(user, dto);
+        return dto;
     }
 }

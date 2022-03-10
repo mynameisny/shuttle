@@ -51,4 +51,12 @@ public class UserController
         User user = userService.update(id, dto);
         return ResponseEntity.ok(user);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> get(@PathVariable String id)
+    {
+        UserDto userDto = userService.get(id);
+        return ResponseEntity.ok(userDto);
+    }
+
 }
