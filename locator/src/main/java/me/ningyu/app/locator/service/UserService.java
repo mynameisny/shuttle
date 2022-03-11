@@ -1,6 +1,7 @@
 package me.ningyu.app.locator.service;
 
 
+import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.exception.NotfoundException;
 import me.ningyu.app.locator.common.vo.StationDto;
@@ -9,6 +10,8 @@ import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.user.entity.User;
 import me.ningyu.app.locator.domain.user.repository.UserRepository;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -53,5 +56,10 @@ public class UserService
         UserDto dto = new UserDto();
         BeanUtils.copyProperties(user, dto);
         return dto;
+    }
+
+    public Page<User> list(Predicate predicate, Pageable pageable)
+    {
+        return userRepository.findAll(predicate, pageable);
     }
 }
