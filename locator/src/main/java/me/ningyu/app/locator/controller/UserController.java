@@ -2,6 +2,7 @@ package me.ningyu.app.locator.controller;
 
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.EnumExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
@@ -85,6 +86,7 @@ public class UserController
             bindings.bind(root.email).first(StringExpression::eq);
             bindings.bind(root.mobile).first(StringExpression::eq);
             bindings.bind(root.telephone).first(StringExpression::eq);
+            bindings.bind(root.gender).first(EnumExpression::eq);
         }
     }
 
