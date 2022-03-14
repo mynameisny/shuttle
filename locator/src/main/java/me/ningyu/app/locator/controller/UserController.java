@@ -89,6 +89,7 @@ public class UserController
             bindings.bind(root.telephone).first(StringExpression::eq);
             bindings.bind(root.gender).first(EnumExpression::eq);
             bindings.bind(root.locked).first(BooleanExpression::eq);
+            bindings.bind(root.remark).first(StringExpression::containsIgnoreCase);
         }
     }
 
