@@ -4,9 +4,7 @@ package me.ningyu.app.locator.service;
 import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.exception.NotfoundException;
-import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.common.vo.UserDto;
-import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.user.entity.User;
 import me.ningyu.app.locator.domain.user.repository.UserRepository;
 import org.springframework.beans.BeanUtils;
@@ -15,7 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 @Service
 @Slf4j
