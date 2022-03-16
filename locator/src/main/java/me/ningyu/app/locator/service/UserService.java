@@ -13,9 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 @Service
 @Slf4j
@@ -45,14 +43,14 @@ public class UserService
 
     public User update(String id, UserDto dto)
     {
-        User user = Optional.of(userRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("站点%s不存在", id)));
+        User user = Optional.of(userRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("用户%s不存在", id)));
         BeanUtils.copyProperties(user, dto);
         return userRepository.save(user);
     }
 
     public UserDto get(String id)
     {
-        User user = Optional.of(userRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("站点%s不存在", id)));
+        User user = Optional.of(userRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("用户%s不存在", id)));
         UserDto dto = new UserDto();
         BeanUtils.copyProperties(user, dto);
         return dto;
