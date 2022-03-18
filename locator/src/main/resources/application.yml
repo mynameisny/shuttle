@@ -23,7 +23,7 @@ logging:
     name: shuttle-locator.log
   logback:
     rollingpolicy:
-      file-name-pattern: MyApp-%d{yyyy-MM-dd}.%i.log
+      file-name-pattern: shuttle-locator-%d{yyyy-MM-dd}.%i.log
       max-file-size: 1MB
       total-size-cap: 10MB
       max-history: 30
