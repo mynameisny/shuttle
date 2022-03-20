@@ -83,6 +83,7 @@ public class UserController
         @Override
         public void customize(QuerydslBindings bindings, QUser root)
         {
+            bindings.bind(root.id).first(StringExpression::containsIgnoreCase);
             bindings.bind(root.code).first(StringExpression::containsIgnoreCase);
             bindings.bind(root.email).first(StringExpression::eq);
             bindings.bind(root.mobile).first(StringExpression::eq);
