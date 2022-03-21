@@ -74,6 +74,7 @@ public class StationController
     public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
     {
         Page<Station> list = stationService.list(predicate, pageable);
+        list.map(stop -> StationDto.builder().name(stop.getName()).address(stop.getAddress()).description(stop.getDescription()).latitude(stop.getLatitude()).longitude(stop.getLongitude()).build());
         return ResponseEntity.ok(list);
     }
 
