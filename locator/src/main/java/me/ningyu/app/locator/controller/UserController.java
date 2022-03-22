@@ -75,6 +75,7 @@ public class UserController
     public ResponseEntity<?> list(@QuerydslPredicate(root = User.class, bindings = UserController.UserBinding.class) Predicate predicate, Pageable pageable)
     {
         Page<User> list = userService.list(predicate, pageable);
+        list.map(u -> UserDto.builder().code(u.getCode()).name(u.getName()).build());
         return ResponseEntity.ok(list);
     }
 

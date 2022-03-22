@@ -1,5 +1,6 @@
 package me.ningyu.app.locator.domain.user.entity;
 
+import lombok.Data;
 import me.ningyu.app.locator.domain.Variable;
 
 import javax.persistence.Column;
@@ -8,6 +9,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.MappedSuperclass;
 
 @MappedSuperclass
+@Data
 public class User extends Variable
 {
     /**
