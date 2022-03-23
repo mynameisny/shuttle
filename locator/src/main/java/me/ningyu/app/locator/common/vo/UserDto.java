@@ -13,4 +13,6 @@ public class UserDto
      * 用户名称
      */
     private String name;
+
+    private String email;
 }
