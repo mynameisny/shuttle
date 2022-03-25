@@ -14,6 +14,9 @@ public class UserDto
      */
     private String name;
 
+    /**
+     * 用户邮箱
+     */
     private String email;
 
     private String mobile;
