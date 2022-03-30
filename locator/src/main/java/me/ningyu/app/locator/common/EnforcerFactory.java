@@ -1,5 +1,6 @@
 package me.ningyu.app.locator.common;
 
+import me.ningyu.app.locator.common.vo.cabin.Policy;
 import me.ningyu.app.locator.config.CasbinAdapterConfig;
 import org.apache.commons.io.IOUtils;
 import org.casbin.adapter.JDBCAdapter;
@@ -43,5 +44,21 @@ public class EnforcerFactory implements InitializingBean
     public Enforcer getEnforcer()
     {
         return enforcer;
+    }
+
+    public boolean addPolicy(Policy policy)
+    {
+        boolean addPolicyResult = enforcer.addPolicy(policy.getSub(), policy.getObj(), policy.getAct());
+        enforcer.savePolicy();
+
+        return addPolicyResult;
+    }
+
+    public boolean removePolicy(Policy policy)
+    {
+        boolean removePolicyResult = enforcer.removePolicy(policy.getSub(), policy.getObj(), policy.getAct());
+        enforcer.savePolicy();
+
+        return removePolicyResult;
     }
 }
