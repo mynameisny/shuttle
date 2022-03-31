@@ -1,4 +1,4 @@
-package me.ningyu.app.locator.common.vo.cabin;
+package me.ningyu.app.locator.common.vo.casbin;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

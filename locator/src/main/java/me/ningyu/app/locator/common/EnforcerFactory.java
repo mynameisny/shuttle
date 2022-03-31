@@ -1,6 +1,6 @@
 package me.ningyu.app.locator.common;
 
-import me.ningyu.app.locator.common.vo.cabin.Policy;
+import me.ningyu.app.locator.common.vo.casbin.Policy;
 import me.ningyu.app.locator.config.CasbinAdapterConfig;
 import org.apache.commons.io.IOUtils;
 import org.casbin.adapter.JDBCAdapter;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 
 @Component
