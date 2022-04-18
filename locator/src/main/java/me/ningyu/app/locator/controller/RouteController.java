@@ -42,4 +42,11 @@ public class RouteController
         routeService.remove(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable String id, @Validated @RequestBody RouteDto dto)
+    {
+        Route route = routeService.update(id, dto);
+        return ResponseEntity.ok(route);
+    }
 }
