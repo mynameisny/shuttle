@@ -49,4 +49,11 @@ public class RouteController
         Route route = routeService.update(id, dto);
         return ResponseEntity.ok(route);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> get(@PathVariable String id)
+    {
+        RouteDto routeDto = routeService.get(id);
+        return ResponseEntity.ok(routeDto);
+    }
 }
