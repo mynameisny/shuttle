@@ -1,12 +1,22 @@
 package me.ningyu.app.locator.controller;
 
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.RouteDto;
 import me.ningyu.app.locator.common.vo.StationDto;
+import me.ningyu.app.locator.domain.map.entity.QStation;
 import me.ningyu.app.locator.domain.map.entity.Station;
+import me.ningyu.app.locator.domain.route.entity.QRoute;
 import me.ningyu.app.locator.domain.route.entity.Route;
 import me.ningyu.app.locator.service.RouteService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -55,5 +65,22 @@ public class RouteController
     {
         RouteDto routeDto = routeService.get(id);
         return ResponseEntity.ok(routeDto);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> list(@QuerydslPredicate(root = Route.class, bindings = RouteController.RouteBinding.class) Predicate predicate, Pageable pageable)
+    {
+        Page<Route> list = routeService.list(predicate, pageable);
+        list.map(stop -> RouteDto.builder().name(stop.getName()).build());
+        return ResponseEntity.ok(list);
+    }
+
+    private static class RouteBinding implements QuerydslBinderCustomizer<QRoute>
+    {
+        @Override
+        public void customize(QuerydslBindings bindings, QRoute root)
+        {
+            bindings.bind(root.name).first(StringExpression::containsIgnoreCase);
+        }
     }
 }

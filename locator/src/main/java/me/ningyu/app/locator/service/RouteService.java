@@ -1,5 +1,6 @@
 package me.ningyu.app.locator.service;
 
+import com.querydsl.core.types.Predicate;
 import me.ningyu.app.locator.common.exception.NotfoundException;
 import me.ningyu.app.locator.common.vo.RouteDto;
 import me.ningyu.app.locator.common.vo.StationDto;
@@ -7,6 +8,8 @@ import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.route.entity.Route;
 import me.ningyu.app.locator.domain.route.repository.RouteRepository;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -47,5 +50,10 @@ public class RouteService
         RouteDto dto = new RouteDto();
         BeanUtils.copyProperties(route, dto);
         return dto;
+    }
+
+    public Page<Route> list(Predicate predicate, Pageable pageable)
+    {
+        return routeRepository.findAll(predicate, pageable);
     }
 }
