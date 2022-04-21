@@ -1,14 +1,10 @@
 package me.ningyu.app.locator.controller;
 
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.RouteDto;
-import me.ningyu.app.locator.common.vo.StationDto;
-import me.ningyu.app.locator.domain.map.entity.QStation;
-import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.route.entity.QRoute;
 import me.ningyu.app.locator.domain.route.entity.Route;
 import me.ningyu.app.locator.service.RouteService;
@@ -26,7 +22,7 @@ import java.net.URI;
 
 @Api(tags = "路线管理接口")
 @RestController
-@RequestMapping("/routes")
+@RequestMapping(value = "/routes")
 @Slf4j
 public class RouteController
 {
@@ -71,7 +67,7 @@ public class RouteController
     public ResponseEntity<?> list(@QuerydslPredicate(root = Route.class, bindings = RouteController.RouteBinding.class) Predicate predicate, Pageable pageable)
     {
         Page<Route> list = routeService.list(predicate, pageable);
-        list.map(stop -> RouteDto.builder().name(stop.getName()).build());
+        list.map(route -> RouteDto.builder().name(route.getName()).build());
         return ResponseEntity.ok(list);
     }
 
