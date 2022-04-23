@@ -19,7 +19,7 @@ public class RouteDto
     /**
      * 线路编号
      */
-    private String no;
+    private String code;
 
     /**
      * 线路描述

@@ -16,9 +16,7 @@ import javax.persistence.Table;
 @Setter
 public class Route extends Variable
 {
-    private String id;
-
-    private String no;
+    private String code;
 
     private String name;
 
