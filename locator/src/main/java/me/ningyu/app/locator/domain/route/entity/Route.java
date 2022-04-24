@@ -21,5 +21,7 @@ public class Route extends Variable
     private String name;
 
     private String description;
+
+    private String colorHex;
 }
 

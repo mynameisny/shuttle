@@ -25,4 +25,9 @@ public class RouteDto
      * 线路描述
      */
     private String description;
+
+    /**
+     * 表示线路的颜色
+     */
+    private String colorHex;
 }
