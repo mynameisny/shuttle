@@ -77,6 +77,8 @@ public class RouteController
         public void customize(QuerydslBindings bindings, QRoute root)
         {
             bindings.bind(root.name).first(StringExpression::containsIgnoreCase);
+            bindings.bind(root.code).first(StringExpression::eq);
+            bindings.bind(root.colorHex).first(StringExpression::eq);
         }
     }
 }
