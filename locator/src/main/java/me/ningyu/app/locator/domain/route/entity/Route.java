@@ -22,6 +22,9 @@ public class Route extends Variable
 
     private String description;
 
+    /**
+     * 代表线路颜色（十六进制）
+     */
     private String colorHex;
 }
 
