@@ -18,8 +18,14 @@ public class Route extends Variable
 {
     private String code;
 
+    /**
+     * 线路名称
+     */
     private String name;
 
+    /**
+     * 线路描述
+     */
     private String description;
 
     /**
