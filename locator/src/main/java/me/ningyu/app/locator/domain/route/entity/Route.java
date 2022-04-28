@@ -16,6 +16,9 @@ import javax.persistence.Table;
 @Setter
 public class Route extends Variable
 {
+    /**
+     * 线路编号
+     */
     private String code;
 
     /**
