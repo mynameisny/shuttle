@@ -12,14 +12,14 @@ import lombok.NoArgsConstructor;
 public class RouteDto
 {
     /**
-     * 线路名称
-     */
-    private String name;
-
-    /**
      * 线路编号
      */
     private String code;
+
+    /**
+     * 线路名称
+     */
+    private String name;
 
     /**
      * 线路描述
