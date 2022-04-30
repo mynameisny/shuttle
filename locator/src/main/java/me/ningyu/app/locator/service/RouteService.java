@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Service
@@ -24,6 +25,7 @@ public class RouteService
         this.routeRepository = routeRepository;
     }
 
+    @Transactional
     public Route add(RouteDto dto)
     {
         Route entity = new Route();
