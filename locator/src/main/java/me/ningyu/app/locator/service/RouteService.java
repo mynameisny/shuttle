@@ -33,6 +33,7 @@ public class RouteService
         return routeRepository.save(entity);
     }
 
+    @Transactional
     public void remove(String id)
     {
         Optional.of(routeRepository.findById(id)).get().orElseThrow(() -> new NotfoundException(String.format("路线%s不存在", id)));
