@@ -40,6 +40,7 @@ public class RouteService
         routeRepository.deleteById(id);
     }
 
+    @Transactional
     public Route update(String id, RouteDto dto)
     {
         Route route = Optional.of(routeRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("路线%s不存在", id)));
