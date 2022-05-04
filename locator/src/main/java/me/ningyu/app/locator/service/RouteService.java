@@ -43,14 +43,14 @@ public class RouteService
     @Transactional
     public Route update(String id, RouteDto dto)
     {
-        Route route = Optional.of(routeRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("路线%s不存在", id)));
+        Route route = Optional.of(routeRepository.findById(id)).get().orElseThrow(() -> new NotfoundException(String.format("路线%s不存在", id)));
         BeanUtils.copyProperties(route, dto);
         return routeRepository.save(route);
     }
 
     public RouteDto get(String id)
     {
-        Route route  = Optional.of(routeRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("路线%s不存在", id)));
+        Route route  = Optional.of(routeRepository.findById(id)).get().orElseThrow(() -> new NotfoundException(String.format("路线%s不存在", id)));
         RouteDto dto = new RouteDto();
         BeanUtils.copyProperties(route, dto);
         return dto;
