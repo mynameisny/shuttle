@@ -35,5 +35,15 @@ public class Route extends Variable
      * 代表线路颜色（十六进制）
      */
     private String colorHex;
+
+    /**
+     * 线路起点
+     */
+    private String origin;
+
+    /**
+     * 线路终点
+     */
+    private String terminal;
 }
 
