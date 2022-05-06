@@ -30,4 +30,14 @@ public class RouteDto
      * 表示线路的颜色
      */
     private String colorHex;
+
+    /**
+     * 线路起点
+     */
+    private String origin;
+
+    /**
+     * 线路终点
+     */
+    private String terminal;
 }
