@@ -34,6 +34,12 @@ public class RouteController
     }
 
 
+    /**
+     * 添加线路
+     * @param dto
+     * @param builder
+     * @return
+     */
     @PostMapping
     public ResponseEntity<?> add(@RequestBody @Validated RouteDto dto, UriComponentsBuilder builder)
     {
