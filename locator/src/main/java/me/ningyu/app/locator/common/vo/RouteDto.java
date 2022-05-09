@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -14,6 +16,7 @@ public class RouteDto
     /**
      * 线路编号
      */
+    @NotBlank(message = "线路编号不能为空")
     private String code;
 
     /**
