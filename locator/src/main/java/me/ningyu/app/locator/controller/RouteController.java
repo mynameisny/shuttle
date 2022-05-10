@@ -8,6 +8,7 @@ import me.ningyu.app.locator.common.vo.RouteDto;
 import me.ningyu.app.locator.domain.route.entity.QRoute;
 import me.ningyu.app.locator.domain.route.entity.Route;
 import me.ningyu.app.locator.service.RouteService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -35,7 +36,7 @@ public class RouteController
 
 
     /**
-     * 添加线路
+     * 添加一条线路
      * @param dto
      * @param builder
      * @return
@@ -45,7 +46,11 @@ public class RouteController
     {
         Route saved = routeService.add(dto);
         URI location = builder.replacePath("/routes/{id}").buildAndExpand(saved.getId()).toUri();
-        return ResponseEntity.created(location).body(saved);
+
+        RouteDto result = new RouteDto();
+        BeanUtils.copyProperties(saved, result);
+
+        return ResponseEntity.created(location).body(result);
     }
 
     @DeleteMapping("/{id}")
