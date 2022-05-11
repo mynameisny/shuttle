@@ -63,8 +63,12 @@ public class RouteController
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable String id, @Validated @RequestBody RouteDto dto)
     {
-        Route route = routeService.update(id, dto);
-        return ResponseEntity.ok(route);
+        Route updated = routeService.update(id, dto);
+    
+        RouteDto result = new RouteDto();
+        BeanUtils.copyProperties(updated, result);
+        
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")
