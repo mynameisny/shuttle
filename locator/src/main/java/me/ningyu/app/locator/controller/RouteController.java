@@ -82,7 +82,7 @@ public class RouteController
     public ResponseEntity<?> list(@QuerydslPredicate(root = Route.class, bindings = RouteController.RouteBinding.class) Predicate predicate, Pageable pageable)
     {
         Page<Route> list = routeService.list(predicate, pageable);
-        list.map(route -> RouteDto.builder().name(route.getName()).build());
+        list.map(route -> RouteDto.builder().code(route.getCode()).name(route.getName()).colorHex(route.getColorHex()).build());
         return ResponseEntity.ok(list);
     }
 
