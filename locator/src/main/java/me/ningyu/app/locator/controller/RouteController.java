@@ -94,6 +94,7 @@ public class RouteController
             bindings.bind(root.name).first(StringExpression::containsIgnoreCase);
             bindings.bind(root.code).first(StringExpression::eq);
             bindings.bind(root.colorHex).first(StringExpression::eq);
+            bindings.bind(root.description).first(StringExpression::containsIgnoreCase);
             bindings.bind(root.origin).first(StringExpression::containsIgnoreCase);
             bindings.bind(root.terminal).first(StringExpression::containsIgnoreCase);
         }
