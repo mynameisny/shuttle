@@ -63,6 +63,9 @@ public class RouteController
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable String id, @Validated @RequestBody RouteDto dto)
     {
+        RouteDto origin = routeService.get(id);
+        log.info("修改前的线路为{}", origin);
+
         Route updated = routeService.update(id, dto);
     
         RouteDto result = new RouteDto();
