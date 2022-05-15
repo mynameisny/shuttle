@@ -56,6 +56,9 @@ public class RouteController
     @DeleteMapping("/{id}")
     public ResponseEntity<?> remove(@PathVariable String id)
     {
+        RouteDto origin = routeService.get(id);
+        log.info("要删除的线路为{}", origin);
+
         routeService.remove(id);
         return ResponseEntity.noContent().build();
     }
