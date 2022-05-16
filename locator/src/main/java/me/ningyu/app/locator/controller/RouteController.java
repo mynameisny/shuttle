@@ -53,6 +53,11 @@ public class RouteController
         return ResponseEntity.created(location).body(result);
     }
 
+    /**
+     * 删除指定ID的线路
+     * @param id 线路ID
+     * @return
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> remove(@PathVariable String id)
     {
