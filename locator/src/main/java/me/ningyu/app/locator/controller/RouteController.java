@@ -68,6 +68,12 @@ public class RouteController
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 修改指定ID的线路
+     * @param id 线路ID
+     * @param dto 要修改成的线路
+     * @return
+     */
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable String id, @Validated @RequestBody RouteDto dto)
     {
