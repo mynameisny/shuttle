@@ -88,6 +88,11 @@ public class RouteController
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * 查找指定ID的线路
+     * @param id 线路ID
+     * @return
+     */
     @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable String id)
     {
