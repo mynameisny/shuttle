@@ -104,7 +104,7 @@ public class RouteController
      * 列出满足条件的线路
      * @param predicate 查询条件
      * @param pageable 分页参数
-     * @return
+     * @return 包含分页信息的线路列表
      */
     @GetMapping
     public ResponseEntity<?> list(@QuerydslPredicate(root = Route.class, bindings = RouteController.RouteBinding.class) Predicate predicate, Pageable pageable)
