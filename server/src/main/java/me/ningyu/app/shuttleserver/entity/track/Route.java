@@ -25,6 +25,9 @@ public class Route
      * 路线描述
      */
     private String description;
+
+
+    private String status;
     
     @OneToMany(mappedBy = "route")
     private Set<Line> lineList;

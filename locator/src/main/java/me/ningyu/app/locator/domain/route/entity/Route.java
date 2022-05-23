@@ -45,5 +45,10 @@ public class Route extends Variable
      * 线路终点
      */
     private String terminal;
+
+    /**
+     * 线路状态
+     */
+    private String status;
 }
 
