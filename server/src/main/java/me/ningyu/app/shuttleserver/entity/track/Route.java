@@ -26,7 +26,9 @@ public class Route
      */
     private String description;
 
-
+    /**
+     * 线路状态
+     */
     private String status;
     
     @OneToMany(mappedBy = "route")
