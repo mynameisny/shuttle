@@ -7,7 +7,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.Set;
 
 /**
- * 路线
+ * 路线实体类
  */
 @Table(name = "route")
 @Entity
