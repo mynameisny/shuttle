@@ -2,6 +2,7 @@ package me.ningyu.app.locator.domain.route.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.ningyu.app.locator.common.enums.RouteStatus;
 import me.ningyu.app.locator.domain.Variable;
 
 import javax.persistence.Entity;
@@ -49,6 +50,6 @@ public class Route extends Variable
     /**
      * 线路状态
      */
-    private String status;
+    private RouteStatus status;
 }
 

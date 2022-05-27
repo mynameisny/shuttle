@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import me.ningyu.app.locator.common.enums.RouteStatus;
 
 import javax.validation.constraints.NotBlank;
 
@@ -43,4 +44,6 @@ public class RouteDto
      * 线路终点
      */
     private String terminal;
+
+    private RouteStatus status;
 }
