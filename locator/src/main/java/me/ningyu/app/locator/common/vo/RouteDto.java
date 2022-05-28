@@ -45,5 +45,8 @@ public class RouteDto
      */
     private String terminal;
 
+    /**
+     * 线路状态
+     */
     private RouteStatus status;
 }
