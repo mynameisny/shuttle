@@ -1,5 +1,6 @@
 package me.ningyu.app.locator.controller;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Optional;
 
 @Api(tags = "路线管理接口")
 @RestController
@@ -125,6 +127,7 @@ public class RouteController
             bindings.bind(root.description).first(StringExpression::containsIgnoreCase);
             bindings.bind(root.origin).first(StringExpression::containsIgnoreCase);
             bindings.bind(root.terminal).first(StringExpression::containsIgnoreCase);
+            bindings.bind(root.status).all((path, value) -> Optional.empty());
         }
     }
 }
