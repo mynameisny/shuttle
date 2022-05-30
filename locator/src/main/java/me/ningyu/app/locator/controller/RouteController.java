@@ -58,7 +58,7 @@ public class RouteController
     /**
      * 删除指定ID的线路
      * @param id 线路ID
-     * @return
+     * @return 成功后返回HTTP 204响应码
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> remove(@PathVariable String id)
