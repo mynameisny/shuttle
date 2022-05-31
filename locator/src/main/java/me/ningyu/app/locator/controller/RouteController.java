@@ -39,8 +39,8 @@ public class RouteController
 
     /**
      * 添加一条线路
-     * @param dto
-     * @param builder
+     * @param dto 需要创建的线路
+     * @param builder 工具类UriComponents，用于根据URL和参数来构建路径
      * @return
      */
     @PostMapping
