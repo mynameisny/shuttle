@@ -41,7 +41,7 @@ public class RouteController
      * 添加一条线路
      * @param dto 需要创建的线路
      * @param builder 工具类UriComponents，用于根据URL和参数来构建路径，详见：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-uri-building
-     * @return
+     * @return 成功后返回HTTP 201状态码
      */
     @PostMapping
     public ResponseEntity<?> add(@RequestBody @Validated RouteDto dto, UriComponentsBuilder builder)
