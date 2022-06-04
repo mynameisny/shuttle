@@ -5,6 +5,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
+import me.ningyu.app.locator.common.enums.RouteStatus;
 import me.ningyu.app.locator.common.vo.RouteDto;
 import me.ningyu.app.locator.domain.route.entity.QRoute;
 import me.ningyu.app.locator.domain.route.entity.Route;
@@ -112,7 +113,7 @@ public class RouteController
     public ResponseEntity<?> list(@QuerydslPredicate(root = Route.class, bindings = RouteController.RouteBinding.class) Predicate predicate, Pageable pageable)
     {
         Page<Route> list = routeService.list(predicate, pageable);
-        list.map(route -> RouteDto.builder().code(route.getCode()).name(route.getName()).colorHex(route.getColorHex()).build());
+        list.map(route -> RouteDto.builder().code(route.getCode()).name(route.getName()).colorHex(route.getColorHex()).status(route.getStatus()).build());
         return ResponseEntity.ok(list);
     }
 
