@@ -4,6 +4,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.enums.RouteStatus;
 import me.ningyu.app.locator.common.vo.RouteDto;
@@ -11,6 +12,7 @@ import me.ningyu.app.locator.domain.route.entity.QRoute;
 import me.ningyu.app.locator.domain.route.entity.Route;
 import me.ningyu.app.locator.service.RouteService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -30,12 +32,8 @@ import java.util.Optional;
 @Slf4j
 public class RouteController
 {
-    private final RouteService routeService;
-
-    public RouteController(RouteService routeService)
-    {
-        this.routeService = routeService;
-    }
+    @Setter(onMethod_ = {@Autowired})
+    private RouteService routeService;
 
 
     /**
