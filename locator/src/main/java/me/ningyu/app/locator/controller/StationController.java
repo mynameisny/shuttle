@@ -4,11 +4,13 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.QStation;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.service.StationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -28,12 +30,9 @@ import java.net.URI;
 @Slf4j
 public class StationController
 {
-    private final StationService stationService;
+    @Setter(onMethod_ = {@Autowired})
+    private StationService stationService;
 
-    public StationController(StationService stationService)
-    {
-        this.stationService = stationService;
-    }
 
     /**
      * 添加一个站点
