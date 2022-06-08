@@ -35,4 +35,9 @@ public class StationDto
      * 经度
      */
     private Float longitude;
+
+    /**
+     * 邮编
+     */
+    private String zipCode;
 }
