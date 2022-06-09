@@ -39,6 +39,11 @@ public class Station extends Variable
      */
     private Float longitude;
 
+    /**
+     * 邮政编码
+     */
+    private String zipCode;
+
     @ElementCollection
     @CollectionTable(name = "locator_image")
     private List<String> imageURL;
