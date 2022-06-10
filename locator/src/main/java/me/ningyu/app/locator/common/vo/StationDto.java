@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import me.ningyu.app.locator.common.enums.StationStatus;
 
 @Data
 @Builder
@@ -40,4 +41,9 @@ public class StationDto
      * 邮编
      */
     private String zipCode;
+
+    /**
+     * 添加站点状态
+     */
+    private StationStatus status;
 }
