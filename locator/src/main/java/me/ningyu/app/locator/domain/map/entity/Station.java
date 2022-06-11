@@ -2,6 +2,7 @@ package me.ningyu.app.locator.domain.map.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.ningyu.app.locator.common.enums.StationStatus;
 import me.ningyu.app.locator.domain.Variable;
 
 import javax.persistence.*;
@@ -43,6 +44,11 @@ public class Station extends Variable
      * 邮政编码
      */
     private String zipCode;
+
+    /**
+     * 站点状态
+     */
+    private StationStatus status;
 
     @ElementCollection
     @CollectionTable(name = "locator_image")
