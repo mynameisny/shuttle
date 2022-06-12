@@ -51,6 +51,6 @@ public class Station extends Variable
     private StationStatus status;
 
     @ElementCollection
-    @CollectionTable(name = "locator_image")
+    @CollectionTable(name = "locator_station_image")
     private List<String> imageURL;
 }
