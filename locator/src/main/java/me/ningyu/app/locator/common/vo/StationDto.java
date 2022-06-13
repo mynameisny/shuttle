@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.ningyu.app.locator.common.enums.StationStatus;
 
+import javax.persistence.CollectionTable;
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -43,7 +46,12 @@ public class StationDto
     private String zipCode;
 
     /**
-     * 添加站点状态
+     * 站点状态
      */
     private StationStatus status;
+
+    /**
+     * 站点图片
+     */
+    private List<String> imageURL;
 }
