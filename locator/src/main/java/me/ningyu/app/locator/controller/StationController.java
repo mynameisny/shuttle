@@ -24,7 +24,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 
 
-@Api(tags = "站点管理接口")
+@Api(tags = "站点管理")
 @RestController
 @RequestMapping("/stations")
 @Slf4j

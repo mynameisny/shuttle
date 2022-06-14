@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.ningyu.app.locator.common.enums.StationStatus;
 
-import javax.persistence.CollectionTable;
 import java.util.List;
 
 @Data

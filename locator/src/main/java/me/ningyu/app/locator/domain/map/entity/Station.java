@@ -18,36 +18,43 @@ public class Station extends Variable
     /**
      * 站点名称
      */
+    @Column(name = "name")
     private String name;
 
     /**
      * 站点地址
      */
+    @Column(name = "address")
     private String address;
 
     /**
      * 站点描述
      */
+    @Column(name = "description")
     private String description;
 
     /**
      * 纬度
      */
+    @Column(name = "latitude")
     private Float latitude;
 
     /**
      * 经度
      */
+    @Column(name = "longitude")
     private Float longitude;
 
     /**
      * 邮政编码
      */
+    @Column(name = "zip_code")
     private String zipCode;
 
     /**
      * 站点状态
      */
+    @Column(name = "status")
     private StationStatus status;
 
     @ElementCollection
