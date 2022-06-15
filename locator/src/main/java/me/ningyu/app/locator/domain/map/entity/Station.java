@@ -15,46 +15,25 @@ import java.util.List;
 @Setter
 public class Station extends Variable
 {
-    /**
-     * 站点名称
-     */
-    @Column(name = "name")
+    @Column(name = "name", columnDefinition = "varchar(100) default '' comment '站点名称'")
     private String name;
 
-    /**
-     * 站点地址
-     */
-    @Column(name = "address")
+    @Column(name = "address", columnDefinition = "varchar(100) default '' comment '站点地址'")
     private String address;
 
-    /**
-     * 站点描述
-     */
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "varchar(100) default '' comment '站点描述'")
     private String description;
 
-    /**
-     * 纬度
-     */
-    @Column(name = "latitude")
+    @Column(name = "latitude", columnDefinition = "float(11) default '' comment '纬度'")
     private Float latitude;
 
-    /**
-     * 经度
-     */
-    @Column(name = "longitude")
+    @Column(name = "longitude", columnDefinition = "float(11) default '' comment '经度'")
     private Float longitude;
 
-    /**
-     * 邮政编码
-     */
-    @Column(name = "zip_code")
+    @Column(name = "zip_code", columnDefinition = "varchar(100) default '' comment '邮政编码'")
     private String zipCode;
 
-    /**
-     * 站点状态
-     */
-    @Column(name = "status")
+    @Column(name = "status", columnDefinition = "varchar(100) default '' comment '站点状态'")
     private StationStatus status;
 
     @ElementCollection
