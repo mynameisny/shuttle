@@ -34,6 +34,7 @@ public class Station extends Variable
     private String zipCode;
 
     @Column(name = "status", columnDefinition = "varchar(100) default '' comment '站点状态'")
+    @Enumerated(value = EnumType.STRING)
     private StationStatus status;
 
     @ElementCollection
