@@ -15,25 +15,25 @@ import java.util.List;
 @Setter
 public class Station extends Variable
 {
-    @Column(name = "name", columnDefinition = "varchar(100) default '' comment '站点名称'")
+    @Column(name = "name", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '站点名称'")
     private String name;
 
-    @Column(name = "address", columnDefinition = "varchar(100) default '' comment '站点地址'")
+    @Column(name = "address", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '站点地址'")
     private String address;
 
-    @Column(name = "description", columnDefinition = "varchar(100) default '' comment '站点描述'")
+    @Column(name = "description", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '站点描述'")
     private String description;
 
-    @Column(name = "latitude", columnDefinition = "float(11) default '' comment '纬度'")
+    @Column(name = "latitude", columnDefinition = "FLOAT(11) DEFAULT '' COMMENT '纬度'")
     private Float latitude;
 
-    @Column(name = "longitude", columnDefinition = "float(11) default '' comment '经度'")
+    @Column(name = "longitude", columnDefinition = "FLOAT(11) DEFAULT '' COMMENT '经度'")
     private Float longitude;
 
-    @Column(name = "zip_code", columnDefinition = "varchar(100) default '' comment '邮政编码'")
+    @Column(name = "zip_code", columnDefinition = "VARCHAR(10) DEFAULT '' COMMENT '邮政编码'")
     private String zipCode;
 
-    @Column(name = "status", columnDefinition = "varchar(100) default '' comment '站点状态'")
+    @Column(name = "status", columnDefinition = "VARCHAR(10) DEFAULT '' COMMENT '站点状态'")
     @Enumerated(value = EnumType.STRING)
     private StationStatus status;
 
