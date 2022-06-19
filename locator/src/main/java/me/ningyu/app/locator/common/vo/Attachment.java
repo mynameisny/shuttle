@@ -15,4 +15,10 @@ import javax.persistence.Table;
 @Getter
 @Setter
 public class Attachment extends Variable
-{}
+{
+    private String type;
+
+    private String name;
+
+    private String size;
+}
