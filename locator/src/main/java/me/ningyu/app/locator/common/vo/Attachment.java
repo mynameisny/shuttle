@@ -16,9 +16,18 @@ import javax.persistence.Table;
 @Setter
 public class Attachment extends Variable
 {
+    /**
+     * 附件类型
+     */
     private String type;
 
+    /**
+     * 附件名称
+     */
     private String name;
 
-    private String size;
+    /**
+     * 附件大小（Byte）
+     */
+    private long size;
 }
