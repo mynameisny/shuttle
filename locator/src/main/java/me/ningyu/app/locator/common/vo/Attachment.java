@@ -4,10 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.ningyu.app.locator.domain.Variable;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "locator_attachement")
@@ -19,6 +16,7 @@ public class Attachment extends Variable
     /**
      * 附件类型
      */
+    @Column(name = "type", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '附件类型'")
     private String type;
 
     /**
