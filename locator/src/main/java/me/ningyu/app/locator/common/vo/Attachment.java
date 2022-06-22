@@ -22,6 +22,7 @@ public class Attachment extends Variable
     /**
      * 附件名称
      */
+    @Column(name = "name", columnDefinition = "VARCHAR(150) DEFAULT '' COMMENT '附件名称'")
     private String name;
 
     /**
