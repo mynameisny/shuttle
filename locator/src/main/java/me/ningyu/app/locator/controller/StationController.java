@@ -48,6 +48,11 @@ public class StationController
         return ResponseEntity.created(location).body(saved);
     }
 
+    /**
+     * 删除站点
+     * @param id 站点ID
+     * @return
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> remove(@PathVariable String id)
     {

@@ -60,7 +60,7 @@ public class QRCodeUtils
         File file = new File(imgPath);
         if (!file.exists())
         {
-            System.err.println("" + imgPath + "   该文件不存在！");
+            System.err.println("" + imgPath + "该文件不存在！");
             return;
         }
         Image src = ImageIO.read(new File(imgPath));
