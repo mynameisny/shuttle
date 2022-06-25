@@ -67,6 +67,11 @@ public class StationController
         return ResponseEntity.ok(station);
     }
 
+    /**
+     * 查看站点
+     * @param id
+     * @return
+     */
     @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable String id)
     {
