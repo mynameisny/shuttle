@@ -69,7 +69,7 @@ public class StationController
 
     /**
      * 查看站点
-     * @param id
+     * @param id 站点ID
      * @return
      */
     @GetMapping("/{id}")
