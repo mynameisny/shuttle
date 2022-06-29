@@ -81,7 +81,7 @@ public class StationController
 
     /**
      * 列出站点
-     * @param predicate
+     * @param predicate QueryDSL封装的查询条件
      * @param pageable
      * @return
      */
