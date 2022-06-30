@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.StationDto;
@@ -41,6 +42,7 @@ public class StationController
      * @return
      */
     @PostMapping
+    @ApiOperation(value = "添加一个站点")
     public ResponseEntity<?> add(@RequestBody @Validated StationDto dto, UriComponentsBuilder builder)
     {
         Station saved = stationService.add(dto);
