@@ -42,7 +42,7 @@ public class StationController
      * @return
      */
     @PostMapping
-    @ApiOperation(value = "添加一个站点")
+    @ApiOperation(value = "添加站点")
     public ResponseEntity<?> add(@RequestBody @Validated StationDto dto, UriComponentsBuilder builder)
     {
         Station saved = stationService.add(dto);
@@ -56,6 +56,7 @@ public class StationController
      * @return
      */
     @DeleteMapping("/{id}")
+    @ApiOperation(value = "删除站点")
     public ResponseEntity<?> remove(@PathVariable String id)
     {
         stationService.remove(id);
