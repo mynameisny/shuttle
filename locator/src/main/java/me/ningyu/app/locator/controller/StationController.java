@@ -64,6 +64,7 @@ public class StationController
     }
 
     @PutMapping("/{id}")
+    @ApiOperation(value = "修改站点")
     public ResponseEntity<?> update(@PathVariable String id, @Validated @RequestBody StationDto dto)
     {
         Station station = stationService.update(id, dto);
