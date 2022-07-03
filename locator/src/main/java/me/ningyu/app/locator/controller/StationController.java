@@ -71,12 +71,8 @@ public class StationController
         return ResponseEntity.ok(station);
     }
 
-    /**
-     * 查看站点
-     * @param id 站点ID
-     * @return
-     */
     @GetMapping("/{id}")
+    @ApiOperation(value = "查看站点")
     public ResponseEntity<?> get(@PathVariable String id)
     {
         StationDto stationDto = stationService.get(id);
