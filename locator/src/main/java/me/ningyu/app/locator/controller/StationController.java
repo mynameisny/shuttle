@@ -79,13 +79,8 @@ public class StationController
         return ResponseEntity.ok(stationDto);
     }
 
-    /**
-     * 列出站点
-     * @param predicate QueryDSL封装的查询条件
-     * @param pageable
-     * @return
-     */
     @GetMapping
+    @ApiOperation(value = "列出站点")
     public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
     {
         Page<Station> list = stationService.list(predicate, pageable);
