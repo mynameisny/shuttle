@@ -4,6 +4,8 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -35,12 +37,6 @@ public class StationController
     private StationService stationService;
 
 
-    /**
-     * 添加一个站点
-     * @param dto
-     * @param builder
-     * @return
-     */
     @PostMapping
     @ApiOperation(value = "添加站点")
     public ResponseEntity<?> add(@RequestBody @Validated StationDto dto, UriComponentsBuilder builder)
@@ -50,11 +46,6 @@ public class StationController
         return ResponseEntity.created(location).body(saved);
     }
 
-    /**
-     * 删除站点
-     * @param id 站点ID
-     * @return
-     */
     @DeleteMapping("/{id}")
     @ApiOperation(value = "删除站点")
     public ResponseEntity<?> remove(@PathVariable String id)
@@ -81,6 +72,9 @@ public class StationController
 
     @GetMapping
     @ApiOperation(value = "列出站点")
+    @ApiImplicitParams(
+            @ApiImplicitParam(name = "name")
+    )
     public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
     {
         Page<Station> list = stationService.list(predicate, pageable);
