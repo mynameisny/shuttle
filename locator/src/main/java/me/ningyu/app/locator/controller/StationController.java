@@ -72,9 +72,10 @@ public class StationController
 
     @GetMapping
     @ApiOperation(value = "列出站点")
-    @ApiImplicitParams(
-            @ApiImplicitParam(name = "name")
-    )
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "name"),
+            @ApiImplicitParam(name = "address")
+    })
     public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
     {
         Page<Station> list = stationService.list(predicate, pageable);
