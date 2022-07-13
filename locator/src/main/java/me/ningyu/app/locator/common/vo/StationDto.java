@@ -1,6 +1,7 @@
 package me.ningyu.app.locator.common.vo;
 
 import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,11 +20,13 @@ public class StationDto
     /**
      * 站点名称
      */
+    @ApiModelProperty("站点名称")
     private String name;
 
     /**
      * 站点地址
      */
+    @ApiModelProperty("站点地址")
     private String address;
 
     /**
