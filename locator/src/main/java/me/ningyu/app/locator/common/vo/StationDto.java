@@ -17,21 +17,13 @@ import java.util.List;
 @ApiModel
 public class StationDto
 {
-    /**
-     * 站点名称
-     */
     @ApiModelProperty("站点名称")
     private String name;
 
-    /**
-     * 站点地址
-     */
     @ApiModelProperty("站点地址")
     private String address;
 
-    /**
-     * 站点描述
-     */
+    @ApiModelProperty("站点描述")
     private String description;
 
     /**
