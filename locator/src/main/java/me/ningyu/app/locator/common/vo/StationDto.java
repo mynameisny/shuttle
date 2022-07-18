@@ -26,14 +26,10 @@ public class StationDto
     @ApiModelProperty("站点描述")
     private String description;
 
-    /**
-     * 纬度
-     */
+    @ApiModelProperty("纬度")
     private Float latitude;
 
-    /**
-     * 经度
-     */
+    @ApiModelProperty("经度")
     private Float longitude;
 
     /**
