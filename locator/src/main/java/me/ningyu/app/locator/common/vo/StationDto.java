@@ -35,9 +35,7 @@ public class StationDto
     @ApiModelProperty("邮编")
     private String zipCode;
 
-    /**
-     * 站点状态
-     */
+    @ApiModelProperty("站点状态")
     private StationStatus status;
 
     /**
