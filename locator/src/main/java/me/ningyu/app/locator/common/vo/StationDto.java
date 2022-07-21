@@ -38,8 +38,6 @@ public class StationDto
     @ApiModelProperty("站点状态")
     private StationStatus status;
 
-    /**
-     * 站点图片
-     */
+    @ApiModelProperty("站点图片")
     private List<String> imageURL;
 }
