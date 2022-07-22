@@ -24,6 +24,9 @@ public class Station extends Variable
     @Column(name = "description", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '站点描述'")
     private String description;
 
+    @Column(name = "coordinate", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '坐标系'")
+    private String coordinate;
+
     @Column(name = "latitude", columnDefinition = "FLOAT(11) DEFAULT '' COMMENT '纬度'")
     private Float latitude;
 
