@@ -12,9 +12,7 @@ import javax.persistence.MappedSuperclass;
 @Data
 public class User extends Variable
 {
-    /**
-     * 用户编号
-     */
+    @Column(name = "code", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '用户编号'")
     private String code;
 
     /**
