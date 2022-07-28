@@ -15,9 +15,7 @@ public class User extends Variable
     @Column(name = "code", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '用户编号'")
     private String code;
 
-    /**
-     * 用户名称
-     */
+    @Column(name = "name", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '用户名字'")
     private String name;
 
     /**
