@@ -18,9 +18,7 @@ public class User extends Variable
     @Column(name = "name", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '用户名字'")
     private String name;
 
-    /**
-     * 用户锁定.
-     */
+    @Column(name = "locked", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '是否锁定'")
     private Boolean locked;
 
     /**
