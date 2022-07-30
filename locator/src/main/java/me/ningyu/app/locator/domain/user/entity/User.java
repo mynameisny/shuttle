@@ -31,9 +31,7 @@ public class User extends Variable
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    /**
-     * 组织机构名称.
-     */
+    @Column(name = "organization", columnDefinition = "VARCHAR(150) DEFAULT '' COMMENT '组织机构名称'")
     private String organization;
 
     /**
