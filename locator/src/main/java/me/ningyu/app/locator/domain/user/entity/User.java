@@ -37,9 +37,7 @@ public class User extends Variable
     @Column(name = "organization", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '座机号'")
     private String telephone;
 
-    /**
-     * 手机号
-     */
+    @Column(name = "organization", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '手机号'")
     private String mobile;
 
     /**
