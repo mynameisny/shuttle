@@ -43,8 +43,6 @@ public class User extends Variable
     @Column(name = "organization", columnDefinition = "VARCHAR(150) DEFAULT '' COMMENT '邮箱'")
     private String email;
 
-    /**
-     * 备注
-     */
+    @Column(name = "organization", columnDefinition = "VARCHAR(500) DEFAULT '' COMMENT '备注'")
     private String remark;
 }
