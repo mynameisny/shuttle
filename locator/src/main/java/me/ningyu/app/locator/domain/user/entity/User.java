@@ -34,15 +34,15 @@ public class User extends Variable
     @Column(name = "organization", columnDefinition = "VARCHAR(150) DEFAULT '' COMMENT '组织机构名称'")
     private String organization;
 
-    @Column(name = "organization", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '座机号'")
+    @Column(name = "telephone", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '座机号'")
     private String telephone;
 
-    @Column(name = "organization", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '手机号'")
+    @Column(name = "mobile", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '手机号'")
     private String mobile;
 
-    @Column(name = "organization", columnDefinition = "VARCHAR(150) DEFAULT '' COMMENT '邮箱'")
+    @Column(name = "email", columnDefinition = "VARCHAR(150) DEFAULT '' COMMENT '邮箱'")
     private String email;
 
-    @Column(name = "organization", columnDefinition = "VARCHAR(500) DEFAULT '' COMMENT '备注'")
+    @Column(name = "remark", columnDefinition = "VARCHAR(500) DEFAULT '' COMMENT '备注'")
     private String remark;
 }
