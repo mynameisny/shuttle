@@ -5,10 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "locator_driver")
@@ -19,8 +16,6 @@ import javax.persistence.Table;
 @AllArgsConstructor
 public class Driver extends User
 {
-    /**
-     * 驾龄
-     */
+    @Column(name = "organization", columnDefinition = "int(11) DEFAULT 0 COMMENT '驾龄'")
     private int drivingExperience;
 }
