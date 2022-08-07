@@ -16,10 +16,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 public class Passenger extends User
 {
-    /**
-     * 员工编号
-     */
-    @Column(unique = true)
+    @Column(name = "staff_no", columnDefinition = "VARCHAR(50) DEFAULT 0 COMMENT '员工编号'", unique = true)
     private String staffNo;
 
     /**
