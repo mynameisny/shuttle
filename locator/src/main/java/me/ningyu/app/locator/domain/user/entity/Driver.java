@@ -16,6 +16,6 @@ import javax.persistence.*;
 @AllArgsConstructor
 public class Driver extends User
 {
-    @Column(name = "organization", columnDefinition = "int(11) DEFAULT 0 COMMENT '驾龄'")
+    @Column(name = "driving_experience", columnDefinition = "int(11) DEFAULT 0 COMMENT '驾龄'")
     private int drivingExperience;
 }
