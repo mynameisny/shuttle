@@ -15,9 +15,7 @@ import javax.persistence.*;
 @Setter
 public class Point extends Variable
 {
-    /**
-     * 纬度
-     */
+    @Column(name = "latitude", columnDefinition = "int(11) DEFAULT 0 COMMENT '纬度'")
     private Long latitude;
 
     /**
