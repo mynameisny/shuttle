@@ -18,9 +18,7 @@ public class Point extends Variable
     @Column(name = "latitude", columnDefinition = "int(11) DEFAULT 0 COMMENT '纬度'")
     private Long latitude;
 
-    /**
-     * 经度
-     */
+    @Column(name = "longitude", columnDefinition = "int(11) DEFAULT 0 COMMENT '经度'")
     private Long longitude;
 
     /**
