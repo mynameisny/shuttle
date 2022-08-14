@@ -41,9 +41,7 @@ public class Point extends Variable
     @Column(name = "direction", columnDefinition = "int(11) DEFAULT 0 COMMENT '方向：范围为[0,359]，0度为正北方向，顺时针'")
     private int direction;
 
-    /**
-     * 高度：单位米
-     */
+    @Column(name = "direction", columnDefinition = "int(11) DEFAULT 0 COMMENT '高度：单位米'")
     private Double height;
 
     /**
