@@ -47,9 +47,7 @@ public class Point extends Variable
     @Column(name = "radius", columnDefinition = "int(11) DEFAULT 0 COMMENT '定位精度，GPS或定位SDK返回的值，单位米'")
     private Double radius;
 
-    /**
-     * 位置
-     */
+    @Column(name = "address", columnDefinition = "int(11) DEFAULT 0 COMMENT '位置'")
     private String address;
 
     /**
