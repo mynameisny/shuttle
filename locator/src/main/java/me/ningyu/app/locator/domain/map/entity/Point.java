@@ -21,10 +21,7 @@ public class Point extends Variable
     @Column(name = "longitude", columnDefinition = "int(11) DEFAULT 0 COMMENT '经度'")
     private Long longitude;
 
-    /**
-     * 定位时设备的时间
-     * Unix时间戳
-     */
+    @Column(name = "loc_time", columnDefinition = "int(11) DEFAULT 0 COMMENT '定位时设备的时间(Unix时间戳)'")
     private Long locTime;
 
     /**
