@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import me.ningyu.app.locator.common.enums.StationStatus;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.QStation;
 import me.ningyu.app.locator.domain.map.entity.Station;
@@ -96,6 +97,7 @@ public class StationController
             bindings.bind(root.description).first(StringExpression::containsIgnoreCase);
             bindings.bind(root.latitude).first(NumberExpression::eq);
             bindings.bind(root.longitude).first(NumberExpression::eq);
+            bindings.bind(root.zipCode).first(StringExpression::eq);
         }
     }
 }
