@@ -25,6 +25,7 @@ public class RouteDto
     /**
      * 线路名称
      */
+    @NotBlank(message = "线路名称不能为空")
     private String name;
 
     /**
