@@ -56,6 +56,5 @@ public class RouteDto
     /**
      * 组成线路的站点
      */
-    @OneToMany
     private List<StationDto> stations;
 }

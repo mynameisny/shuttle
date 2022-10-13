@@ -3,12 +3,12 @@ package me.ningyu.app.locator.domain.route.entity;
 import lombok.Getter;
 import lombok.Setter;
 import me.ningyu.app.locator.common.enums.RouteStatus;
+import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.Variable;
+import me.ningyu.app.locator.domain.map.entity.Station;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "locator_route")
@@ -51,5 +51,11 @@ public class Route extends Variable
      * 线路状态
      */
     private RouteStatus status;
+
+    /**
+     * 组成线路的站点
+     */
+    @OneToMany
+    private List<Station> stations;
 }
 
