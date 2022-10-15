@@ -41,11 +41,13 @@ public class RouteDto
     /**
      * 线路起点
      */
+    @NotBlank
     private String origin;
 
     /**
      * 线路终点
      */
+    @NotBlank
     private String terminal;
 
     /**
