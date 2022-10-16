@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.ningyu.app.locator.common.enums.StationStatus;
 
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @Data
@@ -18,6 +19,7 @@ import java.util.List;
 public class StationDto
 {
     @ApiModelProperty("站点名称")
+    @NotBlank
     private String name;
 
     @ApiModelProperty("站点地址")
