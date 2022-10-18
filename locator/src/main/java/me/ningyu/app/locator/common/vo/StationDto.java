@@ -23,15 +23,18 @@ public class StationDto
     private String name;
 
     @ApiModelProperty("站点地址")
+    @NotBlank
     private String address;
 
     @ApiModelProperty("站点描述")
     private String description;
 
     @ApiModelProperty("纬度")
+    @NotBlank
     private Float latitude;
 
     @ApiModelProperty("经度")
+    @NotBlank
     private Float longitude;
 
     @ApiModelProperty("邮编")
