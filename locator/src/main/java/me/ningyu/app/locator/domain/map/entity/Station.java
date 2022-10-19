@@ -21,7 +21,7 @@ public class Station extends Variable
     @Column(name = "address", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '站点地址'")
     private String address;
 
-    @Column(name = "description", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '站点描述'")
+    @Column(name = "description", columnDefinition = "TEXT DEFAULT '' COMMENT '站点描述'")
     private String description;
 
     @Column(name = "coordinate", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '坐标系'")
