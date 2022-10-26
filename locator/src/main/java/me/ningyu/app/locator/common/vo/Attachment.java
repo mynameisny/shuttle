@@ -28,6 +28,6 @@ public class Attachment extends Variable
     /**
      * 附件大小（Byte）
      */
-    @Column(name = "size", columnDefinition = "LONG(11) DEFAULT '' COMMENT '附件大小'")
+    @Column(name = "size", columnDefinition = "BIGINT(11) DEFAULT 0 COMMENT '附件大小'")
     private long size;
 }

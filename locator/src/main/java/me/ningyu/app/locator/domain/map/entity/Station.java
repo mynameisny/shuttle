@@ -21,16 +21,16 @@ public class Station extends Variable
     @Column(name = "address", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '站点地址'")
     private String address;
 
-    @Column(name = "description", columnDefinition = "TEXT DEFAULT '' COMMENT '站点描述'")
+    @Column(name = "description", columnDefinition = "TEXT COMMENT '站点描述'")
     private String description;
 
     @Column(name = "coordinate", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '坐标系'")
     private String coordinate;
 
-    @Column(name = "latitude", columnDefinition = "FLOAT(11) DEFAULT '' COMMENT '纬度'")
+    @Column(name = "latitude", columnDefinition = "FLOAT(11) DEFAULT 0.0 COMMENT '纬度'")
     private Float latitude;
 
-    @Column(name = "longitude", columnDefinition = "FLOAT(11) DEFAULT '' COMMENT '经度'")
+    @Column(name = "longitude", columnDefinition = "FLOAT(11) DEFAULT 0.0 COMMENT '经度'")
     private Float longitude;
 
     @Column(name = "zip_code", columnDefinition = "VARCHAR(10) DEFAULT '' COMMENT '邮政编码'")
