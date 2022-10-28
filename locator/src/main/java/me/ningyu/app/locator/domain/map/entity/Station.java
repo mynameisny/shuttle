@@ -15,7 +15,7 @@ import java.util.List;
 @Setter
 public class Station extends Variable
 {
-    @Column(name = "name", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '站点名称'")
+    @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '站点名称'")
     private String name;
 
     @Column(name = "address", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '站点地址'")
@@ -36,7 +36,7 @@ public class Station extends Variable
     @Column(name = "zip_code", columnDefinition = "VARCHAR(10) DEFAULT '' COMMENT '邮政编码'")
     private String zipCode;
 
-    @Column(name = "status", columnDefinition = "VARCHAR(10) DEFAULT '' COMMENT '站点状态'")
+    @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(10) DEFAULT '' COMMENT '站点状态'")
     @Enumerated(value = EnumType.STRING)
     private StationStatus status;
 
