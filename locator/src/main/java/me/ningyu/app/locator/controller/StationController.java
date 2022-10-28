@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.enums.StationStatus;
+import me.ningyu.app.locator.common.vo.AddressDto;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.QStation;
 import me.ningyu.app.locator.domain.map.entity.Station;
@@ -83,7 +84,7 @@ public class StationController
     public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
     {
         Page<Station> list = stationService.list(predicate, pageable);
-        Page<StationDto> page = list.map(stop -> StationDto.builder().name(stop.getName()).address(stop.getAddress()).description(stop.getDescription()).latitude(stop.getLatitude()).longitude(stop.getLongitude()).build());
+        Page<StationDto> page = list.map(stop -> StationDto.builder().name(stop.getName()).address(AddressDto.builder().name(stop.getAddress().getName()).build()).description(stop.getDescription()).latitude(stop.getLatitude()).longitude(stop.getLongitude()).build());
         return ResponseEntity.ok(page);
     }
 

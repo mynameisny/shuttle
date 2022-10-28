@@ -18,8 +18,12 @@ public class Station extends Variable
     @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '站点名称'")
     private String name;
 
-    @Column(name = "address", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '站点地址'")
-    private String address;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinTable(name = "locator_station_address",
+               joinColumns = @JoinColumn(name = "station_id"),
+               inverseJoinColumns = @JoinColumn(name = "address_id")
+    )
+    private Address address;
 
     @Column(name = "description", columnDefinition = "TEXT COMMENT '站点描述'")
     private String description;
@@ -40,7 +44,7 @@ public class Station extends Variable
     @Enumerated(value = EnumType.STRING)
     private StationStatus status;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "locator_station_image", joinColumns = @JoinColumn(name = "station_id"))
     @Column(name = "image_url")
     private List<String> imageURL;

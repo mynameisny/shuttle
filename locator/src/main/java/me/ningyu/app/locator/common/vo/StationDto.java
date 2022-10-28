@@ -24,7 +24,7 @@ public class StationDto
 
     @ApiModelProperty("站点地址")
     @NotBlank
-    private String address;
+    private AddressDto address;
 
     @ApiModelProperty("站点描述")
     private String description;
