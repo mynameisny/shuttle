@@ -4,10 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.ningyu.app.locator.domain.Variable;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "locator_address")
@@ -17,4 +14,16 @@ import javax.persistence.Table;
 public class Address extends Variable
 {
     private String name;
+
+    @Column(name = "coordinate", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '坐标系'")
+    private String coordinate;
+
+    @Column(name = "latitude", columnDefinition = "FLOAT(11) DEFAULT 0.0 COMMENT '纬度'")
+    private Float latitude;
+
+    @Column(name = "longitude", columnDefinition = "FLOAT(11) DEFAULT 0.0 COMMENT '经度'")
+    private Float longitude;
+
+    @Column(name = "zip_code", columnDefinition = "VARCHAR(10) DEFAULT '' COMMENT '邮政编码'")
+    private String zipCode;
 }
