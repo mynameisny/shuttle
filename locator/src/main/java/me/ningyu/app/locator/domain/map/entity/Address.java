@@ -5,6 +5,7 @@ import lombok.Setter;
 import me.ningyu.app.locator.domain.Variable;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "locator_address")
@@ -26,4 +27,9 @@ public class Address extends Variable
 
     @Column(name = "zip_code", columnDefinition = "VARCHAR(10) DEFAULT '' COMMENT '邮政编码'")
     private String zipCode;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "locator_address_image", joinColumns = @JoinColumn(name = "address_id"))
+    @Column(name = "image_url")
+    private List<String> imageURL;
 }

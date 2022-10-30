@@ -18,6 +18,9 @@ public class Station extends Variable
     @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '站点名称'")
     private String name;
 
+    /**
+     * 站点地址：多个站点可以对应同一个地址
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinTable(name = "locator_station_address",
                joinColumns = @JoinColumn(name = "station_id"),
@@ -31,9 +34,4 @@ public class Station extends Variable
     @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(10) DEFAULT '' COMMENT '站点状态'")
     @Enumerated(value = EnumType.STRING)
     private StationStatus status;
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "locator_station_image", joinColumns = @JoinColumn(name = "station_id"))
-    @Column(name = "image_url")
-    private List<String> imageURL;
 }
