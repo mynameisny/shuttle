@@ -21,11 +21,13 @@ public class Vehicle extends Variable
     /**
      * 车牌号
      */
+    @Column(name = "license_plate_number", nullable = false, columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '车牌号'")
     private String licensePlateNumber;
 
     /**
-     * 座位数（不包括司机）
+     * 座位数（包括司机）
      */
+    @Column(name = "seats", nullable = false, columnDefinition = "INT(11) DEFAULT 1 COMMENT '座位数（包括司机）'")
     private int seats;
 
     /**
