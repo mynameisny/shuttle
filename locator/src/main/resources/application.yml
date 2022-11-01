@@ -5,7 +5,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 123@ningyu.me
-    url: jdbc:mysql://192.168.5.251:3306/shuttle_locator
+    url: jdbc:mysql://192.168.5.251:3306/shuttle_locator?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false
   jpa:
     show-sql: true
     hibernate:

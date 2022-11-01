@@ -30,6 +30,6 @@ public class Address extends Variable
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "locator_address_image", joinColumns = @JoinColumn(name = "address_id"))
-    @Column(name = "image_url")
+    @Column(name = "image_url", nullable = false)
     private List<String> imageURL;
 }

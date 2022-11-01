@@ -24,16 +24,16 @@ public class Variable extends Identifiable
     private Integer version;
 
     @CreatedDate
-    @Column(name = "create_time")
-    private LocalDateTime createTime;
-
-    @LastModifiedDate
-    @Column(name = "update_time")
-    private LocalDateTime updateTime;
+    @Column(name = "created_at")
+    private LocalDateTime createAt;
 
     @CreatedBy
     @Column(name = "created_by")
     private String createdBy;
+
+    @LastModifiedDate
+    @Column(name = "modified_at")
+    private LocalDateTime modifiedAt;
 
     @LastModifiedBy
     @Column(name = "modified_by")
