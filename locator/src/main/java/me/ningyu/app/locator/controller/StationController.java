@@ -95,11 +95,7 @@ public class StationController
         public void customize(QuerydslBindings bindings, QStation root)
         {
             bindings.bind(root.name).first(StringExpression::containsIgnoreCase);
-            bindings.bind(root.address).first(StringExpression::containsIgnoreCase);
             bindings.bind(root.description).first(StringExpression::containsIgnoreCase);
-            bindings.bind(root.latitude).first(NumberExpression::eq);
-            bindings.bind(root.longitude).first(NumberExpression::eq);
-            bindings.bind(root.zipCode).first(StringExpression::eq);
         }
     }
 }

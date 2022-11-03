@@ -17,9 +17,9 @@ public class JCasbinTest
     public void testJdbcAdapter() throws Exception
     {
         String driver = "com.mysql.cj.jdbc.Driver";
-        String url = "jdbc:mysql://localhost:3306/shuttle_locator";
+        String url = "jdbc:mysql://192.168.5.251:3306/shuttle_locator";
         String username = "root";
-        String password = "123456";
+        String password = "123@ningyu.me";
 
         // The adapter will use the table named "casbin_rule".
         // Use driver, url, username and password to initialize adapter JDBC adapter.
