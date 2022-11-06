@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 public class Address extends Variable
 {
-    @Column(name = "name", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '地点名称'")
+    @Column(name = "name", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '名称'")
     private String name;
 
     @Column(name = "coordinate", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '坐标系'")
