@@ -19,6 +19,10 @@ spring:
     bufferLimit: 10000
     jitterInterval: 1000
     retryInterval: 5000
+  sql:
+    init:
+      data-locations: classpath:db/data.sql
+      mode: always
 logging:
   file:
     name: shuttle-locator.log

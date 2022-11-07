@@ -50,6 +50,7 @@ public class Route extends Variable
     /**
      * 线路状态
      */
+    @Enumerated(value = EnumType.STRING)
     private RouteStatus status;
 
     /**
