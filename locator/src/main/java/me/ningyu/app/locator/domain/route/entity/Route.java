@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.ningyu.app.locator.common.enums.RouteStatus;
 import me.ningyu.app.locator.domain.Variable;
+import me.ningyu.app.locator.domain.map.entity.Address;
 import me.ningyu.app.locator.domain.map.entity.Station;
 
 import javax.persistence.*;
@@ -43,14 +44,22 @@ public class Route extends Variable
     /**
      * 线路起点
      */
-    @Column(name = "origin", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '线路起点'")
-    private String origin;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinTable(name = "locator_route_address",
+            joinColumns = @JoinColumn(name = "route_id"),
+            inverseJoinColumns = @JoinColumn(name = "address_id")
+    )
+    private Address origin;
 
     /**
      * 线路终点
      */
-    @Column(name = "terminal", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '线路终点'")
-    private String terminal;
+    @ManyToOne
+    @JoinTable(name = "locator_route_address",
+            joinColumns = @JoinColumn(name = "route_id"),
+            inverseJoinColumns = @JoinColumn(name = "address_id")
+    )
+    private Address terminal;
 
     /**
      * 线路状态
