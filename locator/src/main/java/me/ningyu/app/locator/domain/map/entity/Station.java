@@ -15,6 +15,9 @@ import java.util.List;
 @Setter
 public class Station extends Variable
 {
+    @Column(name = "code", columnDefinition = "VARCHAR(50) NOT NULL UNIQUE COMMENT '站点编码'")
+    private String code;
+
     @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '站点名称'")
     private String name;
 

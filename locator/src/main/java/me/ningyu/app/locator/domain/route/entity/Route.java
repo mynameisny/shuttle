@@ -18,9 +18,9 @@ import java.util.List;
 public class Route extends Variable
 {
     /**
-     * 线路编号
+     * 线路编码
      */
-    @Column(name = "code", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '线路编号'")
+    @Column(name = "code", columnDefinition = "VARCHAR(50) NOT NULL UNIQUE COMMENT '线路编码'")
     private String code;
 
     /**
@@ -32,7 +32,7 @@ public class Route extends Variable
     /**
      * 线路描述
      */
-    @Column(name = "description", columnDefinition = "TEXT DEFAULT '' COMMENT '线路描述'")
+    @Column(name = "description", columnDefinition = "TEXT COMMENT '线路描述'")
     private String description;
 
     /**
@@ -45,20 +45,14 @@ public class Route extends Variable
      * 线路起点
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinTable(name = "locator_route_address",
-            joinColumns = @JoinColumn(name = "route_id"),
-            inverseJoinColumns = @JoinColumn(name = "address_id")
-    )
+    @JoinColumn(name = "origin_id")
     private Address origin;
 
     /**
      * 线路终点
      */
     @ManyToOne
-    @JoinTable(name = "locator_route_address",
-            joinColumns = @JoinColumn(name = "route_id"),
-            inverseJoinColumns = @JoinColumn(name = "address_id")
-    )
+    @JoinColumn(name = "terminal_id")
     private Address terminal;
 
     /**

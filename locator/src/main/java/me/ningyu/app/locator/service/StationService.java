@@ -34,11 +34,11 @@ public class StationService
     }
 
     @Transactional
-    public void remove(String id)
+    public void remove(String code)
     {
-        Station station = stationRepository.findById(id).orElseThrow(() -> new NotfoundException(String.format("站点%s不存在", id)));
+        Station station = stationRepository.findByCode(code).orElseThrow(() -> new NotfoundException(String.format("站点(%s)不存在", code)));
 
-        stationRepository.deleteById(id);
+        stationRepository.deleteByCode(code);
 
         log.info("站点{}已被删除", station);
     }

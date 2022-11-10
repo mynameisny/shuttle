@@ -44,15 +44,15 @@ public class StationController
     public ResponseEntity<?> add(@RequestBody @Validated StationDto dto, UriComponentsBuilder builder)
     {
         Station saved = stationService.add(dto);
-        URI location = builder.replacePath("/points/{id}").buildAndExpand(saved.getId()).toUri();
+        URI location = builder.replacePath("/stations/{code}").buildAndExpand(saved.getId()).toUri();
         return ResponseEntity.created(location).body(saved);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{code}")
     @ApiOperation(value = "删除站点")
-    public ResponseEntity<?> remove(@PathVariable String id)
+    public ResponseEntity<?> remove(@PathVariable String code)
     {
-        stationService.remove(id);
+        stationService.remove(code);
         return ResponseEntity.noContent().build();
     }
 
