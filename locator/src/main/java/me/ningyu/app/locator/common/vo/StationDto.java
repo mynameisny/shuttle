@@ -6,10 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import me.ningyu.app.locator.common.enums.StationStatus;
 
 import javax.validation.constraints.NotBlank;
-import java.util.List;
 
 @Data
 @Builder
@@ -18,31 +16,17 @@ import java.util.List;
 @ApiModel
 public class StationDto
 {
+    @ApiModelProperty("站点编码")
+    @NotBlank
+    private String code;
+
     @ApiModelProperty("站点名称")
     @NotBlank
     private String name;
 
     @ApiModelProperty("站点地址")
-    @NotBlank
     private AddressDto address;
 
     @ApiModelProperty("站点描述")
     private String description;
-
-    @ApiModelProperty("纬度")
-    @NotBlank
-    private Float latitude;
-
-    @ApiModelProperty("经度")
-    @NotBlank
-    private Float longitude;
-
-    @ApiModelProperty("邮编")
-    private String zipCode;
-
-    @ApiModelProperty("站点状态")
-    private StationStatus status;
-
-    @ApiModelProperty("站点图片")
-    private List<String> imageURL;
 }

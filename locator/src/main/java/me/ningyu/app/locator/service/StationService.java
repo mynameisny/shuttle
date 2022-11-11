@@ -2,6 +2,7 @@ package me.ningyu.app.locator.service;
 
 import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
+import me.ningyu.app.locator.common.enums.StationStatus;
 import me.ningyu.app.locator.common.exception.NotfoundException;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
@@ -30,6 +31,8 @@ public class StationService
     {
         Station entity = new Station();
         BeanUtils.copyProperties(dto, entity);
+        entity.setStatus(StationStatus.NORMAL);
+
         return stationRepository.save(entity);
     }
 
@@ -40,20 +43,20 @@ public class StationService
 
         stationRepository.deleteByCode(code);
 
-        log.info("站点{}已被删除", station);
+        log.info("站点（{}）已被删除", station);
     }
 
     @Transactional
-    public Station update(String id, StationDto dto)
+    public Station update(String code, StationDto dto)
     {
-        Station station = Optional.of(stationRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("站点%s不存在", id)));
+        Station station = stationRepository.findByCode(code).orElseThrow(() -> new NotfoundException(String.format("站点(%s)不存在", code)));
         BeanUtils.copyProperties(station, dto);
         return stationRepository.save(station);
     }
 
-    public StationDto get(String id)
+    public StationDto get(String code)
     {
-        Station station = Optional.of(stationRepository.findById(id)).get().orElseThrow(() -> new RuntimeException(String.format("站点%s不存在", id)));
+        Station station = stationRepository.findByCode(code).orElseThrow(() -> new NotfoundException(String.format("站点(%s)不存在", code)));
         StationDto dto = new StationDto();
         BeanUtils.copyProperties(station, dto);
         return dto;

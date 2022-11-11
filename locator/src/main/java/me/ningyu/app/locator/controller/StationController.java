@@ -56,19 +56,19 @@ public class StationController
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{code}")
     @ApiOperation(value = "修改站点")
-    public ResponseEntity<?> update(@PathVariable String id, @Validated @RequestBody StationDto dto)
+    public ResponseEntity<?> update(@PathVariable String code, @Validated @RequestBody StationDto dto)
     {
-        Station station = stationService.update(id, dto);
+        Station station = stationService.update(code, dto);
         return ResponseEntity.ok(station);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{code}")
     @ApiOperation(value = "查看站点")
-    public ResponseEntity<?> get(@PathVariable String id)
+    public ResponseEntity<?> get(@PathVariable String code)
     {
-        StationDto stationDto = stationService.get(id);
+        StationDto stationDto = stationService.get(code);
         return ResponseEntity.ok(stationDto);
     }
 

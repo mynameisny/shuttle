@@ -3,9 +3,12 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: 123@ningyu.me
-    url: jdbc:mysql://192.168.5.251:3306/shuttle_locator?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false
+#    username: root
+#    password: 123@ningyu.me
+#    url: jdbc:mysql://192.168.5.251:3306/shuttle_locator?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false
+    username: cmp_dev
+    password: T9Q&xkXrCcmemGqZ
+    url: jdbc:mysql://11.11.176.139:3306/cmp_product_bak?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2b8&useSSL=false
   jpa:
     show-sql: true
     hibernate:

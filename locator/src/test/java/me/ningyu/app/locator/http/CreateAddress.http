@@ -1,0 +1,18 @@
+POST http://localhost:7777/addresses
+Content-Type: application/json
+
+{
+  "code": "ZXZ",
+  "name": "朱辛庄",
+  "coordinate": "BD09",
+  "latitude": 116.311379,
+  "longitude": 40.102627,
+  "areaCode": "110114013003",
+  "description": "领秀慧谷社区南，公交站西（朱新庄新村西）侧约10米",
+  "imageURLs": [
+    "https://ningyu.me"
+  ]
+}
+
+###
+
