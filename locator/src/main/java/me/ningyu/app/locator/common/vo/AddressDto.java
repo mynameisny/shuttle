@@ -27,7 +27,6 @@ public class AddressDto
     private String name;
 
     @ApiModelProperty("坐标系")
-    @NotNull
     private Coordinate coordinate;
 
     @ApiModelProperty("纬度")
