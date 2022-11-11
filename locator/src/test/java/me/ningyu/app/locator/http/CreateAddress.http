@@ -4,7 +4,7 @@ Content-Type: application/json
 {
   "code": "ZXZ",
   "name": "朱辛庄",
-  "coordinate": "BD091",
+  "coordinate": "BD09",
   "latitude": 116.311379,
   "longitude": 40.102627,
   "areaCode": "110114013003",
