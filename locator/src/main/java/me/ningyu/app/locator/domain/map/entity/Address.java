@@ -2,6 +2,7 @@ package me.ningyu.app.locator.domain.map.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import me.ningyu.app.locator.common.enums.Coordinate;
 import me.ningyu.app.locator.domain.Variable;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
+@ToString
 public class Address extends Variable
 {
     @Column(name = "code", columnDefinition = "VARCHAR(50) NOT NULL UNIQUE COMMENT '编码'")
