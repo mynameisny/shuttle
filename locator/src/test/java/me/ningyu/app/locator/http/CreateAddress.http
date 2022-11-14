@@ -2,8 +2,8 @@ POST http://localhost:7777/addresses
 Content-Type: application/json
 
 {
-  "code": "ZXZ",
-  "name": "朱辛庄",
+  "code": "LXHG",
+  "name": "领秀慧谷",
   "coordinate": "BD09",
   "latitude": 116.311379,
   "longitude": 40.102627,

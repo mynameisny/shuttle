@@ -29,6 +29,7 @@ public class AddressService
     {
         Address entity = new Address();
         BeanUtils.copyProperties(dto, entity);
+        entity.setImageURL(dto.getImageURLs());
 
         Address saved = addressRepository.save(entity);
         return AddressDto.buildFromEntity(saved);
@@ -48,7 +49,7 @@ public class AddressService
     public AddressDto update(String code, AddressDto dto)
     {
         Address address = addressRepository.findByCode(code).orElseThrow(() -> new NotfoundException(String.format("地址(%s)不存在", code)));
-        BeanUtils.copyProperties(address, dto);
+        BeanUtils.copyProperties(dto, address);
 
         Address saved = addressRepository.save(address);
         return AddressDto.buildFromEntity(saved);

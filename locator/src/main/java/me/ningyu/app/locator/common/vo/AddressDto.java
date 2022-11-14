@@ -18,6 +18,9 @@ import java.util.List;
 @AllArgsConstructor
 public class AddressDto
 {
+    @ApiModelProperty("地址主键ID")
+    private String id;
+
     @ApiModelProperty("地址编码")
     @NotBlank
     private String code;
@@ -49,6 +52,7 @@ public class AddressDto
     public static AddressDto buildFromEntity(Address entity)
     {
         return AddressDto.builder()
+                         .id(entity.getId())
                          .code(entity.getCode())
                          .name(entity.getName())
                          .coordinate(entity.getCoordinate())
