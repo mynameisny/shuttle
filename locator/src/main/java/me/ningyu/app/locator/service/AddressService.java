@@ -61,8 +61,9 @@ public class AddressService
         return AddressDto.buildFromEntity(address);
     }
 
-    public Page<Address> list(Predicate predicate, Pageable pageable)
+    public Page<AddressDto> list(Predicate predicate, Pageable pageable)
     {
-        return addressRepository.findAll(predicate, pageable);
+        Page<Address> list = addressRepository.findAll(predicate, pageable);
+        return list.map(AddressDto::buildFromEntity);
     }
 }

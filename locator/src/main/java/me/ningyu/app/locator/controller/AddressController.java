@@ -1,6 +1,8 @@
 package me.ningyu.app.locator.controller;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.EnumExpression;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -9,12 +11,10 @@ import io.swagger.annotations.ApiOperation;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.AddressDto;
-import me.ningyu.app.locator.common.vo.AddressDto;
 import me.ningyu.app.locator.domain.map.entity.Address;
-import me.ningyu.app.locator.domain.map.entity.QStation;
+import me.ningyu.app.locator.domain.map.entity.QAddress;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.service.AddressService;
-import me.ningyu.app.locator.service.StationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -75,26 +75,32 @@ public class AddressController
     @GetMapping
     @ApiOperation(value = "列出地址")
     @ApiImplicitParams({
+            @ApiImplicitParam(name = "code", value = "地址编码"),
             @ApiImplicitParam(name = "name", value = "地址名称"),
-            @ApiImplicitParam(name = "address", value = "地址地址"),
+            @ApiImplicitParam(name = "coordinate", value = "坐标系"),
             @ApiImplicitParam(name = "latitude", value = "经度"),
             @ApiImplicitParam(name = "longitude", value = "纬度"),
-            @ApiImplicitParam(name = "zipCode", value = "邮政编码")
+            @ApiImplicitParam(name = "areaCode", value = "地区编码"),
+            @ApiImplicitParam(name = "description", value = "地址描述"),
     })
-    public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
+    public ResponseEntity<?> list(@QuerydslPredicate(root = Address.class, bindings = AddressBinding.class) Predicate predicate, Pageable pageable)
     {
-        Page<Address> list = addressService.list(predicate, pageable);
-        Page<AddressDto> page = list.map(stop -> AddressDto.builder().name(stop.getName()).description(stop.getDescription()).build());
-        return ResponseEntity.ok(page);
+        Page<AddressDto> list = addressService.list(predicate, pageable);
+        return ResponseEntity.ok(list);
     }
 
 
-    private static class StationBinding implements QuerydslBinderCustomizer<QStation>
+    private static class AddressBinding implements QuerydslBinderCustomizer<QAddress>
     {
         @Override
-        public void customize(QuerydslBindings bindings, QStation root)
+        public void customize(QuerydslBindings bindings, QAddress root)
         {
+            bindings.bind(root.code).first(StringExpression::eq);
             bindings.bind(root.name).first(StringExpression::containsIgnoreCase);
+            bindings.bind(root.coordinate).first(EnumExpression::eq);
+            bindings.bind(root.latitude).first(NumberExpression::eq);
+            bindings.bind(root.longitude).first(NumberExpression::eq);
+            bindings.bind(root.areaCode).first(StringExpression::contains);
             bindings.bind(root.description).first(StringExpression::containsIgnoreCase);
         }
     }

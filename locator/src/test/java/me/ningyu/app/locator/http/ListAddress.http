@@ -1,0 +1,23 @@
+GET http://localhost:7777/addresses
+Accept: application/json
+
+###
+GET http://localhost:7777/addresses?code=ZXZ
+Accept: application/json
+
+###
+GET http://localhost:7777/addresses?name=朱
+Accept: application/json
+
+###
+GET http://localhost:7777/addresses?coordinate=BD09
+Accept: application/json
+
+###
+GET http://localhost:7777/addresses?latitude=116.311&longitude=40.1026
+Accept: application/json
+
+###
+GET http://localhost:7777/addresses?areaCode=110114013004
+Accept: application/json
+
