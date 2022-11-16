@@ -98,8 +98,8 @@ public class AddressController
             bindings.bind(root.code).first(StringExpression::eq);
             bindings.bind(root.name).first(StringExpression::containsIgnoreCase);
             bindings.bind(root.coordinate).first(EnumExpression::eq);
-            bindings.bind(root.latitude).first(NumberExpression::eq);
-            bindings.bind(root.longitude).first(NumberExpression::eq);
+            bindings.bind(root.latitude).first(StringExpression::eq);
+            bindings.bind(root.longitude).first(StringExpression::eq);
             bindings.bind(root.areaCode).first(StringExpression::contains);
             bindings.bind(root.description).first(StringExpression::containsIgnoreCase);
         }

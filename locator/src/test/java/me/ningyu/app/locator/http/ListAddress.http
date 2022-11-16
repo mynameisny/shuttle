@@ -14,7 +14,7 @@ GET http://localhost:7777/addresses?coordinate=BD09
 Accept: application/json
 
 ###
-GET http://localhost:7777/addresses?latitude=116.311&longitude=40.1026
+GET http://localhost:7777/addresses?latitude=116.311379&longitude=40.102627
 Accept: application/json
 
 ###

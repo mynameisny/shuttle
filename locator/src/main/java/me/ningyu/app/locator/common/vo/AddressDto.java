@@ -34,11 +34,11 @@ public class AddressDto
 
     @ApiModelProperty("纬度")
     @NotNull
-    private Float latitude;
+    private String latitude;
 
     @ApiModelProperty("经度")
     @NotNull
-    private Float longitude;
+    private String longitude;
 
     @ApiModelProperty("地区编码")
     private String areaCode;
