@@ -21,3 +21,7 @@ Accept: application/json
 GET http://localhost:7777/addresses?areaCode=110114013004
 Accept: application/json
 
+###
+GET http://localhost:7777/addresses?description=领秀慧谷
+Accept: application/json
+
