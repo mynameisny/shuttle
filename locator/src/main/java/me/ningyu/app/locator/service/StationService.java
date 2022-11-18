@@ -27,13 +27,14 @@ public class StationService
     }
 
     @Transactional
-    public Station add(StationDto dto)
+    public StationDto add(StationDto dto)
     {
         Station entity = new Station();
         BeanUtils.copyProperties(dto, entity);
         entity.setStatus(StationStatus.NORMAL);
 
-        return stationRepository.save(entity);
+        Station saved = stationRepository.save(entity);
+        return StationDto.buildFromEntity(saved);
     }
 
     @Transactional

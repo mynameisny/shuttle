@@ -43,9 +43,9 @@ public class StationController
     @ApiOperation(value = "添加站点")
     public ResponseEntity<?> add(@RequestBody @Validated StationDto dto, UriComponentsBuilder builder)
     {
-        Station saved = stationService.add(dto);
-        URI location = builder.replacePath("/stations/{code}").buildAndExpand(saved.getId()).toUri();
-        return ResponseEntity.created(location).body(saved);
+        StationDto station = stationService.add(dto);
+        URI location = builder.replacePath("/stations/{code}").buildAndExpand(station.getCode()).toUri();
+        return ResponseEntity.created(location).body(station);
     }
 
     @DeleteMapping("/{code}")

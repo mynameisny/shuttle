@@ -2,7 +2,6 @@ package me.ningyu.app.locator.controller;
 
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.EnumExpression;
-import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -13,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.vo.AddressDto;
 import me.ningyu.app.locator.domain.map.entity.Address;
 import me.ningyu.app.locator.domain.map.entity.QAddress;
-import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.service.AddressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -75,6 +73,7 @@ public class AddressController
     @GetMapping
     @ApiOperation(value = "列出地址")
     @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "地址主健ID"),
             @ApiImplicitParam(name = "code", value = "地址编码"),
             @ApiImplicitParam(name = "name", value = "地址名称"),
             @ApiImplicitParam(name = "coordinate", value = "坐标系"),
@@ -95,6 +94,7 @@ public class AddressController
         @Override
         public void customize(QuerydslBindings bindings, QAddress root)
         {
+            bindings.bind(root.id).first(StringExpression::eq);
             bindings.bind(root.code).first(StringExpression::eq);
             bindings.bind(root.name).first(StringExpression::containsIgnoreCase);
             bindings.bind(root.coordinate).first(EnumExpression::eq);
