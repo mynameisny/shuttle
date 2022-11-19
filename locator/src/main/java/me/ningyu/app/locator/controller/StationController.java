@@ -60,7 +60,7 @@ public class StationController
     @ApiOperation(value = "修改站点")
     public ResponseEntity<?> update(@PathVariable String code, @Validated @RequestBody StationDto dto)
     {
-        Station station = stationService.update(code, dto);
+        StationDto station = stationService.update(code, dto);
         return ResponseEntity.ok(station);
     }
 
@@ -83,9 +83,8 @@ public class StationController
     })
     public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
     {
-        Page<Station> list = stationService.list(predicate, pageable);
-        Page<StationDto> page = list.map(stop -> StationDto.builder().name(stop.getName()).address(AddressDto.builder().name(stop.getAddress().getName()).build()).description(stop.getDescription()).build());
-        return ResponseEntity.ok(page);
+        Page<StationDto> list = stationService.list(predicate, pageable);
+        return ResponseEntity.ok(list);
     }
 
 

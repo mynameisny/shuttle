@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.locator.common.enums.StationStatus;
 import me.ningyu.app.locator.common.exception.NotfoundException;
+import me.ningyu.app.locator.common.vo.AddressDto;
 import me.ningyu.app.locator.common.vo.StationDto;
 import me.ningyu.app.locator.domain.map.entity.Station;
 import me.ningyu.app.locator.domain.map.repository.StationRepository;
@@ -48,23 +49,24 @@ public class StationService
     }
 
     @Transactional
-    public Station update(String code, StationDto dto)
+    public StationDto update(String code, StationDto dto)
     {
         Station station = stationRepository.findByCode(code).orElseThrow(() -> new NotfoundException(String.format("站点(%s)不存在", code)));
         BeanUtils.copyProperties(station, dto);
-        return stationRepository.save(station);
+
+        Station saved = stationRepository.save(station);
+        return StationDto.buildFromEntity(saved);
     }
 
     public StationDto get(String code)
     {
         Station station = stationRepository.findByCode(code).orElseThrow(() -> new NotfoundException(String.format("站点(%s)不存在", code)));
-        StationDto dto = new StationDto();
-        BeanUtils.copyProperties(station, dto);
-        return dto;
+        return StationDto.buildFromEntity(station);
     }
 
-    public Page<Station> list(Predicate predicate, Pageable pageable)
+    public Page<StationDto> list(Predicate predicate, Pageable pageable)
     {
-        return stationRepository.findAll(predicate, pageable);
+        Page<Station> list = stationRepository.findAll(predicate, pageable);
+        return list.map(StationDto::buildFromEntity);
     }
 }
