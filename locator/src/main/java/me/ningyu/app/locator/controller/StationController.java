@@ -65,27 +65,26 @@ public class StationController
         return ResponseEntity.ok(station);
     }
 
+    @GetMapping
+    @ApiOperation(value = "列出站点")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "code", value = "站点编码"),
+            @ApiImplicitParam(name = "name", value = "站点名称"),
+            @ApiImplicitParam(name = "description", value = "站点描述"),
+            @ApiImplicitParam(name = "status", value = "站点状态")
+    })
+    public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
+    {
+        Page<StationDto> list = stationService.list(predicate, pageable);
+        return ResponseEntity.ok(list);
+    }
+
     @GetMapping("/{code}")
     @ApiOperation(value = "查看站点")
     public ResponseEntity<?> get(@PathVariable String code)
     {
         StationDto stationDto = stationService.get(code);
         return ResponseEntity.ok(stationDto);
-    }
-
-    @GetMapping
-    @ApiOperation(value = "列出站点")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "name", value = "站点名称"),
-            @ApiImplicitParam(name = "address", value = "站点地址"),
-            @ApiImplicitParam(name = "latitude", value = "经度"),
-            @ApiImplicitParam(name = "longitude", value = "纬度"),
-            @ApiImplicitParam(name = "zipCode", value = "邮政编码")
-    })
-    public ResponseEntity<?> list(@QuerydslPredicate(root = Station.class, bindings = StationBinding.class) Predicate predicate, Pageable pageable)
-    {
-        Page<StationDto> list = stationService.list(predicate, pageable);
-        return ResponseEntity.ok(list);
     }
 
 
