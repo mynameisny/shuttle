@@ -1,0 +1,16 @@
+POST http://localhost:7777/stations
+Content-Type: application/json
+
+{
+    "code": "LXHG",
+    "name": "领秀慧谷",
+    "description": "xxxx",
+    "address": {
+      "code": "LXHG",
+      "name": "领秀慧谷",
+      "coordinate": "BD09",
+      "latitude": 116.311379,
+      "longitude": 40.102627
+    }
+}
+
