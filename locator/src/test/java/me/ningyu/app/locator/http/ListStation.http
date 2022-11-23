@@ -2,26 +2,18 @@ GET http://localhost:7777/stations
 Accept: application/json
 
 ###
-GET http://localhost:7777/addresses?code=ZXZ
+GET http://localhost:7777/stations?code=LXHG
 Accept: application/json
 
 ###
-GET http://localhost:7777/addresses?name=朱
+GET http://localhost:7777/stations?name=领秀慧谷
 Accept: application/json
 
 ###
-GET http://localhost:7777/addresses?coordinate=BD09
+GET http://localhost:7777/stations?status=NORMAL
 Accept: application/json
 
 ###
-GET http://localhost:7777/addresses?latitude=116.311379&longitude=40.102627
-Accept: application/json
-
-###
-GET http://localhost:7777/addresses?areaCode=110114013004
-Accept: application/json
-
-###
-GET http://localhost:7777/addresses?description=领秀慧谷
+GET http://localhost:7777/stations?description=xxxx
 Accept: application/json
 
