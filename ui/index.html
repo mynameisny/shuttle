@@ -39,7 +39,9 @@
         <!-- JavaScript Bundle with Popper -->
         <script src="js/bootstrap.bundle.js"></script>
         
-        <script src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=您的密钥"></script>
+        <script src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=xxx"></script>
+        
+        <script src="js/jquery-3.6.1.js"></script>
     </head>
     
     <body>
@@ -104,8 +106,16 @@
                         <div class="modal-body">
                             <form>
                                 <div class="mb-3 mt-3">
-                                    <label for="email" class="form-label">Email:</label>
-                                    <input type="email" class="form-control" id="email" placeholder="Enter email" name="email">
+                                    <label for="code" class="form-label">编码</label>
+                                    <input type="text" class="form-control" id="code" placeholder="请输入站点的编码" name="code" required>
+                                </div>
+                                <div class="mb-3 mt-3">
+                                    <label for="name" class="form-label">名称</label>
+                                    <input type="text" class="form-control" id="name" placeholder="请输入站点的名称" name="name" required>
+                                </div>
+                                <div class="mb-3 mt-3">
+                                    <label for="description" class="form-label">描述</label>
+                                    <input type="text" class="form-control" id="description" placeholder="请输入站点描述" name="description" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="pwd" class="form-label">Password:</label>
