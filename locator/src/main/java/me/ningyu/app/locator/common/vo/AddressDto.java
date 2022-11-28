@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import me.ningyu.app.locator.common.enums.AddressType;
 import me.ningyu.app.locator.common.enums.Coordinate;
 import me.ningyu.app.locator.domain.map.entity.Address;
 
@@ -48,6 +49,9 @@ public class AddressDto
 
     @ApiModelProperty("地址描述")
     private String description;
+
+    @ApiModelProperty("地址类型")
+    private AddressType type;
 
     public static AddressDto buildFromEntity(Address entity)
     {
