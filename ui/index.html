@@ -38,10 +38,13 @@
         
         <!-- JavaScript Bundle with Popper -->
         <script src="js/bootstrap.bundle.js"></script>
-        
-        <script src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=xxx"></script>
+    
+        <script src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=OugaAEYOKRBtWuZNH4s2LCjHboQIZgOv"></script>
         
         <script src="js/jquery-3.6.1.js"></script>
+        
+        <script src="js/pinyin/pinyin_dict_firstletter.js"></script>
+        <script src="js/pinyin/pinyinUtil.js"></script>
     </head>
     
     <body>
@@ -61,7 +64,6 @@
                     <th>编码</th>
                     <th>名称</th>
                     <th>描述</th>
-                    <th>位置</th>
                     <th>状态</th>
                 </tr>
                 </thead>
@@ -70,7 +72,6 @@
                     <td>John</td>
                     <td>Doe</td>
                     <td>john@example.com</td>
-                    <td><abbr title="attribute" onclick="window.open('map.html?point=xx,yy')">查看</abbr></td>
                     <td>
                         <span class="badge rounded-pill bg-success">正常</span>
                     </td>
@@ -79,7 +80,6 @@
                     <td>Mary</td>
                     <td>Moe</td>
                     <td>mary@example.com</td>
-                    <td><abbr title="attribute" onclick="alert(111)">查看</abbr></td>
                     <td>
                         <span class="badge rounded-pill bg-secondary">暂停</span>
                     </td>
@@ -88,7 +88,6 @@
                     <td>Mary</td>
                     <td>Moe</td>
                     <td>mary@example.com</td>
-                    <td><abbr title="attribute" onclick="alert(111)">查看</abbr></td>
                     <td>
                         <span class="badge rounded-pill bg-danger">取消</span>
                     </td>
@@ -196,6 +195,7 @@
             address += e.addressComponent.street;
             address += e.addressComponent.streetNumber;
             alert("当前定位地址为：" + address);
+            
         });
         locationControl.addEventListener("locationError",function(e){
             alert(e.message);
@@ -209,7 +209,9 @@
             map.clearOverlays();
 
 
-           
+            debugger;
+            alert("当前定位地址为：" + pinyinUtil.getFirstLetter("中国"));
+
 
             var point = new BMapGL.Point(e.latlng.lng, e.latlng.lat);
 
@@ -231,7 +233,7 @@
                 }
             });
 
-            
+
             //var point = new BMapGL.Point(e.latlng.lng, e.latlng.lat);
             var marker = new BMapGL.Marker(point, {
                 enableDragging: false
