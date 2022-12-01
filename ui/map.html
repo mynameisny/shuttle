@@ -199,15 +199,53 @@
 
 
     // 行政大区
+    var geoc = new BMapGL.Geocoder();
     var dist = null;
+    var label = null;
     function addDis() {
         map.removeDistrictLayer(dist);
         dist = new BMapGL.DistrictLayer({
-            name: '(昌平区,涿州市,三河市)',
+            name: '(东城区,昌平区,涿州市,三河市)',
             fillColor: '#5e8bff',
             fillOpacity: 0.1
         });
         map.addDistrictLayer(dist);
+    
+        // --- 行政区划添加鼠标事件 ---
+        dist.addEventListener('mouseover', function (e) {
+            e.currentTarget.setFillColor('#ea2681');
+    
+    
+            map.removeOverlay(label);
+    
+            var pt = e.latLng;
+            geoc.getLocation(pt, function(rs){
+                var addComp = rs.addressComponents;
+    
+    
+                geoc.getPoint(addComp.province + ", " + addComp.city + ", " + addComp.district, function(point) {
+                    if (point) {
+    
+                        label = new BMapGL.Label(addComp.province + ", " + addComp.city + ", " + addComp.district, {
+                            position: new BMapGL.Point(point.lng, point.lat),
+                            offset: new BMapGL.Size(-28, -20)
+                        });
+                        label.setStyle({
+                            color: '#fff',
+                            borderColor: '#5e8bff',
+                            backgroundColor: '#5e8bff',
+                            fontSize: '14px'
+                        });
+                        map.addOverlay(label);
+                    }
+                });
+    
+            })
+        });
+        dist.addEventListener('mouseout', function (e) {
+            e.currentTarget.setFillColor(e.currentTarget.style.fillColor);
+            map.removeOverlay(label);
+        });
     }
 
     function removeDis() {
