@@ -219,6 +219,8 @@
             map.removeOverlay(label);
     
             var pt = e.latLng;
+            
+            // 获得鼠标指向位置的所属省市区，然后根据省市区名字再查询时，就是这个区的中心位直的坐标
             geoc.getLocation(pt, function(rs){
                 var addComp = rs.addressComponents;
     
