@@ -154,6 +154,30 @@
         };
     });
 
+    marker2.addEventListener('click', function () {
+        this.openInfoWindow(infoWindow);
+        // 图片加载完毕重绘infoWindow
+        document.getElementById('imgDemo').onload = function () {
+            infoWindow.redraw(); // 防止在网速较慢时生成的信息框高度比图片总高度小，导致图片部分被隐藏
+        };
+    });
+
+    marker3.addEventListener('click', function () {
+        this.openInfoWindow(infoWindow);
+        // 图片加载完毕重绘infoWindow
+        document.getElementById('imgDemo').onload = function () {
+            infoWindow.redraw(); // 防止在网速较慢时生成的信息框高度比图片总高度小，导致图片部分被隐藏
+        };
+    });
+
+    marker4.addEventListener('click', function () {
+        this.openInfoWindow(infoWindow);
+        // 图片加载完毕重绘infoWindow
+        document.getElementById('imgDemo').onload = function () {
+            infoWindow.redraw(); // 防止在网速较慢时生成的信息框高度比图片总高度小，导致图片部分被隐藏
+        };
+    });
+
 
     infoWindow.addEventListener('close', function ()
     {
@@ -220,6 +244,7 @@
     
             var pt = e.latLng;
             
+            // todo s
             // 获得鼠标指向位置的所属省市区，然后根据省市区名字再查询时，就是这个区的中心位直的坐标
             geoc.getLocation(pt, function(rs){
                 var addComp = rs.addressComponents;
