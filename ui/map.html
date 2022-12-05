@@ -202,6 +202,8 @@
 
 
     // 右键菜单
+    var local = null;
+    var circle = null;
     var menu = new BMapGL.ContextMenu();
     var txtMenuItem = [
         {
@@ -209,14 +211,35 @@
             callback: function () {
                 map.zoomIn();
             }
-        }, {
+        },
+        {
             text: '缩小一级',
             callback: function () {
                 map.zoomOut();
             }
+        },
+        {
+            text: '核酸检测点',
+            callback: function (e) {
+                if (local == null)
+                {
+                    var mPoint = new BMapGL.Point(e.lng, e.lat);
+                    circle = new BMapGL.Circle(mPoint,1000,{fillColor:"blue", strokeWeight: 1 ,fillOpacity: 0.3, strokeOpacity: 0.3});
+                    map.addOverlay(circle);
+                    local = new BMapGL.LocalSearch(map, {renderOptions: {map: map, autoViewport: false}});
+                    local.searchNearby('核酸检测' ,mPoint, 500);
+                }
+                else
+                {
+                    local.clearResults();
+                    map.removeOverlay(circle);
+                }
+            }
         }
     ];
-    for (var i = 0; i < txtMenuItem.length; i++) {
+    
+    for (var i = 0; i < txtMenuItem.length; i++)
+    {
         menu.addItem(new BMapGL.MenuItem(txtMenuItem[i].text, txtMenuItem[i].callback, 100));
     }
     map.addContextMenu(menu);
