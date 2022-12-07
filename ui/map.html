@@ -62,33 +62,12 @@
                 cursor: pointer;
             }
 
-
-            .drawing-panel {
-                z-index: 999;
-                position: fixed;
-                bottom: 30px;
-                left: 250px;
-                margin-left: 5rem;
-                padding: 1rem 1rem;
-                border-radius: .25rem;
-                background-color: #fff;
-                box-shadow: 0 2px 6px 0 rgba(27, 142, 236, 0.5);
-            }
-            .draw-btn {
-                width: 75px;
-                height: 30px;
-                background-color: #fff;
-                color: rgba(27, 142, 236, 1);
-                border:1px solid rgba(27, 142, 236, 1);
-                border-radius: 5px;
-                margin: 0 5px;
-            }
         </style>
-        <script src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=xxx"></script>
+        <script src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=xx"></script>
     
         <script src="js/jquery-3.6.1.js"></script>
     
-        <script type="text/javascript" src="//mapopen.cdn.bcebos.com/github/BMapGLLib/DistanceTool/src/DistanceTool.min.js"></script>
+        <script src="js/DistanceTool.js"></script>
     </head>
     
     <body>
@@ -98,12 +77,6 @@
         <ul class="btn-wrap" style="z-index: 99;">
             <li class = "btn" onclick = "addDis()">显示覆盖范围</li>
             <li class = "btn" onclick = "removeDis()">移除覆盖范围</li>
-        </ul>
-        
-        
-        <ul class = "drawing-panel">
-            <input type="button" class="draw-btn" value="开启测距" onclick="myDis.open()">
-            <input type="button" class="draw-btn" value="关闭测距" onclick="alert(1);myDis.close();">
         </ul>
     </body>
 </html>
@@ -264,6 +237,12 @@
                     local.clearResults();
                     map.removeOverlay(circle);
                 }
+            }
+        },
+        {
+            text: '测距',
+            callback: function () {
+                myDis.open();
             }
         }
     ];
