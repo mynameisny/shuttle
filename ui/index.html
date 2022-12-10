@@ -145,6 +145,7 @@
                 
                         <!-- 模态框底部 -->
                         <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="addStation">提交</button>
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">关闭</button>
                         </div>
             
@@ -158,6 +159,11 @@
 <script>
     const myModalEl = document.getElementById('myModal');
     let map = null;
+
+    $("#addStation").click(function(event){
+        debugger;
+        alert(1);
+        /* Act on the event */});
 
     myModalEl.addEventListener('shown.bs.modal', function (event) {
         // do something...
