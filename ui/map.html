@@ -118,8 +118,14 @@
     locationControl.addEventListener("locationError",function(e){
         alert(e.message);
     });
-    
-    
+
+
+    $.ajax({
+        url: "http://127.0.0.1:7777/stations", success: function (result) {
+            alert(12);
+            debugger;
+        }
+    });
 
     // 创建自定义图标
     var myIcon = new BMapGL.Icon("img/bus-station-1.png", new BMapGL.Size(32, 32));
