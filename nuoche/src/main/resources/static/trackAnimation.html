@@ -1,0 +1,78 @@
+<!--
+JSAPI GL在视角动画的基础上，封装了轨迹动画开源库，可以实现在轨迹动态播放的同时，视角跟随移动。
+
+注意：由于在渲染动画时，数据资源是随着当前方位和坐标的改变而实时加载的，刚开始播放动画时画面可能会卡顿，属于正常现象；此外，为了减少加载数据资源的性能损耗，在播放动画时隐藏了地图上的POI点。
+-->
+<!DOCTYPE html>
+  <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <title>Title</title>
+          <!--
+                轨迹动画依赖开源库BMapGLLib.TrackAnimation，因此需要在引入JSAPI GL版的基础上，在页面当中引用轨迹动画开源库静态JS文件。
+                JSAPI 开源库是运行在JSAPI基础上的静态库，其提供了一些开发者常用的非核心功能，代码开源，开发者可以根据自己的需求下载、二次开发使用。
+           -->
+          <script type="text/javascript" src="//api.map.baidu.com/api?v=1.0&type=webgl&ak=您的AK"></script>
+          <script type="text/javascript" src="//api.map.baidu.com/library/TrackAnimation/src/TrackAnimation_min.js"></script>
+      </head>
+
+      <body>
+          <script>
+              // 创建Map实例
+              var bmap = new BMapGL.Map("allmap");
+
+              // 初始化地图，设置中心点坐标和地图级别
+              bmap.centerAndZoom(new BMapGL.Point(116.297611, 40.047363), 17);
+
+              // 开启鼠标滚轮缩放
+              bmap.enableScrollWheelZoom(true);
+
+              var path = [{
+                  'lng': 116.297611,
+                  'lat': 40.047363
+              }, {
+                  'lng': 116.302839,
+                  'lat': 40.048219
+              }, {
+                  'lng': 116.308301,
+                  'lat': 40.050566
+              }, {
+                  'lng': 116.305732,
+                  'lat': 40.054957
+              }, {
+                  'lng': 116.304754,
+                  'lat': 40.057953
+              }, {
+                  'lng': 116.306487,
+                  'lat': 40.058312
+              }, {
+                  'lng': 116.307223,
+                  'lat': 40.056379
+              }];
+
+              var point = [];
+              for (var i = 0; i < path.length; i++)
+              {
+                  point.push(new BMapGL.Point(path[i].lng, path[i].lat));
+              }
+
+              // 声明一个Polyline对象，不需要调用Map.addOverlay()添加到地图中，创建对象即可
+              var pl = new BMapGL.Polyline(point);
+
+              // 创建一个新的轨迹3D动画，构造函数需要两个参数：参数1为地图实例，参数2为配置项
+              var trackAni = new BMapGLLib.TrackAnimation(bmap, pl, {
+                  overallView: true, // 是否在动画结束后总览视图缩放（调整地图到能看到整个轨迹的视野），默认开启
+                  tilt: 30,          // 设置动画中的地图倾斜角度，默认55度
+                  duration: 20000,   // 动画持续时长，默认为10000，单位ms
+                  delay: 3000        // 动画开始的延迟，默认0，单位ms
+                  // zoom: 设置动画中的缩放级别，默认会根据轨迹情况调整到一个合适的级别
+              });
+
+              // 启动动画（为了保证效果，建议地图渲染完成后，再由其他方式触发动画播放）
+              trackAni.start();
+
+              // 强制停止动画（动画播放过程中，可以调用方法停止取消）
+              // trackAni.cancel();         // 强制停止动画
+          </script>
+      </body>
+</html>
