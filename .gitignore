@@ -25,3 +25,6 @@ hs_err_pid*
 /server/.mvn
 /server/mvnw
 /server/mvnw.cmd
+
+.DS_Store
+*/.DS_Store 
