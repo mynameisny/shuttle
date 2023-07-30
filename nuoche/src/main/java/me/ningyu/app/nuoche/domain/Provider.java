@@ -32,6 +32,10 @@ public class Provider extends Variable
      */
     private int weight = 0;
 
+    /**
+     * 是否启用
+     */
+    @Column(name = "enabled", unique = true, columnDefinition = "VARCHAR(1) DEFAULT '' COMMENT '是否启用'")
     private boolean enabled = true;
 
     @Override
