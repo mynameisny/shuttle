@@ -22,6 +22,13 @@ public class ProviderService
     private final ProviderRepository providerRepository;
 
 
+
+    public ProviderVO add(ProviderDTO dto)
+    {
+        return null;
+    }
+
+
     @Transactional
     public ProviderVO update(String providerId, ProviderDTO dto)
     {
@@ -57,4 +64,5 @@ public class ProviderService
                          .enabled(provider.isEnabled())
                          .build();
     }
+
 }
