@@ -22,7 +22,7 @@ public class ProviderService
     private final ProviderRepository providerRepository;
 
 
-
+    @Transactional
     public ProviderVO add(ProviderDTO dto)
     {
         return null;
