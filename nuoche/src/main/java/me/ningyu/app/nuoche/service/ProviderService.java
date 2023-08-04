@@ -25,9 +25,12 @@ public class ProviderService
     @Transactional
     public ProviderVO add(ProviderDTO dto)
     {
-        return null;
-    }
+        Provider provider = new Provider();
+        BeanUtils.copyProperties(dto, provider, BeanCopyUtils.getNullPropertyNames(dto));
+        providerRepository.save(provider);
 
+        return entityToVO(provider);
+    }
 
     @Transactional
     public ProviderVO update(String providerId, ProviderDTO dto)
