@@ -10,6 +10,8 @@ import me.ningyu.app.nuoche.domain.Provider;
 import me.ningyu.app.nuoche.domain.ProviderRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.transaction.Transactional;
 import java.util.Optional;
@@ -30,6 +32,13 @@ public class ProviderService
         providerRepository.save(provider);
 
         return entityToVO(provider);
+    }
+
+    @Transactional
+    @RequestMapping("/{id}")
+    public void delete(@PathVariable String id)
+    {
+        providerRepository.deleteById(id);
     }
 
     @Transactional
