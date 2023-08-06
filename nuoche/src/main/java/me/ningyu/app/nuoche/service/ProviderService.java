@@ -44,7 +44,7 @@ public class ProviderService
     @Transactional
     public ProviderVO update(String providerId, ProviderDTO dto)
     {
-        Provider provider = findProviderById(providerId);
+        Provider provider = get(providerId);
 
         BeanUtils.copyProperties(dto, provider, BeanCopyUtils.getNullPropertyNames(dto));
         providerRepository.save(provider);
@@ -52,7 +52,7 @@ public class ProviderService
         return entityToVO(provider);
     }
 
-    private Provider findProviderById(String id)
+    private Provider get(String id)
     {
         Optional<Provider> providerOptional = providerRepository.findById(id);
 
