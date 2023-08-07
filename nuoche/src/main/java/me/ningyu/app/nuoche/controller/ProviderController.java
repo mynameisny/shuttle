@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.transaction.Transactional;
 import javax.validation.groups.Default;
 import java.net.URI;
 
@@ -35,6 +36,11 @@ public class ProviderController
         return ResponseEntity.created(location).body(vo);
     }
 
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable String id)
+    {
+        providerService.deleteById(id);
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable("id") String providerId, @RequestBody @Validated({Default.class}) ProviderDTO dto)

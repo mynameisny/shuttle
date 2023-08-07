@@ -10,7 +10,9 @@ import me.ningyu.app.nuoche.domain.Provider;
 import me.ningyu.app.nuoche.domain.ProviderRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.transaction.Transactional;
@@ -35,8 +37,7 @@ public class ProviderService
     }
 
     @Transactional
-    @RequestMapping("/{id}")
-    public void delete(@PathVariable String id)
+    public void deleteById(String id)
     {
         providerRepository.deleteById(id);
     }
@@ -76,5 +77,4 @@ public class ProviderService
                          .enabled(provider.isEnabled())
                          .build();
     }
-
 }
