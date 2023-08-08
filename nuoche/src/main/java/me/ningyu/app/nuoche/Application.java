@@ -6,12 +6,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @EnableJpaAuditing(auditorAwareRef = "hardCodeAuditAware")
-public class NuoCheApplication
+public class Application
 {
 
     public static void main(String[] args)
     {
-        SpringApplication.run(NuoCheApplication.class, args);
+        SpringApplication.run(Application.class, args);
     }
 
 }

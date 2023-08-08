@@ -1,5 +1,6 @@
 package me.ningyu.app.nuoche.service;
 
+import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.nuoche.common.BeanCopyUtils;
@@ -9,6 +10,8 @@ import me.ningyu.app.nuoche.common.vo.ProviderVO;
 import me.ningyu.app.nuoche.domain.Provider;
 import me.ningyu.app.nuoche.domain.ProviderRepository;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,6 +54,12 @@ public class ProviderService
         providerRepository.save(provider);
 
         return entityToVO(provider);
+    }
+
+    @Transactional
+    public Page<ProviderVO> list(Predicate predicate, Pageable pageable)
+    {
+        return null;
     }
 
     private Provider get(String id)
