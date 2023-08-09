@@ -61,4 +61,11 @@ public class ProviderController
         Page<ProviderVO> content = providerService.list(predicate, pageable);
         return ResponseEntity.ok(content);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> get(@PathVariable String id)
+    {
+        ProviderVO vo = providerService.get(id);
+        return ResponseEntity.ok(vo);
+    }
 }
