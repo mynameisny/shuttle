@@ -1,5 +1,6 @@
 package me.ningyu.app.nuoche.controller;
 
+import com.fasterxml.jackson.databind.util.BeanUtil;
 import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +11,10 @@ import me.ningyu.app.nuoche.common.dto.validation.UserAdd;
 import me.ningyu.app.nuoche.common.vo.ProviderVO;
 import me.ningyu.app.nuoche.common.vo.UserVO;
 import me.ningyu.app.nuoche.controller.binder.UserSearchBinding;
+import me.ningyu.app.nuoche.domain.Provider;
 import me.ningyu.app.nuoche.domain.User;
 import me.ningyu.app.nuoche.service.ProviderService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -65,7 +68,9 @@ public class ProviderController
     @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable String id)
     {
-        ProviderVO vo = providerService.get(id);
+        Provider provider = providerService.get(id);
+        ProviderVO vo = new ProviderVO();
+        BeanUtils.copyProperties(provider, vo);
         return ResponseEntity.ok(vo);
     }
 }

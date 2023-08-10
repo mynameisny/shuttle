@@ -62,7 +62,7 @@ public class ProviderService
         return null;
     }
 
-    private Provider get(String id)
+    public Provider get(String id)
     {
         Optional<Provider> providerOptional = providerRepository.findById(id);
 
