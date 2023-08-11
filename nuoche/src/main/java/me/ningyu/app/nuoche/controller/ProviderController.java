@@ -48,6 +48,7 @@ public class ProviderController
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id)
     {
+        providerService.get(id)
         providerService.deleteById(id);
     }
 
@@ -68,9 +69,7 @@ public class ProviderController
     @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable String id)
     {
-        Provider provider = providerService.get(id);
-        ProviderVO vo = new ProviderVO();
-        BeanUtils.copyProperties(provider, vo);
+        ProviderVO vo = providerService.get(id);
         return ResponseEntity.ok(vo);
     }
 }

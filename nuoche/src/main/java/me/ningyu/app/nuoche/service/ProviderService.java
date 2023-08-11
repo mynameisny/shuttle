@@ -46,9 +46,9 @@ public class ProviderService
     }
 
     @Transactional
-    public ProviderVO update(String providerId, ProviderDTO dto)
+    public ProviderVO update(String id, ProviderDTO dto)
     {
-        Provider provider = get(providerId);
+        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException("通知器不存在"));
 
         BeanUtils.copyProperties(dto, provider, BeanCopyUtils.getNullPropertyNames(dto));
         providerRepository.save(provider);
@@ -62,16 +62,16 @@ public class ProviderService
         return null;
     }
 
-    public Provider get(String id)
+    public ProviderVO get(String id)
     {
-        Optional<Provider> providerOptional = providerRepository.findById(id);
+        Optional<Provider> optional = providerRepository.findById(id);
 
-        if (!providerOptional.isPresent())
+        if (!optional.isPresent())
         {
             throw new NotfoundException("通知器不存在");
         }
 
-        return providerOptional.get();
+        return entityToVO(optional.get());
     }
 
     public static ProviderVO entityToVO(Provider provider)
