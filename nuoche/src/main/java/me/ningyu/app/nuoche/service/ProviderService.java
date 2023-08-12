@@ -59,7 +59,8 @@ public class ProviderService
     @Transactional
     public Page<ProviderVO> list(Predicate predicate, Pageable pageable)
     {
-        return null;
+        Page<Provider> page = providerRepository.findAll(predicate, pageable);
+        return page.map(ProviderService::entityToVO);
     }
 
     public ProviderVO get(String id)
