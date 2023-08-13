@@ -48,8 +48,11 @@ public class ProviderController
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id)
     {
-        providerService.get(id)
-        providerService.deleteById(id);
+        ProviderVO vo = providerService.get(id);
+        if (vo != null)
+        {
+            providerService.deleteById(id);
+        }
     }
 
     @PutMapping("/{id}")
