@@ -42,7 +42,8 @@ public class ProviderService
     @Transactional
     public void deleteById(String id)
     {
-        providerRepository.deleteById(id);
+        Provider provider = get(id);
+        providerRepository.delete(provider);
     }
 
     @Transactional
@@ -63,7 +64,19 @@ public class ProviderService
         return page.map(ProviderService::entityToVO);
     }
 
-    public ProviderVO get(String id)
+    public Provider get(String id)
+    {
+        Optional<Provider> optional = providerRepository.findById(id);
+
+        if (!optional.isPresent())
+        {
+            throw new NotfoundException("通知器不存在");
+        }
+
+        return optional.get();
+    }
+
+    public ProviderVO getById(String id)
     {
         Optional<Provider> optional = providerRepository.findById(id);
 

@@ -7,6 +7,7 @@ import me.ningyu.app.nuoche.common.dto.ProviderDTO;
 import me.ningyu.app.nuoche.common.dto.validation.ProviderAdd;
 import me.ningyu.app.nuoche.common.vo.ProviderVO;
 import me.ningyu.app.nuoche.controller.binder.UserSearchBinding;
+import me.ningyu.app.nuoche.domain.Provider;
 import me.ningyu.app.nuoche.domain.User;
 import me.ningyu.app.nuoche.service.ProviderService;
 import org.springframework.data.domain.Page;
@@ -34,18 +35,14 @@ public class ProviderController
     public ResponseEntity<?> add(@RequestBody @Validated({ProviderAdd.class, Default.class}) ProviderDTO dto, UriComponentsBuilder builder)
     {
         ProviderVO vo = providerService.add(dto);
-        URI location = builder.replacePath("/providers/{code}").buildAndExpand(vo.getId()).toUri();
+        URI location = builder.replacePath("/providers/{id}").buildAndExpand(vo.getId()).toUri();
         return ResponseEntity.created(location).body(vo);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id)
     {
-        ProviderVO vo = providerService.get(id);
-        if (vo != null)
-        {
-            providerService.deleteById(id);
-        }
+        providerService.deleteById(id);
     }
 
     @PutMapping("/{id}")
@@ -65,7 +62,7 @@ public class ProviderController
     @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable String id)
     {
-        ProviderVO vo = providerService.get(id);
+        ProviderVO vo = providerService.getById(id);
         return ResponseEntity.ok(vo);
     }
 }
