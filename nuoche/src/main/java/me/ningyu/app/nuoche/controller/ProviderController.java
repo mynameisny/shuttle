@@ -40,9 +40,10 @@ public class ProviderController
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id)
+    public ResponseEntity<?> delete(@PathVariable String id)
     {
         providerService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
