@@ -13,10 +13,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.transaction.Transactional;
 import java.util.Optional;
@@ -29,6 +25,7 @@ public class ProviderService
     private final ProviderRepository providerRepository;
 
 
+/*
     @Transactional
     public ProviderVO add(ProviderDTO dto)
     {
@@ -38,9 +35,19 @@ public class ProviderService
 
         return entityToVO(provider);
     }
+*/
 
     @Transactional
-    public void deleteById(String id)
+    public Provider add(ProviderDTO dto)
+    {
+        Provider provider = new Provider();
+        BeanUtils.copyProperties(dto, provider, BeanCopyUtils.getNullPropertyNames(dto));
+        providerRepository.save(provider);
+        return provider;
+    }
+
+    @Transactional
+    public void delete(String id)
     {
         Provider provider = get(id);
         providerRepository.delete(provider);
@@ -88,7 +95,7 @@ public class ProviderService
         return entityToVO(optional.get());
     }
 
-    public static ProviderVO entityToVO(Provider provider)
+    public ProviderVO entityToVO(Provider provider)
     {
         return ProviderVO.builder()
                          .id(provider.getId())

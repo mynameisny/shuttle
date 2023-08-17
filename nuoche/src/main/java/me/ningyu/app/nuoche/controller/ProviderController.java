@@ -34,7 +34,10 @@ public class ProviderController
     @PostMapping
     public ResponseEntity<?> add(@RequestBody @Validated({ProviderAdd.class, Default.class}) ProviderDTO dto, UriComponentsBuilder builder)
     {
-        ProviderVO vo = providerService.add(dto);
+        Provider provider = providerService.add(dto);
+
+        ProviderVO vo = providerService.entityToVO(provider);
+
         URI location = builder.replacePath("/providers/{id}").buildAndExpand(vo.getId()).toUri();
         return ResponseEntity.created(location).body(vo);
     }
@@ -42,7 +45,7 @@ public class ProviderController
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable String id)
     {
-        providerService.deleteById(id);
+        providerService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
