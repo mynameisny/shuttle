@@ -25,25 +25,15 @@ public class ProviderService
     private final ProviderRepository providerRepository;
 
 
-/*
     @Transactional
     public ProviderVO add(ProviderDTO dto)
     {
         Provider provider = new Provider();
+
         BeanUtils.copyProperties(dto, provider, BeanCopyUtils.getNullPropertyNames(dto));
         providerRepository.save(provider);
 
         return entityToVO(provider);
-    }
-*/
-
-    @Transactional
-    public Provider add(ProviderDTO dto)
-    {
-        Provider provider = new Provider();
-        BeanUtils.copyProperties(dto, provider, BeanCopyUtils.getNullPropertyNames(dto));
-        providerRepository.save(provider);
-        return provider;
     }
 
     @Transactional
@@ -68,7 +58,7 @@ public class ProviderService
     public Page<ProviderVO> list(Predicate predicate, Pageable pageable)
     {
         Page<Provider> page = providerRepository.findAll(predicate, pageable);
-        return page.map(ProviderService::entityToVO);
+        return page.map(this::entityToVO);
     }
 
     public Provider get(String id)

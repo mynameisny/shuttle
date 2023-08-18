@@ -34,10 +34,7 @@ public class ProviderController
     @PostMapping
     public ResponseEntity<?> add(@RequestBody @Validated({ProviderAdd.class, Default.class}) ProviderDTO dto, UriComponentsBuilder builder)
     {
-        Provider provider = providerService.add(dto);
-
-        ProviderVO vo = providerService.entityToVO(provider);
-
+        ProviderVO vo = providerService.add(dto);
         URI location = builder.replacePath("/providers/{id}").buildAndExpand(vo.getId()).toUri();
         return ResponseEntity.created(location).body(vo);
     }
