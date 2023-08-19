@@ -39,8 +39,7 @@ public class ProviderService
     @Transactional
     public void delete(String id)
     {
-        Provider provider = get(id);
-        providerRepository.delete(provider);
+        providerRepository.deleteById(id);
     }
 
     @Transactional
@@ -61,7 +60,7 @@ public class ProviderService
         return page.map(this::entityToVO);
     }
 
-    public Provider get(String id)
+    public ProviderVO get(String id)
     {
         Optional<Provider> optional = providerRepository.findById(id);
 
@@ -70,7 +69,7 @@ public class ProviderService
             throw new NotfoundException("通知器不存在");
         }
 
-        return optional.get();
+        return entityToVO(optional.get());
     }
 
     public ProviderVO getById(String id)

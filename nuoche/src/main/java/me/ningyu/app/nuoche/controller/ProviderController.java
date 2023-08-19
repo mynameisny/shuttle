@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.nuoche.common.dto.ProviderDTO;
 import me.ningyu.app.nuoche.common.dto.validation.ProviderAdd;
 import me.ningyu.app.nuoche.common.vo.ProviderVO;
+import me.ningyu.app.nuoche.controller.binder.ProviderSearchBinding;
 import me.ningyu.app.nuoche.controller.binder.UserSearchBinding;
 import me.ningyu.app.nuoche.domain.Provider;
 import me.ningyu.app.nuoche.domain.User;
@@ -54,7 +55,7 @@ public class ProviderController
     }
 
     @GetMapping
-    public ResponseEntity<?> list(@QuerydslPredicate(root = User.class, bindings = UserSearchBinding.class) Predicate predicate, Pageable pageable)
+    public ResponseEntity<?> list(@QuerydslPredicate(root = Provider.class, bindings = ProviderSearchBinding.class) Predicate predicate, Pageable pageable)
     {
         Page<ProviderVO> content = providerService.list(predicate, pageable);
         return ResponseEntity.ok(content);
@@ -63,7 +64,7 @@ public class ProviderController
     @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable String id)
     {
-        ProviderVO vo = providerService.getById(id);
+        ProviderVO vo = providerService.get(id);
         return ResponseEntity.ok(vo);
     }
 }
