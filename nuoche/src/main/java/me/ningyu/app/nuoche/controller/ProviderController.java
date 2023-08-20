@@ -14,6 +14,7 @@ import me.ningyu.app.nuoche.service.ProviderService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -48,14 +49,14 @@ public class ProviderController
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable("id") String providerId, @RequestBody @Validated({Default.class}) ProviderDTO dto)
+    public ResponseEntity<?> update(@PathVariable("id") String id, @RequestBody @Validated({Default.class}) ProviderDTO dto)
     {
-        ProviderVO vo = providerService.update(providerId, dto);
+        ProviderVO vo = providerService.update(id, dto);
         return ResponseEntity.ok(vo);
     }
 
     @GetMapping
-    public ResponseEntity<?> list(@QuerydslPredicate(root = Provider.class, bindings = ProviderSearchBinding.class) Predicate predicate, Pageable pageable)
+    public ResponseEntity<?> list(@QuerydslPredicate(root = Provider.class, bindings = ProviderSearchBinding.class) Predicate predicate, @PageableDefault(sort = "modifiedAt") Pageable pageable)
     {
         Page<ProviderVO> content = providerService.list(predicate, pageable);
         return ResponseEntity.ok(content);
