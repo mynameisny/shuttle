@@ -62,26 +62,17 @@ public class ProviderService
 
     public ProviderVO get(String id)
     {
-        Optional<Provider> optional = providerRepository.findById(id);
-
-        if (!optional.isPresent())
-        {
-            throw new NotfoundException("通知器不存在");
-        }
-
-        return entityToVO(optional.get());
+        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException("通知器不存在"));
+        return entityToVO(provider);
     }
 
-    public ProviderVO getById(String id)
+    @Transactional
+    public ProviderVO enable(String id)
     {
-        Optional<Provider> optional = providerRepository.findById(id);
-
-        if (!optional.isPresent())
-        {
-            throw new NotfoundException("通知器不存在");
-        }
-
-        return entityToVO(optional.get());
+        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException("通知器不存在"));
+        provider.setEnabled(false);
+        providerRepository.save(provider);
+        return entityToVO(provider);
     }
 
     public ProviderVO entityToVO(Provider provider)

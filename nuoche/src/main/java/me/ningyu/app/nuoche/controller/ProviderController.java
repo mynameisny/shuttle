@@ -68,4 +68,11 @@ public class ProviderController
         ProviderVO vo = providerService.get(id);
         return ResponseEntity.ok(vo);
     }
+
+    @PostMapping("/{id}/enable")
+    public ResponseEntity<?> enable(@PathVariable("id") String id)
+    {
+        ProviderVO vo = providerService.enable(id);
+        return ResponseEntity.ok(vo);
+    }
 }
