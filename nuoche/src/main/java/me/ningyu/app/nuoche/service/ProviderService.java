@@ -70,6 +70,15 @@ public class ProviderService
     public ProviderVO enable(String id)
     {
         Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException("通知器不存在"));
+        provider.setEnabled(true);
+        providerRepository.save(provider);
+        return entityToVO(provider);
+    }
+
+    @Transactional
+    public ProviderVO disable(String id)
+    {
+        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException("通知器不存在"));
         provider.setEnabled(false);
         providerRepository.save(provider);
         return entityToVO(provider);

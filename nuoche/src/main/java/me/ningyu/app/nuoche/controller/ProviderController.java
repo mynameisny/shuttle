@@ -75,4 +75,11 @@ public class ProviderController
         ProviderVO vo = providerService.enable(id);
         return ResponseEntity.ok(vo);
     }
+
+    @PostMapping("/{id}/disable")
+    public ResponseEntity<?> disable(@PathVariable("id") String id)
+    {
+        ProviderVO vo = providerService.disable(id);
+        return ResponseEntity.ok(vo);
+    }
 }
