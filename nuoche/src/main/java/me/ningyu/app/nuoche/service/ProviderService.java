@@ -22,6 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProviderService
 {
+    public static final String NOT_FOUND = "通知器不存在";
     private final ProviderRepository providerRepository;
 
 
@@ -45,7 +46,7 @@ public class ProviderService
     @Transactional
     public ProviderVO update(String id, ProviderDTO dto)
     {
-        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException("通知器不存在"));
+        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException(NOT_FOUND));
 
         BeanUtils.copyProperties(dto, provider, BeanCopyUtils.getNullPropertyNames(dto));
         providerRepository.save(provider);
@@ -62,14 +63,14 @@ public class ProviderService
 
     public ProviderVO get(String id)
     {
-        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException("通知器不存在"));
+        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException(NOT_FOUND));
         return entityToVO(provider);
     }
 
     @Transactional
     public ProviderVO enable(String id)
     {
-        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException("通知器不存在"));
+        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException(NOT_FOUND));
         provider.setEnabled(true);
         providerRepository.save(provider);
         return entityToVO(provider);
@@ -78,7 +79,7 @@ public class ProviderService
     @Transactional
     public ProviderVO disable(String id)
     {
-        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException("通知器不存在"));
+        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException(NOT_FOUND));
         provider.setEnabled(false);
         providerRepository.save(provider);
         return entityToVO(provider);
