@@ -43,7 +43,7 @@ public class UserService
         User user = User.builder()
                         .code(dto.getCode())
                         .name(dto.getName())
-                        .userKey(Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes()))
+                        .code(Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes()))
                         .phones(dto.getPhones())
                         .emails(dto.getEmails())
                         .build();
@@ -144,7 +144,7 @@ public class UserService
         return users.map(user -> UserVO.builder()
                                        .code(user.getCode())
                                        .name(user.getName())
-                                       .key(user.getUserKey())
+                                       .key(user.getCode())
                                        .phones(user.getPhones())
                                        .emails(user.getEmails())
                                        .providers(providerEntityToVO(user.getProviders()))
@@ -168,7 +168,7 @@ public class UserService
         UserVO userVO = UserVO.builder()
                               .code(user.getCode())
                               .name(user.getName())
-                              .key(user.getUserKey())
+                              .key(user.getCode())
                               .phones(user.getPhones())
                               .emails(user.getEmails())
                               .build();
