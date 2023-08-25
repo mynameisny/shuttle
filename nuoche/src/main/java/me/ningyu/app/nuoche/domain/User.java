@@ -18,7 +18,7 @@ import java.util.Set;
 @ToString
 public class User extends Variable
 {
-    @Column(name = "code", columnDefinition = "VARCHAR(150) DEFAULT 0 COMMENT '用户编码'")
+    @Column(name = "code", columnDefinition = "VARCHAR(150) DEFAULT 0 COMMENT '用户编码'", unique = true)
     private String code;
 
     @Column(name = "name", columnDefinition = "VARCHAR(150) DEFAULT 0 COMMENT '用户名称'")

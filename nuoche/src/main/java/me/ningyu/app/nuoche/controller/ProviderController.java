@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.nuoche.common.dto.ProviderDTO;
 import me.ningyu.app.nuoche.common.dto.validation.ProviderAdd;
 import me.ningyu.app.nuoche.common.vo.ProviderVO;
+import me.ningyu.app.nuoche.common.vo.UserVO;
 import me.ningyu.app.nuoche.controller.binder.ProviderSearchBinding;
 import me.ningyu.app.nuoche.controller.binder.UserSearchBinding;
 import me.ningyu.app.nuoche.domain.Provider;
@@ -22,6 +23,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.groups.Default;
 import java.net.URI;
+import java.util.List;
 
 
 @RestController
@@ -81,5 +83,11 @@ public class ProviderController
     {
         ProviderVO vo = providerService.disable(id);
         return ResponseEntity.ok(vo);
+    }
+
+    @PutMapping("/{id}/users/{userCode}")
+    public ResponseEntity<?> addProviderToUser(@PathVariable("id") String id, @PathVariable("userCode") String userCode)
+    {
+        return ResponseEntity.ok().build();
     }
 }
