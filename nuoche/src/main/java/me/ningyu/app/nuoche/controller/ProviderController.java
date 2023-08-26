@@ -90,4 +90,11 @@ public class ProviderController
     {
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{userCode}/providers")
+    public ResponseEntity<?> removeProviderFromUser(@PathVariable("userCode") String userCode, @RequestParam("id") List<String> providerIds)
+    {
+        return ResponseEntity.ok().build();
+    }
+
 }
