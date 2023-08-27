@@ -88,11 +88,12 @@ public class ProviderController
     @PutMapping("/{id}/users/{userCode}")
     public ResponseEntity<?> addProviderToUser(@PathVariable("id") String id, @PathVariable("userCode") String userCode)
     {
+        providerService.addProviderToUser(id, userCode);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{userCode}/providers")
-    public ResponseEntity<?> removeProviderFromUser(@PathVariable("userCode") String userCode, @RequestParam("id") List<String> providerIds)
+    @DeleteMapping("/{id}/users/{userCode}")
+    public ResponseEntity<?> removeProviderFromUser(@PathVariable("id") String id, @RequestParam("id") List<String> providerIds)
     {
         return ResponseEntity.ok().build();
     }

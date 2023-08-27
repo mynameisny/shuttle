@@ -9,6 +9,8 @@ import me.ningyu.app.nuoche.common.exception.NotfoundException;
 import me.ningyu.app.nuoche.common.vo.ProviderVO;
 import me.ningyu.app.nuoche.domain.Provider;
 import me.ningyu.app.nuoche.domain.ProviderRepository;
+import me.ningyu.app.nuoche.domain.User;
+import me.ningyu.app.nuoche.domain.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProviderService
 {
+    private final UserRepository userRepository;
     public static final String NOT_FOUND = "通知器不存在";
     private final ProviderRepository providerRepository;
 
@@ -83,6 +86,16 @@ public class ProviderService
         provider.setEnabled(false);
         providerRepository.save(provider);
         return entityToVO(provider);
+    }
+
+    @Transactional
+    public void addProviderToUser(String id, String userCode)
+    {
+        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException(NOT_FOUND));
+        User user = userRepository.findByCode(userCode).orElseThrow(() -> new NotfoundException(NOT_FOUND));
+
+        user.getProviders().add(provider);
+        userRepository.save(user);
     }
 
     public ProviderVO entityToVO(Provider provider)
