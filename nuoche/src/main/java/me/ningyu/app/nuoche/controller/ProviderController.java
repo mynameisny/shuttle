@@ -93,8 +93,9 @@ public class ProviderController
     }
 
     @DeleteMapping("/{id}/users/{userCode}")
-    public ResponseEntity<?> removeProviderFromUser(@PathVariable("id") String id, @RequestParam("id") List<String> providerIds)
+    public ResponseEntity<?> removeProviderFromUser(@PathVariable("id") String id, @PathVariable("userCode") String userCode)
     {
+        providerService.removeProviderFromUser(id, userCode);
         return ResponseEntity.ok().build();
     }
 

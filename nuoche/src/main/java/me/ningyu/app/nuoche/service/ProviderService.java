@@ -98,6 +98,16 @@ public class ProviderService
         userRepository.save(user);
     }
 
+    @Transactional
+    public void removeProviderFromUser(String id, String userCode)
+    {
+        Provider provider = providerRepository.findById(id).orElseThrow(() -> new NotfoundException(NOT_FOUND));
+        User user = userRepository.findByCode(userCode).orElseThrow(() -> new NotfoundException(NOT_FOUND));
+
+        user.getProviders().removeIf(p -> p.getId().equals(provider.getId()));
+        userRepository.save(user);
+    }
+
     public ProviderVO entityToVO(Provider provider)
     {
         return ProviderVO.builder()
