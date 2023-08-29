@@ -14,7 +14,7 @@ import javax.validation.constraints.NotBlank;
 public class NotificationDTO
 {
     @NotBlank(message = "用户账号不能为空")
-    private String userKey;
+    private String userCode;
 
     private String message;
 
