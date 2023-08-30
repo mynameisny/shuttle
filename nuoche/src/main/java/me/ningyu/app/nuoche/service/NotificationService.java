@@ -36,7 +36,7 @@ public class NotificationService
 
     public String send(NotificationDTO dto)
     {
-        User user = userRepository.findByUserKey(dto.getUserKey()).orElseThrow(() -> new NotfoundException(String.format("找不到[%s]对应的用户", dto.getUserKey())));
+        User user = userRepository.findByUserKey(dto.getUserCode()).orElseThrow(() -> new NotfoundException(String.format("找不到[%s]对应的用户", dto.getUserCode())));
         String customerPhone = dto.getCustomerPhone();
         String message = dto.getMessage();
 
