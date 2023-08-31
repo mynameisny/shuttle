@@ -11,7 +11,5 @@ public interface UserRepository extends JpaRepository<User, String>, QuerydslPre
 {
     Optional<User> findByCode(String code);
 
-    Optional<User> findByUserKey(String userKey);
-
     void deleteByCode(String code);
 }
