@@ -68,6 +68,11 @@ public class NotificationService
                     barkService.send(vendor.getUrl(), vendor.getPushKey(), DEFAULT_TITLE, content, DEFAULT_GROUP, link);
                 }
             }
+
+            if (vendorName == ProviderVendor.NTFY)
+            {
+                //todo
+            }
         }
 
         return "OK";
