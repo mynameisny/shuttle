@@ -36,8 +36,8 @@ public class NotificationService
 
     public String send(NotificationDTO dto)
     {
-        User user = userRepository.findByCode(dto.getUserCode()).orElseThrow(() -> new NotfoundException(String.format("找不到[%s]对应的用户", dto.getUserCode())));
-        String customerPhone = dto.getCustomerPhone();
+        User user = userRepository.findByCode(dto.getUserCode()).orElseThrow(() -> new NotfoundException(String.format("找不到用户：%s", dto.getUserCode())));
+        String userPhone = dto.getUserPhone();
         String message = dto.getMessage();
 
         Set<Provider> providers = user.getProviders();
@@ -58,9 +58,9 @@ public class NotificationService
                 for (Provider vendor : verndorList)
                 {
                     String link = null;
-                    if (StringUtils.isNotBlank(customerPhone))
+                    if (StringUtils.isNotBlank(userPhone))
                     {
-                        link = "tel://" + customerPhone;
+                        link = "tel://" + userPhone;
                     }
 
                     String content = StringUtils.isBlank(message) ? DEFAULT_CONTENT : message;

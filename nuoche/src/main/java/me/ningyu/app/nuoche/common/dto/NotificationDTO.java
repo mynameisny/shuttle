@@ -20,5 +20,5 @@ public class NotificationDTO
 
     private String userAgent;
 
-    private String customerPhone;
+    private String userPhone;
 }
