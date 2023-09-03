@@ -16,6 +16,8 @@ public class NotificationDTO
     @NotBlank(message = "用户账号不能为空")
     private String userCode;
 
+    private String title;
+
     private String message;
 
     private String userAgent;

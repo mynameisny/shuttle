@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.nuoche.common.dto.MessageDTO;
+import me.ningyu.app.nuoche.domain.Provider;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.jackson.JsonObjectDeserializer;
@@ -16,6 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +27,9 @@ public class BarkService implements Notification
     private final RestTemplate restTemplate;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public static final String DEFAULT_GROUP = "挪车通知";
+
 
     @Override
     public void send(MessageDTO message)
@@ -72,6 +77,20 @@ public class BarkService implements Notification
         }
 
         return false;
+    }
+
+    public void sendMessage(List<Provider> vendorList, String title,  String content, String userPhone)
+    {
+        for (Provider vendor : vendorList)
+        {
+            String link = null;
+            if (StringUtils.isNotBlank(userPhone))
+            {
+                link = "tel://" + userPhone;
+            }
+
+            send(vendor.getUrl(), vendor.getPushKey(), title, content, DEFAULT_GROUP, link);
+        }
     }
 
     @Builder

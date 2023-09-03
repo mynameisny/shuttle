@@ -29,8 +29,6 @@ public class NotificationService
 
     public static final String DEFAULT_TITLE = "请您挪车";
 
-    public static final String DEFAULT_GROUP = "挪车通知";
-
     public static final String DEFAULT_CONTENT = "尊敬的车主，您的爱车已防碍到他人，请尽快挪车。";
 
 
@@ -38,7 +36,8 @@ public class NotificationService
     {
         User user = userRepository.findByCode(dto.getUserCode()).orElseThrow(() -> new NotfoundException(String.format("找不到用户：%s", dto.getUserCode())));
         String userPhone = dto.getUserPhone();
-        String message = dto.getMessage();
+        String title = StringUtils.isNotBlank(dto.getTitle()) ? dto.getTitle() : DEFAULT_TITLE;
+        String message = StringUtils.isNotBlank(dto.getMessage()) ? dto.getMessage() : DEFAULT_CONTENT;
 
         Set<Provider> providers = user.getProviders();
         if (ObjectUtils.isEmpty(providers))
@@ -51,22 +50,11 @@ public class NotificationService
         for (Map.Entry<ProviderVendor, List<Provider>> entry : vendorMap.entrySet())
         {
             ProviderVendor vendorName = entry.getKey();
-            List<Provider> verndorList = entry.getValue().stream().filter(Provider::isEnabled).sorted(Comparator.comparing(Provider::getWeight, Comparator.reverseOrder())).collect(Collectors.toList());
+            List<Provider> vendorList = entry.getValue().stream().filter(Provider::isEnabled).sorted(Comparator.comparing(Provider::getWeight, Comparator.reverseOrder())).collect(Collectors.toList());
 
             if (vendorName == ProviderVendor.BARK)
             {
-                for (Provider vendor : verndorList)
-                {
-                    String link = null;
-                    if (StringUtils.isNotBlank(userPhone))
-                    {
-                        link = "tel://" + userPhone;
-                    }
-
-                    String content = StringUtils.isBlank(message) ? DEFAULT_CONTENT : message;
-                    
-                    barkService.send(vendor.getUrl(), vendor.getPushKey(), DEFAULT_TITLE, content, DEFAULT_GROUP, link);
-                }
+                barkService.sendMessage(vendorList, userPhone, title, message);
             }
 
             if (vendorName == ProviderVendor.NTFY)
