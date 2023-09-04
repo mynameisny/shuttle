@@ -27,6 +27,8 @@ public class NotificationService
 
     private final BarkService barkService;
 
+    private final NtfyService ntfyService;
+
     public static final String DEFAULT_TITLE = "请您挪车";
 
     public static final String DEFAULT_CONTENT = "尊敬的车主，您的爱车已防碍到他人，请尽快挪车。";
@@ -59,7 +61,7 @@ public class NotificationService
 
             if (vendorName == ProviderVendor.NTFY)
             {
-                //todo
+                ntfyService.sendMessage(vendorList, userPhone, title, message);
             }
         }
 

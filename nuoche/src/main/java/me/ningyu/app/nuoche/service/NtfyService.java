@@ -2,6 +2,7 @@ package me.ningyu.app.nuoche.service;
 
 import lombok.RequiredArgsConstructor;
 import me.ningyu.app.nuoche.common.dto.MessageDTO;
+import me.ningyu.app.nuoche.domain.Provider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -38,5 +40,10 @@ public class NtfyService implements Notification
 
 
         //ResponseEntity<String> exchange = restTemplate.exchange(uri, HttpMethod.POST, requestEntity, String.class);
+    }
+
+    public void sendMessage(List<Provider> vendorList, String userPhone, String title, String message)
+    {
+
     }
 }
