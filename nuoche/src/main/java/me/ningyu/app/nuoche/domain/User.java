@@ -24,6 +24,9 @@ public class User extends Variable
     @Column(name = "name", columnDefinition = "VARCHAR(150) DEFAULT 0 COMMENT '用户名称'")
     private String name;
 
+    @Column(name = "password", columnDefinition = "VARCHAR(150) DEFAULT 0 COMMENT '用户密码'")
+    private String password;
+
     @ElementCollection
     @CollectionTable(name = "nuoche_t_user_phone", joinColumns = {@JoinColumn(name = "user_id")})
     private Set<String> phones;

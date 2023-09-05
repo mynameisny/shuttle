@@ -24,6 +24,8 @@ public class UserDTO
     @NotBlank(groups = {UserAdd.class}, message = "名字不能为空")
     private String name;
 
+    private String password;
+
     private Set<String> phones;
 
     private Set<String> emails;
