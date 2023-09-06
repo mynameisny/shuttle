@@ -3,6 +3,7 @@ package me.ningyu.app.nuoche.service;
 import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.ningyu.app.nuoche.common.PasswordUtils;
 import me.ningyu.app.nuoche.common.dto.ProviderDTO;
 import me.ningyu.app.nuoche.common.dto.UserDTO;
 import me.ningyu.app.nuoche.common.exception.DuplicateException;
@@ -30,6 +31,8 @@ public class UserService
 
     private final ProviderRepository providerRepository;
 
+    private final String SALT = "random-salt";
+
 
     @Transactional
     public UserVO add(UserDTO dto)
@@ -42,8 +45,7 @@ public class UserService
 
         User user = User.builder()
                         .code(dto.getCode())
-                        .name(dto.getName())
-                        .code(Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes()))
+                        .name(dto.getName()).password(PasswordUtils.generateSecurePassword(dto.getPassword(), SALT))
                         .phones(dto.getPhones())
                         .emails(dto.getEmails())
                         .build();
