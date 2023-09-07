@@ -45,7 +45,7 @@ public class UserService
 
         User user = User.builder()
                         .code(dto.getCode())
-                        .name(dto.getName()).password(PasswordUtils.generateSecurePassword(dto.getPassword(), SALT))
+                        .password(PasswordUtils.generateSecurePassword(dto.getPassword(), SALT))
                         .phones(dto.getPhones())
                         .emails(dto.getEmails())
                         .build();

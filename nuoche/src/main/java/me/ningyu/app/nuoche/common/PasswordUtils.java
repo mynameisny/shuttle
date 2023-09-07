@@ -1,7 +1,5 @@
 package me.ningyu.app.nuoche.common;
 
-package com.appsdeveloperblog.encryption;
-
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
