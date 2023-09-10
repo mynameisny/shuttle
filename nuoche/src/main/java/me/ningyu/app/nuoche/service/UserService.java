@@ -4,8 +4,11 @@ import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.nuoche.common.PasswordUtils;
+import me.ningyu.app.nuoche.common.dto.LoginDto;
 import me.ningyu.app.nuoche.common.dto.ProviderDTO;
 import me.ningyu.app.nuoche.common.dto.UserDTO;
+import me.ningyu.app.nuoche.common.exception.BadRequestException;
+import me.ningyu.app.nuoche.common.exception.BusinessException;
 import me.ningyu.app.nuoche.common.exception.DuplicateException;
 import me.ningyu.app.nuoche.common.exception.NotfoundException;
 import me.ningyu.app.nuoche.common.vo.ProviderVO;
@@ -227,5 +230,19 @@ public class UserService
         }
 
         return providerOptional.get();
+    }
+
+    @Transactional
+    public void login(LoginDto dto)
+    {
+        String code = dto.getCode();
+        User user = userRepository.findByCode(code).orElseThrow(() -> new BadRequestException(String.format("用户%s不存在", code)));
+
+        boolean success = PasswordUtils.verifyUserPassword(dto.getPassword(), user.getPassword(), SALT);
+
+        if (!success)
+        {
+            throw new BusinessException("登陆失败");
+        }
     }
 }

@@ -3,6 +3,7 @@ package me.ningyu.app.nuoche.controller;
 import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.ningyu.app.nuoche.common.dto.LoginDto;
 import me.ningyu.app.nuoche.common.dto.ProviderDTO;
 import me.ningyu.app.nuoche.common.dto.UserDTO;
 import me.ningyu.app.nuoche.controller.binder.UserSearchBinding;
@@ -88,5 +89,12 @@ public class UserController
     {
         UserVO vo = userService.toggleProvider(userCode, providerIds);
         return ResponseEntity.ok(vo);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginDto dto)
+    {
+        userService.login(dto);
+        return ResponseEntity.ok().build();
     }
 }
