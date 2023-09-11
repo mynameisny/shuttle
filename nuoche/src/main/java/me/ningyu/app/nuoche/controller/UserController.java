@@ -97,4 +97,11 @@ public class UserController
         userService.login(dto);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/reset")
+    public ResponseEntity<?> reset(@RequestBody LoginDto dto)
+    {
+        userService.reset(dto);
+        return ResponseEntity.ok().build();
+    }
 }

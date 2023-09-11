@@ -245,4 +245,14 @@ public class UserService
             throw new BusinessException("登陆失败");
         }
     }
+
+    @Transactional
+    public void reset(LoginDto dto)
+    {
+        String code = dto.getCode();
+        User user = userRepository.findByCode(code).orElseThrow(() -> new BadRequestException(String.format("用户%s不存在", code)));
+
+        user.setPassword(PasswordUtils.generateSecurePassword(dto.getPassword(), SALT));
+        userRepository.save(user);
+    }
 }
