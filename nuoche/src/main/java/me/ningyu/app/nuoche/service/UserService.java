@@ -252,6 +252,11 @@ public class UserService
         String code = dto.getCode();
         User user = userRepository.findByCode(code).orElseThrow(() -> new BadRequestException(String.format("用户%s不存在", code)));
 
+        if (!dto.getPassword().equals(user.getPassword()))
+        {
+            throw new BusinessException("新旧密码不能相同");
+        }
+
         user.setPassword(PasswordUtils.generateSecurePassword(dto.getPassword(), SALT));
         userRepository.save(user);
     }
