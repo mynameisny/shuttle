@@ -11,6 +11,8 @@ import me.ningyu.app.nuoche.domain.Provider;
 import me.ningyu.app.nuoche.domain.ProviderRepository;
 import me.ningyu.app.nuoche.domain.User;
 import me.ningyu.app.nuoche.domain.UserRepository;
+import net.sourceforge.tess4j.ITesseract;
+import net.sourceforge.tess4j.Tesseract;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -123,37 +125,13 @@ public class ProviderService
 
     public void ocr()
     {
-        // 执行OCR识别
-        private void execute(BufferedImage targetImage) {
-        try {
-            File tempFile = new File(tempImage);
-            if (tempFile == null) {
-                tempFile.mkdirs();
-            }
-            tempFile.mkdirs();
-            ImageIO.write(targetImage, "jpg", tempFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        File file = new File(tempImage);
-
         ITesseract instance = new Tesseract();
+
         // 设置语言库位置
         instance.setDatapath("src/main/resources/data");
-        // 设置语言
+
+        // 设置语言：chi_sim/eng
+        String language = "chi_sim";
         instance.setLanguage(language);
-        Thread thread = new Thread() {
-            public void run() {
-                String result = null;
-                try {
-                    result = instance.doOCR(file);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                resultArea.setText(result);
-            }
-        };
-        ProgressBar.show(this, thread, "图片正在识别中，请稍后...", "执行结束", "取消");
-    }
     }
 }
