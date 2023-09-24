@@ -19,9 +19,12 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.groups.Default;
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -99,4 +102,23 @@ public class ProviderController
         return ResponseEntity.ok().build();
     }
 
+    @RequestMapping("/upload")
+    public String upLoad(@RequestPart("file") MultipartFile multipartFile)
+    {
+        log.info("文件上传开始");
+        log.info("文件{}",multipartFile.getOriginalFilename());
+
+        if (!multipartFile.isEmpty()){
+            try {
+                //上传的文件需要保存的路径和文件名称，路径需要存在，否则报错
+                multipartFile.transferTo(new File("D:/"+multipartFile.getOriginalFilename()));
+            } catch (IllegalStateException | IOException e){
+                e.printStackTrace();
+                return "上传失败";
+            }
+        } else {
+            return "请上传文件";
+        }
+        return "上传成功";
+    }
 }

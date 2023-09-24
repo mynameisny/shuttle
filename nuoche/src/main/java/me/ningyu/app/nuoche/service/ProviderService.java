@@ -133,5 +133,6 @@ public class ProviderService
         // 设置语言：chi_sim/eng
         String language = "chi_sim";
         instance.setLanguage(language);
+
     }
 }
