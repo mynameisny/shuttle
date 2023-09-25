@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.imageio.ImageIO;
 import javax.validation.groups.Default;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -108,15 +110,24 @@ public class ProviderController
         log.info("文件上传开始");
         log.info("文件{}",multipartFile.getOriginalFilename());
 
-        if (!multipartFile.isEmpty()){
-            try {
+        if (!multipartFile.isEmpty())
+        {
+            try
+            {
+                BufferedImage image = ImageIO.read(multipartFile.getInputStream());
+
+
                 //上传的文件需要保存的路径和文件名称，路径需要存在，否则报错
                 multipartFile.transferTo(new File("D:/"+multipartFile.getOriginalFilename()));
-            } catch (IllegalStateException | IOException e){
+            }
+            catch (IllegalStateException | IOException e)
+            {
                 e.printStackTrace();
                 return "上传失败";
             }
-        } else {
+        }
+        else
+        {
             return "请上传文件";
         }
         return "上传成功";
