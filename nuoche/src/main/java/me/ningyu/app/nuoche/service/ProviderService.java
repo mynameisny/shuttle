@@ -13,12 +13,14 @@ import me.ningyu.app.nuoche.domain.User;
 import me.ningyu.app.nuoche.domain.UserRepository;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
+import net.sourceforge.tess4j.TesseractException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 @Service
@@ -123,7 +125,7 @@ public class ProviderService
                          .build();
     }
 
-    public void ocr()
+    public void ocr(BufferedImage bufferedImage) throws TesseractException
     {
         ITesseract instance = new Tesseract();
 
@@ -134,6 +136,7 @@ public class ProviderService
         String language = "chi_sim";
         instance.setLanguage(language);
 
+        instance.doOCR(bufferedImage);
 
     }
 }
