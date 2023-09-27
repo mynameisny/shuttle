@@ -137,8 +137,5 @@ public class ProviderService
         instance.setLanguage(language);
 
         instance.doOCR(bufferedImage);
-
-        instance.do
-
     }
 }
