@@ -138,5 +138,7 @@ public class ProviderService
 
         instance.doOCR(bufferedImage);
 
+        instance.do
+
     }
 }
