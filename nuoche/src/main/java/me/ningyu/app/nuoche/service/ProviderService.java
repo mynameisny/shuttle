@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
@@ -136,6 +137,9 @@ public class ProviderService
         String language = "chi_sim";
         instance.setLanguage(language);
 
-        instance.doOCR(bufferedImage);
+        Rectangle rectangle = new Rectangle(90, 40, 220, 55);
+
+
+        instance.doOCR(bufferedImage, rectangle);
     }
 }
