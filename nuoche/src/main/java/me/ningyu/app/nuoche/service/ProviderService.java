@@ -139,7 +139,7 @@ public class ProviderService
 
         Rectangle rectangle = new Rectangle(90, 40, 220, 55);
 
-
-        instance.doOCR(bufferedImage, rectangle);
+        String result = instance.doOCR(bufferedImage, rectangle);
+        log.info("解析结果：{}", result);
     }
 }
