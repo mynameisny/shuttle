@@ -126,7 +126,7 @@ public class ProviderService
                          .build();
     }
 
-    public void ocr(BufferedImage bufferedImage) throws TesseractException
+    public void ocr(BufferedImage bufferedImage)
     {
         ITesseract instance = new Tesseract();
 
@@ -139,7 +139,15 @@ public class ProviderService
 
         Rectangle rectangle = new Rectangle(90, 40, 220, 55);
 
-        String result = instance.doOCR(bufferedImage, rectangle);
+        String result = null;
+        try
+        {
+            result = instance.doOCR(bufferedImage, rectangle);
+        }
+        catch (TesseractException e)
+        {
+            throw new RuntimeException(e);
+        }
         log.info("解析结果：{}", result);
     }
 }
