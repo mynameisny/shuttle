@@ -1,6 +1,7 @@
 package me.ningyu.app.nuoche.domain;
 
 import lombok.*;
+import me.ningyu.app.nuoche.common.enums.Gender;
 import me.ningyu.app.nuoche.domain.common.Variable;
 
 import javax.persistence.*;
@@ -23,6 +24,9 @@ public class User extends Variable
 
     @Column(name = "name", columnDefinition = "VARCHAR(150) DEFAULT 0 COMMENT '用户名称'")
     private String name;
+
+    @Column(name = "gender", columnDefinition = "VARCHAR(150) DEFAULT 0 COMMENT '用户性别'")
+    private Gender gender;
 
     @Column(name = "password", columnDefinition = "VARCHAR(150) DEFAULT 0 COMMENT '用户密码'")
     private String password;
