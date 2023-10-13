@@ -67,4 +67,8 @@ public class NotificationService
 
         return "OK";
     }
+
+    public void mute(String userId, String providerId)
+    {
+    }
 }

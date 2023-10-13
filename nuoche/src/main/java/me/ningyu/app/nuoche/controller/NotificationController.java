@@ -31,4 +31,12 @@ public class NotificationController
         String result = notificationService.send(dto);
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/")
+    public ResponseEntity<Void> mute(@RequestParam String userId, @RequestParam String providerId)
+    {
+        notificationService.mute(userId, providerId);
+        return ResponseEntity.ok().build();
+    }
+
 }
