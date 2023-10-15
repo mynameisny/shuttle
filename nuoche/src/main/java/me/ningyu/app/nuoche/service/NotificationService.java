@@ -70,5 +70,13 @@ public class NotificationService
 
     public void mute(String userId, String providerId)
     {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotfoundException(String.format("找不到用户%s", userId)));
+
+        for (Provider provider : user.getProviders())
+        {
+            provider.setEnabled(false);
+        }
+
+        userRepository.save(user);
     }
 }

@@ -32,7 +32,7 @@ public class NotificationController
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/")
+    @PostMapping("/mute")
     public ResponseEntity<Void> mute(@RequestParam String userId, @RequestParam String providerId)
     {
         notificationService.mute(userId, providerId);
