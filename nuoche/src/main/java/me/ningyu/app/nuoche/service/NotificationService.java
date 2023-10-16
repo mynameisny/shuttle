@@ -74,6 +74,14 @@ public class NotificationService
 
         for (Provider provider : user.getProviders())
         {
+            if (StringUtils.isNotBlank(providerId))
+            {
+                if (provider.getId().equals(providerId))
+                {
+                    provider.setEnabled(false);
+                    break;
+                }
+            }
             provider.setEnabled(false);
         }
 
