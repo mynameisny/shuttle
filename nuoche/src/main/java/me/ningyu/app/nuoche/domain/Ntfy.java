@@ -12,7 +12,7 @@ import javax.persistence.Table;
 @NoArgsConstructor
 public class Ntfy extends Provider
 {
-
+    private String pushPath = "/push";
 
 
 }
