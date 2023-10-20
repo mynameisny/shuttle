@@ -26,6 +26,7 @@ public class User extends Variable
     private String name;
 
     @Column(name = "gender", columnDefinition = "VARCHAR(150) DEFAULT 0 COMMENT '用户性别'")
+    @Enumerated(EnumType.STRING)
     private Gender gender;
 
     @Column(name = "password", columnDefinition = "VARCHAR(150) DEFAULT 0 COMMENT '用户密码'")
