@@ -131,7 +131,7 @@ public class ProviderService
         ITesseract instance = new Tesseract();
 
         // 设置语言库位置
-        instance.setDatapath("src/main/resources/data");
+        instance.setDatapath("src/main/resources/tessdata");
 
         // 设置语言：chi_sim/eng
         String language = "chi_sim";
