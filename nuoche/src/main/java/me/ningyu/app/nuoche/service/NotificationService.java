@@ -87,4 +87,9 @@ public class NotificationService
 
         userRepository.save(user);
     }
+
+    public String generateQRCode()
+    {
+        return "";
+    }
 }

@@ -39,4 +39,10 @@ public class NotificationController
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/generateQRCode")
+    public String generateQRCode()
+    {
+        return notificationService.generateQRCode();
+    }
+
 }
