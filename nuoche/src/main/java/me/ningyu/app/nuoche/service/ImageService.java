@@ -55,5 +55,26 @@ public class ImageService
         }
     }
 
+    public void parseImage(File imageFile)
+    {
+        Rectangle rectangle = new Rectangle(78, 373, 400, 190);
+
+        try
+        {
+            String result = tess4jInstance.doOCR(imageFile);
+            log.info("全图解析结果：{}", result);
+
+
+            String code = tess4jInstance.doOCR(imageFile, rectangle);
+            log.info("解析结果：{}", result);
+
+            code = StringUtils.deleteWhitespace(result);
+        }
+        catch (TesseractException e)
+        {
+            log.error("无法解析图片：{}", imageFile, e);
+            throw new RuntimeException(e);
+        }
+    }
 
 }
