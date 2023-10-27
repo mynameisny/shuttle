@@ -27,6 +27,9 @@ import java.io.IOException;
 public class ImageService
 {
 
+    private final ITesseract tess4jInstance;
+
+
     public File uploadFileToTempDirectory(MultipartFile file)
     {
         String userCode = "mynameisny"; //todo 获得当前登陆用户
