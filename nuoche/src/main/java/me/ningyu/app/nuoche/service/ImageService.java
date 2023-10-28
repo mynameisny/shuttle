@@ -2,22 +2,14 @@ package me.ningyu.app.nuoche.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.ningyu.app.easymonger.model.CouponDto;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.TesseractException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jcodec.api.SequenceEncoder;
-import org.jcodec.common.io.NIOUtils;
-import org.jcodec.common.model.ColorSpace;
-import org.jcodec.common.model.Rational;
-import org.jcodec.scale.AWTUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
