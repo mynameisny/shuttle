@@ -46,6 +46,7 @@ public class ImageService
         }
         catch (IOException e)
         {
+            log.error("上传文件失败", e);
             throw new RuntimeException(e);
         }
     }
