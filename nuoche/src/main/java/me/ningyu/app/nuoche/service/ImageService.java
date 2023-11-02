@@ -62,9 +62,9 @@ public class ImageService
 
 
             String code = tess4jInstance.doOCR(imageFile, rectangle);
-            log.info("解析结果：{}", result);
+            log.info("解析结果：{}", code);
 
-            code = StringUtils.deleteWhitespace(result);
+            code = StringUtils.deleteWhitespace(code);
         }
         catch (TesseractException e)
         {
