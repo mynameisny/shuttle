@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.OutputStream;
 import java.util.Hashtable;
@@ -44,5 +45,18 @@ public class QRCodeService
             }
         }
         return image;
+    }
+
+    /**
+     * 生成二维码
+     *
+     * @param content      内容
+     * @param output       输出流
+     * @throws Exception
+     */
+    public static void encode(String content, OutputStream output)
+            throws Exception {
+        BufferedImage image = createImage(content);
+        ImageIO.write(image, "JPG", output);
     }
 }
