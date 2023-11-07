@@ -4,6 +4,7 @@ import com.google.zxing.EncodeHintType;
 import com.google.zxing.common.BitMatrix;
 import lombok.RequiredArgsConstructor;
 import me.ningyu.app.nuoche.common.QRCodeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +25,8 @@ public class QRCodeService
         return null;
     }
 
-    public static BufferedImage createImage(String content) throws Exception {
+    public static BufferedImage createImage(String content) throws Exception
+    {
         // 二维码参数设置
         Hashtable<EncodeHintType, Object> hints = new Hashtable<EncodeHintType, Object>();
         // 安全等级，最高h
@@ -39,8 +41,10 @@ public class QRCodeService
         int height = bitMatrix.getHeight();
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         // 矩阵转换图像
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
                 image.setRGB(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
             }
         }
@@ -50,12 +54,13 @@ public class QRCodeService
     /**
      * 生成二维码
      *
-     * @param content      内容
-     * @param output       输出流
+     * @param content 内容
+     * @param output  输出流
      * @throws Exception
      */
-    public static void encode(String content, OutputStream output)
-            throws Exception {
+    public static void encode(String content, OutputStream output) throws Exception
+    {
+        content = StringUtils.normalizeSpace(content);
         BufferedImage image = createImage(content);
         ImageIO.write(image, "JPG", output);
     }
