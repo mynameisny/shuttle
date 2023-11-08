@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.OutputStream;
 import java.util.Hashtable;
 
@@ -63,5 +64,10 @@ public class QRCodeService
         content = StringUtils.normalizeSpace(content);
         BufferedImage image = createImage(content);
         ImageIO.write(image, "JPG", output);
+
+        BufferedImage dstImage = image.getSubimage(228, 705, 359, 287);
+
+        File outFile = new File("/Users/xxx/Downloads/output.png");
+        ImageIO.write(dstImage, "png", outFile);
     }
 }
