@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Hashtable;
 
 @Service
@@ -69,5 +72,17 @@ public class QRCodeService
 
         File outFile = new File("/Users/xxx/Downloads/output.png");
         ImageIO.write(dstImage, "png", outFile);
+    }
+
+    public static ByteBuffer getSubImage(ByteBuffer imageContent, int x, int y, int width, int height) throws    Exception {
+        ByteArrayInputStream in = new ByteArrayInputStream(imageContent.array());
+        BufferedImage image = ImageIO.read(in);
+
+        BufferedImage subImage = image.getSubimage(x, y, width, height);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(subImage, "jpeg", out);
+
+        return ByteBuffer.wrap(out.toByteArray());
     }
 }
