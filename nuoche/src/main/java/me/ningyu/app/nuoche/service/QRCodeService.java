@@ -29,30 +29,17 @@ public class QRCodeService
         return null;
     }
 
-    public static BufferedImage createImage(String content) throws Exception
+    public static void createQR(String data, String path, String charset, Map hashMap, int height, int width) throws WriterException, IOException
     {
-        // 二维码参数设置
-        Hashtable<EncodeHintType, Object> hints = new Hashtable<EncodeHintType, Object>();
-        // 安全等级，最高h
-        hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
-        // 编码设置
-        hints.put(EncodeHintType.CHARACTER_SET, CHARSET);
-        // 设置margin=0-10
-        hints.put(EncodeHintType.MARGIN, 1);
-        // 创建矩阵容器
-        BitMatrix bitMatrix = new MultiFormatWriter().encode(content, BarcodeFormat.QR_CODE, QRCODE_SIZE, QRCODE_SIZE, hints);
-        int width = bitMatrix.getWidth();
-        int height = bitMatrix.getHeight();
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        // 矩阵转换图像
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                image.setRGB(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
-            }
-        }
-        return image;
+
+        BitMatrix matrix = new MultiFormatWriter().encode(
+                new String(data.getBytes(charset), charset),
+                BarcodeFormat.QR_CODE, width, height);
+
+        MatrixToImageWriter.writeToFile(
+                matrix,
+                path.substring(path.lastIndexOf('.') + 1),
+                new File(path));
     }
 
     /**
