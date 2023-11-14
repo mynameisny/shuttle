@@ -30,7 +30,7 @@ public class GenerateQRCode {
     private static final Integer FRONT_COLOR = 0x000000;           // 基础属性：二维码前景色，0x000000 表示黑色
     private static final Integer BACKGROUND_COLOR = 0xFFFFFF;      // 基础属性：二维码背景色，0xFFFFFF 表示白色
 
-    public static void main(String[] args) throws WriterException, IOException {
+    public static void test() throws WriterException, IOException {
 
         //获取当前项目的路径根目录
         String path = Objects.requireNonNull(GenerateQRCode.class.getResource("/")).getPath();
