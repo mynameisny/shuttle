@@ -51,9 +51,12 @@ public class ImageService
         }
     }
 
-    public void parseImage(File imageFile)
+    public void parseImage(File imageFile, Rectangle rectangle)
     {
-        Rectangle rectangle = new Rectangle(78, 373, 400, 190);
+        if (rectangle == null)
+        {
+             rectangle = new Rectangle(78, 373, 400, 190);
+        }
 
         try
         {
