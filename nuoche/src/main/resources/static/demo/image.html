@@ -76,6 +76,23 @@
             cursor: pointer;
         }
 
+        .modal-buttons {
+            position: absolute;
+            bottom: 0;
+            left: 50%; /* 水平居中 */
+            transform: translateX(-50%);
+            text-align: center;
+            width: 100%; /* 撑满整个容器 */
+            display: flex; /* 改为 flex 布局 */
+            justify-content: space-around; /* 两个按钮水平等间距 */
+            margin: 0 auto; /* 新增这行样式 */
+        }
+
+        .modal-buttons button {
+            /* margin: 0 10px; 注释掉这一行 */
+            margin-top: 10px; /* 新增这一行样式，调整按钮与图片的间距 */
+        }
+
         /* 自定义每行的间距 */
         .custom-row-margin {
             margin-bottom: 20px;
@@ -89,12 +106,45 @@
         /* Checkbox 样式 */
         .checkbox-container {
             position: absolute;
-            top: 5px;
-            right: 5px;
+            top: 5px; /* 调整 checkbox 上边距 */
+            right: 5px; /* 调整 checkbox 右边距 */
+            width: 20px; /* 调整 checkbox 的宽度 */
+            text-align: center; /* 文字居中 */
         }
 
         .checkbox-container input {
             cursor: pointer;
+            width: 20px; /* 调整 checkbox 的宽度 */
+            height: 20px; /* 调整 checkbox 的高度 */
+        }
+
+        /* 分页样式 */
+        .pagination-container {
+            margin-top: 20px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            display: none; /* 初始时隐藏分页 */
+        }
+
+        .page-link {
+            cursor: pointer;
+        }
+
+        .page-link:hover {
+            background-color: #ddd;
+        }
+
+        .active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        /* 隐藏分页页码样式 */
+        .hide-pagination {
+            display: none;
         }
     </style>
 </head>
@@ -107,95 +157,130 @@
     <!-- 动态加载的图片将放在这里 -->
 </div>
 
+<!-- 分页 -->
+<div class="pagination-container">
+    <ul class="pagination"></ul>
+</div>
+
 <!-- 放大显示的模态框 -->
 <div class="modal-container" id="modalContainer">
     <span class="close-modal" onclick="closeModal()">&times;</span>
     <img class="modal-content" id="modalImage">
+    <div class="modal-buttons">
+        <button class="btn btn-success" onclick="importImage()">导入</button>
+        <button class="btn btn-danger" onclick="deleteImage()">删除</button>
+    </div>
 </div>
 
 <script>
-$(document).ready(function() {
-    $.ajax({
-        url: '/get-images',
-        type: 'GET',
-        dataType: 'json',
-        success: function(data) {
-            // 处理返回的图片URL数组
-            for (var i = 0; i < data.length; i++) {
-                // 创建列容器，每行显示6个图片
-                if (i % 6 === 0) {
-                    $('#image-gallery').append($('<div class="row custom-row-margin">'));
-                }
-                // 在当前行容器中添加图片列
-                $('#image-gallery .row:last-child').append(
-                    $('<div class="col-md-2">').append(
-                        $('<div class="small-image-container">').append(
-                            $('<img>').attr('src', data[i]).addClass('img-fluid small-image').click(function() {
-                                openModal($(this).attr('src'));
-                            }),
-                            $('<div class="image-status status-normal">').text('状态: 正常'), // 初始状态为正常
-                            $('<div class="checkbox-container">').append(
-                                $('<input type="checkbox">').click(function(e) {
-                                    e.stopPropagation(); // 防止点击 checkbox 触发父容器的 click 事件
-                                })
-                            )
-                        )
-                    )
-                );
+    // 模拟后端返回的图片数组
+    var data = ["1.png", "2.png", "1.png", "2.png", "1.png", "2.png", "1.png", "2.png"];
+
+    // 每页显示的图片数量
+    var imagesPerPage = 6;
+
+    // 当前页码
+    var currentPage = 1;
+
+    // 总页数
+    var totalPages = Math.ceil(data.length / imagesPerPage);
+
+    // 模拟 ajax 请求
+    function loadImages(page) {
+        $('#image-gallery').empty(); // 清空图片容器
+
+        // 处理当前页码的图片URL数组
+        for (var i = (page - 1) * imagesPerPage; i < page * imagesPerPage && i < data.length; i++) {
+            // 创建列容器，每行显示6个图片
+            if ((i - (page - 1) * imagesPerPage) % 6 === 0) {
+                $('#image-gallery').append($('<div class="row custom-row-margin">'));
             }
-        },
-        error: function(error) {
-            console.log('Error:', error);
-
-            var data = ["1.png", "2.png", "1.png", "2.png", "1.png", "2.png", "1.png", "2.png"];
-
-
-            for (var i = 0; i < data.length; i++) {
-                // 创建列容器，每行显示6个图片
-                if (i % 6 === 0) {
-                    $('#image-gallery').append($('<div class="row custom-row-margin">'));
-                }
-                // 在当前行容器中添加图片列
-                $('#image-gallery .row:last-child').append(
-                    $('<div class="col-md-2">').append(
-                        $('<div class="small-image-container">').append(
-                            $('<img>').attr('src', data[i]).addClass('img-fluid small-image').click(function() {
-                                openModal($(this).attr('src'));
-                            }),
-                            $('<div class="image-status status-normal">').text('状态: 正常'), // 初始状态为正常
-                            $('<div class="checkbox-container">').append(
-                                $('<input type="checkbox">').click(function(e) {
-                                    e.stopPropagation(); // 防止点击 checkbox 触发父容器的 click 事件
-                                })
-                            )
+            // 在当前行容器中添加图片列
+            $('#image-gallery .row:last-child').append(
+                $('<div class="col-md-2">').append(
+                    $('<div class="small-image-container">').append(
+                        $('<img>').attr('src', data[i]).addClass('img-fluid small-image').click(function() {
+                            openModal($(this).attr('src'));
+                        }),
+                        $('<div class="image-status status-normal">').text('正常'),
+                        $('<div class="checkbox-container">').append(
+                            $('<input type="checkbox">').click(function(e) {
+                                e.stopPropagation(); // 防止点击 checkbox 触发父容器的 click 事件
+                            })
                         )
                     )
-                );
+                )
+            );
+        }
+
+        // 更新分页按钮
+        updatePagination();
+    }
+
+    // 初始化加载第一页的图片
+    loadImages(currentPage);
+
+    function updatePagination() {
+        $('.pagination').empty(); // 清空分页容器
+
+        // 添加上一页按钮
+        if (currentPage > 1) {
+            $('.pagination').append('<li class="page-item"><a class="page-link" href="#" onclick="changePage(' + (currentPage - 1) + ')">上一页</a></li>');
+        }
+
+        // 添加页码按钮
+        for (var i = 1; i <= totalPages; i++) {
+            if (i === currentPage) {
+                $('.pagination').append('<li class="page-item active"><a class="page-link" href="#" onclick="changePage(' + i + ')">' + i + '</a></li>');
+            } else {
+                $('.pagination').append('<li class="page-item"><a class="page-link" href="#" onclick="changePage(' + i + ')">' + i + '</a></li>');
             }
         }
+
+        // 添加下一页按钮
+        if (currentPage < totalPages) {
+            $('.pagination').append('<li class="page-item"><a class="page-link" href="#" onclick="changePage(' + (currentPage + 1) + ')">下一页</a></li>');
+        }
+
+        // 显示或隐藏分页
+        $('.pagination').css('display', totalPages > 1 ? 'flex' : 'none');
+    }
+
+    function changePage(page) {
+        currentPage = page;
+        loadImages(currentPage);
+    }
+
+    // 批量选中按钮点击事件
+    $('#selectAllBtn').click(function() {
+        // 切换所有状态框的选中状态
+        $('.image-status').toggleClass('status-selected');
+        // 切换所有图片的边框
+        $('.small-image').toggleClass('selected-border');
+        // 切换所有 checkbox 的选中状态
+        $('input[type="checkbox"]').prop('checked', function(i, value) {
+            return !value;
+        });
     });
-});
 
-// 批量选中按钮点击事件
-$('#selectAllBtn').click(function() {
-    // 切换所有状态框的选中状态
-    $('.image-status').toggleClass('status-selected');
-    // 切换所有图片的边框
-    $('.small-image').toggleClass('selected-border');
-    // 切换所有 checkbox 的选中状态
-    $('input[type="checkbox"]').prop('checked', function(i, value) {
-        return !value;
-    });
-});
+    function openModal(src) {
+        $('#modalImage').attr('src', src);
+        $('#modalContainer').css('display', 'flex');
+    }
 
-function openModal(src) {
-    $('#modalImage').attr('src', src);
-    $('#modalContainer').css('display', 'flex');
-}
+    function closeModal() {
+        $('#modalContainer').css('display', 'none');
+    }
 
-function closeModal() {
-    $('#modalContainer').css('display', 'none');
-}
+    function importImage() {
+        // TODO: 处理导入图片的逻辑
+        alert('导入图片');
+    }
+
+    function deleteImage() {
+        // TODO: 处理删除图片的逻辑
+        alert('删除图片');
+    }
 </script>
 
 </body>
