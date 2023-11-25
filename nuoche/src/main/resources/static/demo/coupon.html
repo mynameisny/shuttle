@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>可分页的表格</title>
+  <!-- 引入Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-5">
+  <h2>可分页的表格</h2>
+
+  <!-- 过滤条件 -->
+  <div class="mb-3">
+    <label for="filterInput" class="form-label">过滤条件：</label>
+    <input type="text" class="form-control" id="filterInput" placeholder="输入关键词">
+    <button class="btn btn-primary" onclick="applyFilter()">应用过滤</button>
+  </div>
+
+  <!-- 表格 -->
+  <table id="item-table" class="table">
+    <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Name</th>
+      <th scope="col">Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 你的表格行将在这里动态加载 -->
+    </tbody>
+  </table>
+
+  <!-- 分页控件 -->
+  <nav aria-label="Page navigation">
+    <ul id="pagination" class="pagination">
+      <!-- 分页按钮将在这里动态加载 -->
+    </ul>
+  </nav>
+</div>
+
+<!-- 引入jQuery和Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- 你的自定义脚本 -->
+<script>
+  // 模拟数据，实际使用时替换为你的数据
+  const data = [
+    { id: 1, name: "Item 1", description: "Description 1" },
+    { id: 2, name: "Item 2", description: "Description 2" },
+    { id: 3, name: "Item 3", description: "Description 3" },
+    { id: 4, name: "Item 4", description: "Description 4" },
+    { id: 5, name: "Item 5", description: "Description 5" },
+    { id: 6, name: "Item 6", description: "Description 6" },
+    { id: 7, name: "Item 7", description: "Description 7" },
+    { id: 8, name: "Item 8", description: "Description 8" },
+    { id: 9, name: "Item 9", description: "Description 9" },
+    { id: 10, name: "Item 10", description: "Description 10" },
+    // ...更多项
+  ];
+
+  // 每页显示的项数
+  const itemsPerPage = 3;
+
+  // 计算总页数
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+
+  // 当前过滤条件
+  let filterKeyword = "";
+
+  // 初始化页面
+  function initPage(pageNumber) {
+    // 清空表格和分页控件
+    $("#item-table tbody").empty();
+    $("#pagination").empty();
+
+    // 计算起始和结束索引
+    const startIndex = (pageNumber - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+
+    // 动态加载当前页的表格行
+    for (let i = startIndex; i < endIndex; i++) {
+      const item = data[i];
+      $("#item-table tbody").append(`<tr><th scope="row">${item.id}</th><td>${item.name}</td><td>${item.description}</td></tr>`);
+    }
+
+    // 动态加载分页按钮
+    for (let i = 1; i <= totalPages; i++) {
+      const activeClass = i === pageNumber ? "active" : "";
+      $("#pagination").append(`<li class="page-item ${activeClass}"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`);
+    }
+  }
+
+  // 初始加载第一页
+  initPage(1);
+
+  // 切换页面
+  function changePage(pageNumber) {
+    initPage(pageNumber);
+  }
+
+  // 应用过滤条件
+  function applyFilter() {
+    filterKeyword = $("#filterInput").val().toLowerCase();
+    initPage(1); // 重新加载第一页
+  }
+</script>
+
+</body>
+</html>
