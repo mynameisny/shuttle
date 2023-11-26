@@ -13,10 +13,18 @@
   <h2>可分页的表格</h2>
 
   <!-- 过滤条件 -->
-  <div class="mb-3">
-    <label for="filterInput" class="form-label">过滤条件：</label>
-    <input type="text" class="form-control" id="filterInput" placeholder="输入关键词">
-    <button class="btn btn-primary" onclick="applyFilter()">应用过滤</button>
+  <div class="mb-3 row">
+    <div class="col-md-4">
+      <label for="nameInput" class="form-label">Name 过滤：</label>
+      <input type="text" class="form-control" id="nameInput" placeholder="输入关键词">
+    </div>
+    <div class="col-md-4">
+      <label for="descriptionInput" class="form-label">Description 过滤：</label>
+      <input type="text" class="form-control" id="descriptionInput" placeholder="输入关键词">
+    </div>
+    <div class="col-md-4">
+      <button class="btn btn-primary mt-4" onclick="applyFilter()">应用过滤</button>
+    </div>
   </div>
 
   <!-- 表格 -->
@@ -66,11 +74,12 @@
   // 每页显示的项数
   const itemsPerPage = 3;
 
+  // 当前过滤条件
+  let nameFilter = "";
+  let descriptionFilter = "";
+
   // 计算总页数
   const totalPages = Math.ceil(data.length / itemsPerPage);
-
-  // 当前过滤条件
-  let filterKeyword = "";
 
   // 初始化页面
   function initPage(pageNumber) {
@@ -101,11 +110,14 @@
   // 切换页面
   function changePage(pageNumber) {
     initPage(pageNumber);
+
+
   }
 
   // 应用过滤条件
   function applyFilter() {
-    filterKeyword = $("#filterInput").val().toLowerCase();
+    nameFilter = $("#nameInput").val().toLowerCase();
+    descriptionFilter = $("#descriptionInput").val().toLowerCase();
     initPage(1); // 重新加载第一页
   }
 </script>
