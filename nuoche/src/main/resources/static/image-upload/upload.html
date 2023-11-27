@@ -1,50 +1,73 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>多图上传可拖拽jQuery特效 - 站长素材</title>
+<head>
+    <meta charset="UTF-8">
+    <title>多图上传可拖拽jQuery特效 - 站长素材</title>
 
-        <link rel="stylesheet" type="text/css" href="css/upload/webuploader.css"/>
-        <link rel="stylesheet" type="text/css" href="css/upload/style.css"/>
-        <style>
-            .width_auto {
-                width: 900px;
-                margin: 100px auto;
-            }
-        </style>
-    </head>
+    <link rel="stylesheet" type="text/css" href="css/upload/webuploader.css"/>
+    <link rel="stylesheet" type="text/css" href="css/upload/style.css"/>
+    <style>
+        .width_auto {
+            width: 900px;
+            margin: 100px auto;
+        }
+    </style>
+</head>
 
-    <body>
-        <div class="width_auto">
-            <div id="container">
-                <!--头部，相册选择和格式选择-->
-                <div id="uploader">
+<body>
+<div class="width_auto">
+    <select id="accounts">
+        <optgroup label="Group 1">
+        </optgroup>
+    </select>
 
-                    <div class="item_container">
-                        <div id="" class="queueList">
-                            <div id="dndArea" class="placeholder">
-                                <div id="filePicker"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="statusBar" style="display:none;">
-                        <div class="progress">
-                            <span class="text">0%</span>
-                            <span class="percentage"></span>
-                        </div>
-                        <div class="info"></div>
-                        <div class="btns">
-                            <div id="filePicker2"></div>
-                            <div class="uploadBtn">开始上传</div>
-                        </div>
+    <div id="container">
+        <!--头部，相册选择和格式选择-->
+        <div id="uploader">
+            <div class="item_container">
+                <div id="" class="queueList">
+                    <div id="dndArea" class="placeholder">
+                        <div id="filePicker"></div>
                     </div>
                 </div>
             </div>
+            <div class="statusBar" style="display:none;">
+                <div class="progress">
+                    <span class="text">0%</span>
+                    <span class="percentage"></span>
+                </div>
+                <div class="info"></div>
+                <div class="btns">
+                    <div id="filePicker2"></div>
+                    <div class="uploadBtn">开始上传</div>
+                </div>
+            </div>
         </div>
+    </div>
+</div>
 
-        <script src="js/upload/jquery-1.9.min.js"></script>
-        <script src="js/upload/webuploader.js"></script>
-        <script src="js/upload/jquery.sortable.js"></script>
-        <script src="js/upload/upload.js"></script>
-    </body>
+<script src="js/upload/jquery-1.9.min.js"></script>
+<script src="js/upload/webuploader.js"></script>
+<script src="js/upload/jquery.sortable.js"></script>
+<script src="js/upload/upload.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $.ajax({
+            url: "/accounts",
+            type: "GET",
+            success: function(data) {
+                debugger;
+                var accounts = data.content;
+                for (var i = 0; i < accounts.length; i++) {
+                    var option = document.createElement("option");
+                    option.value = accounts[i].id;
+                    option.text = accounts[i].mobile;
+                    document.getElementById("accounts").appendChild(option);
+                }
+            }
+        });
+    });
+</script>
+</body>
 </html>
