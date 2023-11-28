@@ -57,12 +57,11 @@
             url: "/accounts",
             type: "GET",
             success: function(data) {
-                debugger;
                 var accounts = data.content;
                 for (var i = 0; i < accounts.length; i++) {
                     var option = document.createElement("option");
                     option.value = accounts[i].id;
-                    option.text = accounts[i].mobile;
+                    option.text = accounts[i].mobile + "(" + accounts[i].platformText + ")";
                     document.getElementById("accounts").appendChild(option);
                 }
             }
