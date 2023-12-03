@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jcrop 图片测量</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jcrop/3.1.2/css/jquery.Jcrop.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jcrop/3.1.2/js/jquery.Jcrop.min.js"></script>
+</head>
+<body>
+<div id="jcrop"></div>
+<input type="text" id="width" placeholder="图片宽度">
+<input type="text" id="height" placeholder="图片高度">
+<script>
+    $(function () {
+        // 获取图片
+        var image = document.getElementById("jcrop");
+        image.src = "https://picsum.photos/200/200";
+
+        // 创建 Jcrop 对象
+        var jcrop = new Jcrop(image, {
+            minSize: [100, 100],
+            maxSize: [200, 200],
+            aspectRatio: 1,
+            onSelect: function (c) {
+                // 获取裁剪区域的宽度和高度
+                var width = c.w;
+                var height = c.h;
+
+                // 将裁剪区域的宽度和高度设置到输入框中
+                $("#width").val(width);
+                $("#height").val(height);
+            }
+        });
+    });
+</script>
+</body>
+</html>
