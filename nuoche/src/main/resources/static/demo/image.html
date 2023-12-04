@@ -42,6 +42,7 @@
     <h1>展示图片</h1>
     <div id="imageContainer" class="row"></div>
 </div>
+
 <!-- 模态框 -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -101,15 +102,33 @@
             // 在这里添加导入按钮的逻辑
             console.log("点击了导入按钮");
 
+            debugger;
+
+            // 显示遮罩层
+            $(".modal-backdrop").addClass("show");
+
             var imageId = $("#modalImage").attr("image-id");
             console.log("图片ID:", imageId);
             // 弹出确认提示框
             if (confirm("确定要导入该图片吗？")) {
-                // 发送DELETE请求到指定URL
+                // 禁用按钮
+                $("#importButton").attr("disabled", true);
+                $("#deleteButton").attr("disabled", true);
+
+                // 创建一个遮罩层
+                var modalBackdrop = $("<div class='modal-backdrop fade show' style='z-index: 99999; display: flex; align-items: center; justify-content: center;'>\n" +
+                    "  <div class='text-center'>\n" +
+                    "    <div class='spinner-border text-warning' role='status'>\n" +
+                    "      <span class='visually-hidden'>Loading...</span>\n" +
+                    "    </div>\n" +
+                    "  </div>\n" +
+                    "</div>");
+                // 将遮罩层添加到页面中
+                $(document.body).append(modalBackdrop);
 
                 var data = [imageId];
                 $.ajax({
-                    url: "/images/convert",
+                    url: "/images/convert", // 发送DELETE请求到指定URL
                     method: "POST",
                     dataType: 'json',
                     headers: {
@@ -117,6 +136,11 @@
                     },
                     data: JSON.stringify(data),
                     success: function () {
+                        debugger;
+
+                        $("#importButton").attr("disabled", false);
+                        $("#deleteButton").attr("disabled", false);
+
                         // 导入成功后刷新页面
                         location.reload();
                     },
