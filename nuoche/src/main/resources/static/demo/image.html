@@ -40,6 +40,16 @@
 <body>
 <div class="container">
     <h1>展示图片</h1>
+
+    <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+        <div class="btn-group mr-2" role="group" aria-label="First group">
+            <button id="selectAllButton" class="btn btn-primary">全选</button>
+            <button id="unselectAllButton" class="btn btn-secondary disabled">取消</button>
+            <button id="importBatchButton" class="btn btn-success">导入</button>
+            <button id="deleteBatchButton" class="btn btn-danger">删除</button>
+        </div>
+    </div>
+
     <div id="imageContainer" class="row"></div>
 </div>
 
@@ -72,22 +82,38 @@
                 // 循环遍历图片数据并创建图片元素
                 response.content.forEach(function (image) {
                     var imageUrl = "/images/" + image.id;
+
                     // 创建图片名称
                     var imageName = $("<div>").addClass("image-name").text(image.name);
+
                     // 创建图片信息状态栏
                     var statusText = $("<div>").addClass("status-text").text(image.status);
+
+                    // 创建复选框
+                    var checkbox = $("<input>").attr("type", "checkbox").addClass("checkbox");
+
                     // 创建图片元素
-                    var imageElement = $("<img>").attr("src", imageUrl).addClass("col-md-2 img-thumbnail custom-image");
+                    var imageElement = $("<img>").attr("src", imageUrl).attr("imageId", image.id).attr("name", image.name).addClass("col-md-2 img-thumbnail custom-image");
+
                     // 包装图片、名称和状态栏
-                    var imageContainer = $("<div>").addClass("image-container").append(imageElement, imageName, statusText);
+                    var imageContainer = $("<div>").addClass("image-container").append(checkbox, imageElement, imageName, statusText);
+
                     // 添加点击事件
-                    imageContainer.click(function () {
+                    /*imageContainer.click(function () {
                         var clickedImageUrl = $(this).find("img").attr("src"); // 获取点击的图片源
                         var modalImage = $("#modalImage");
                         modalImage.attr("src", clickedImageUrl); // 设置模态框中的图片源
                         modalImage.attr("image-id", image.id);
                         $("#imageModal").modal("show"); // 显示模态框
+                    });*/
+                    imageElement.click(function () {
+                        var clickedImageUrl = $(this).attr("src"); // 获取点击的图片源
+                        var modalImage = $("#modalImage");
+                        modalImage.attr("src", clickedImageUrl); // 设置模态框中的图片源
+                        modalImage.attr("image-id", image.id);
+                        $("#imageModal").modal("show"); // 显示模态框
                     });
+
                     var imageColumn = $("<div>").addClass("col-md-2 image-column").append(imageContainer);
                     $("#imageContainer").append(imageColumn);
                 });
@@ -102,12 +128,10 @@
             // 在这里添加导入按钮的逻辑
             console.log("点击了导入按钮");
 
-            debugger;
+            var imageId = $("#modalImage").attr("image-id");
 
             // 显示遮罩层
             $(".modal-backdrop").addClass("show");
-
-            var imageId = $("#modalImage").attr("image-id");
             console.log("图片ID:", imageId);
             // 弹出确认提示框
             if (confirm("确定要导入该图片吗？")) {
@@ -123,6 +147,7 @@
                     "    </div>\n" +
                     "  </div>\n" +
                     "</div>");
+
                 // 将遮罩层添加到页面中
                 $(document.body).append(modalBackdrop);
 
@@ -156,6 +181,7 @@
             var clickedImageUrl = $(this).find("img").attr("src"); // 获取点击的图片源
             var imageId = $("#modalImage").attr("image-id");
             console.log("图片ID:", imageId);
+
             // 弹出确认提示框
             if (confirm("确定要删除该图片吗？")) {
                 // 发送DELETE请求到指定URL
@@ -171,6 +197,112 @@
                     }
                 });
             }
+        });
+
+        // 点击全选按钮
+        $("#selectAllButton").click(function () {
+            console.log("点击了全选按钮");
+            $(".checkbox").prop("checked", true);
+
+            $("#selectAllButton").addClass("disabled");
+            $("#unselectAllButton").removeClass("disabled");
+
+
+            var checkboxes = $(".checkbox");
+            // 遍历所有复选框，并获取选中的复选框
+            var checkedCheckboxes = checkboxes.filter(function () {
+                return $(this).prop("checked");
+            });
+            // 获取选中的复选框的父元素，即<img>标签
+            var imgs = checkedCheckboxes.map(function () {
+                return $(this).closest('.image-container').find('img');
+            });
+            // 获取<img>标签的imageid属性
+            var imageIds = imgs.map(function () {
+                return $(this).attr("imageid");
+            });
+
+            // 输出图片的ID
+            console.log(imageIds);
+
+        });
+
+        // 点击取消按钮
+        $("#unselectAllButton").click(function () {
+            console.log("点击了取消按钮");
+            $(".checkbox").prop("checked", false);
+
+            $("#selectAllButton").removeClass("disabled");
+            $("#unselectAllButton").addClass("disabled");
+        });
+
+        // 点击删除按钮
+        $("#deleteBatchButton").click(function () {
+            var checkboxes = $(".checkbox");
+            // 遍历所有复选框，并获取选中的复选框
+            var checkedCheckboxes = checkboxes.filter(function () {
+                return $(this).prop("checked");
+            });
+            // 获取选中的复选框的父元素，即<img>标签
+            var imgs = checkedCheckboxes.map(function () {
+                return $(this).closest('.image-container').find('img');
+            });
+            // 获取<img>标签的imageid属性
+            var imageNames = imgs.map(function () {
+                return $(this).attr("name");
+            });
+
+            var imageIds = imgs.map(function () {
+                return $(this).attr("imageid");
+            });
+
+            debugger;
+
+            // 输出图片的ID
+            console.log(imageNames);
+
+            // 弹出确认提示框
+            var deletePromises = [];
+
+            if (confirm("确定要删除该图片" + imageNames.toArray().join(",") + "吗？")) {
+                // 遍历所有图像名称
+                imageIds.toArray().forEach(function (imageId) {
+                    // 创建一个Deferred对象
+                    var deleteDeferred = $.Deferred();
+
+                    // 发送DELETE请求到指定URL
+                    $.ajax({
+                        url: "/images/" + imageId,
+                        method: "DELETE",
+                        success: function () {
+                            // 删除成功时，将Deferred对象标记为已完成
+                            deleteDeferred.resolve();
+                        },
+                        error: function () {
+                            // 删除失败时，将Deferred对象标记为已失败
+                            deleteDeferred.reject(imageId);
+                        }
+                    });
+
+                    // 将Deferred对象添加到数组中
+                    deletePromises.push(deleteDeferred.promise());
+                });
+
+                // 使用$.when来等待所有请求完成
+                $.when.apply($, deletePromises).done(function () {
+                    // 所有请求都成功
+                    alert("成功删除所有图片");
+                    // 删除成功后刷新页面
+                    location.reload();
+                }).fail(function () {
+                    // 有请求失败
+                    var failedIds = Array.from(arguments).map(function (failedId) {
+                        return failedId[0];
+                    });
+                    alert("删除图片失败，失败的图片ID：" + failedIds.join(", "));
+                });
+            }
+
         });
     });
 </script>
