@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>展示图片</title>
+    <title>截图仓库</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <style>
         .custom-image {
@@ -39,13 +39,14 @@
 </head>
 <body>
 <div class="container">
-    <h1>展示图片</h1>
+    <h1>截图仓库</h1>
 
     <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
         <div class="btn-group mr-2" role="group" aria-label="First group">
             <button id="selectAllButton" class="btn btn-primary">全选</button>
             <button id="unselectAllButton" class="btn btn-secondary disabled">取消</button>
             <button id="importBatchButton" class="btn btn-success">导入</button>
+            <a target="_self" href="/upload.html" class="btn btn-warning"><i class="fas fa-volume-up left"></i>上传图片</a>
             <button id="deleteBatchButton" class="btn btn-danger">删除</button>
         </div>
     </div>
@@ -67,6 +68,7 @@
         </div>
     </div>
 </div>
+
 <script src="js/jquery-3.7.1.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
 <script>
@@ -129,6 +131,7 @@
             console.log("点击了导入按钮");
 
             var imageId = $("#modalImage").attr("image-id");
+            //var imageId1 =$(this).closest('.modal-body').find('img').attr('image-id');
 
             // 显示遮罩层
             $(".modal-backdrop").addClass("show");
@@ -160,16 +163,16 @@
                         'Content-Type': 'application/json'
                     },
                     data: JSON.stringify(data),
-                    success: function () {
-                        debugger;
-
+                    success: function ()
+                    {
                         $("#importButton").attr("disabled", false);
                         $("#deleteButton").attr("disabled", false);
 
                         // 导入成功后刷新页面
                         location.reload();
                     },
-                    error: function () {
+                    error: function ()
+                    {
                         alert("导入图片失败");
                     }
                 });
@@ -188,11 +191,13 @@
                 $.ajax({
                     url: "/images/" + imageId,
                     method: "DELETE",
-                    success: function () {
+                    success: function ()
+                    {
                         // 删除成功后刷新页面
                         location.reload();
                     },
-                    error: function () {
+                    error: function ()
+                    {
                         alert("删除图片失败");
                     }
                 });
@@ -236,25 +241,59 @@
             $("#unselectAllButton").addClass("disabled");
         });
 
-        // 点击删除按钮
-        $("#deleteBatchButton").click(function () {
-            var checkboxes = $(".checkbox");
-            // 遍历所有复选框，并获取选中的复选框
-            var checkedCheckboxes = checkboxes.filter(function () {
-                return $(this).prop("checked");
-            });
-            // 获取选中的复选框的父元素，即<img>标签
-            var imgs = checkedCheckboxes.map(function () {
-                return $(this).closest('.image-container').find('img');
-            });
-            // 获取<img>标签的imageid属性
-            var imageNames = imgs.map(function () {
-                return $(this).attr("name");
-            });
+        // 点击导入按钮（批量导入）
+        $("#importBatchButton").click(function () {
+            const {imageNames, imageIds} = getSelectedImages();
 
-            var imageIds = imgs.map(function () {
-                return $(this).attr("imageid");
-            });
+            debugger;
+
+            // 输出图片的ID
+            console.log(imageNames);
+
+            // 显示遮罩层
+            $(".modal-backdrop").addClass("show");
+            console.log("图片ID:", imageIds);
+            if (confirm("确定要导入图片" + imageNames.toArray().join(",") + "吗？")) {
+                // 创建一个遮罩层
+                var modalBackdrop = $("<div class='modal-backdrop fade show' style='z-index: 99999; display: flex; align-items: center; justify-content: center;'>\n" +
+                    "  <div class='text-center'>\n" +
+                    "    <div class='spinner-border text-warning' role='status'>\n" +
+                    "      <span class='visually-hidden'>Loading...</span>\n" +
+                    "    </div>\n" +
+                    "  </div>\n" +
+                    "</div>");
+
+                // 将遮罩层添加到页面中
+                $(document.body).append(modalBackdrop);
+
+                $.ajax({
+                    url: "/images/convert", // 发送DELETE请求到指定URL
+                    method: "POST",
+                    dataType: 'json',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify(imageIds.toArray()),
+                    success: function ()
+                    {
+                        $("#importButton").attr("disabled", false);
+                        $("#deleteButton").attr("disabled", false);
+
+                        // 导入成功后刷新页面
+                        location.reload();
+                    },
+                    error: function ()
+                    {
+                        alert("导入图片失败");
+                    }
+                });
+            }
+
+        });
+
+        // 点击删除按钮（批量删除）
+        $("#deleteBatchButton").click(function () {
+            const {imageNames, imageIds} = getSelectedImages();
 
             debugger;
 
@@ -304,6 +343,29 @@
             }
 
         });
+
+        function getSelectedImages() {
+            debugger;
+            var checkboxes = $(".checkbox");
+            // 遍历所有复选框，并获取选中的复选框
+            var checkedCheckboxes = checkboxes.filter(function () {
+                return $(this).prop("checked");
+            });
+            // 获取选中的复选框的父元素，即<img>标签
+            var imgs = checkedCheckboxes.map(function () {
+                return $(this).closest('.image-container').find('img');
+            });
+            // 获取<img>标签的imageid属性
+            var imageNames = imgs.map(function () {
+                return $(this).attr("name");
+            });
+
+            var imageIds = imgs.map(function () {
+                return $(this).attr("imageid");
+            });
+
+            return {imageNames, imageIds};
+        }
     });
 </script>
 </body>
