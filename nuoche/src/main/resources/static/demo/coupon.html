@@ -3,124 +3,341 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>可分页的表格</title>
-  <!-- 引入Bootstrap CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <title>券码</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
 </head>
+
 <body>
-
 <div class="container mt-5">
-  <h2>可分页的表格</h2>
+  <div class="container-xl">
+    <div class="row g-3 mb-4 align-items-center justify-content-between">
+      <div class="col-auto">
+        <h1 class="app-page-title mb-0">券库</h1>
+      </div>
+      <div class="col-auto">
+        <div class="page-utilities">
+          <div class="row g-2 justify-content-start justify-content-md-end align-items-center">
+            <div class="col-auto">
+              <form class="table-search-form row gx-1 align-items-center">
+                <div class="col-auto">
+                  <input type="text" id="search-orders" name="searchorders" class="form-control search-orders" placeholder="Search">
+                </div>
+                <div class="col-auto">
+                  <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+              </form>
+            </div>
+            <div class="col-auto">
+              <select class="form-select w-auto">
+                <option selected value="option-1">All</option>
+                <option value="option-2">This week</option>
+                <option value="option-3">This month</option>
+                <option value="option-4">Last 3 months</option>
+              </select>
+            </div>
+            <div class="col-auto">
+              <a class="btn app-btn-secondary" href="#">
+                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-download mr-1" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                  <path fill-rule="evenodd" d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                </svg>
+                导出数据 </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <!-- 过滤条件 -->
-  <div class="mb-3 row">
-    <div class="col-md-4">
-      <label for="nameInput" class="form-label">Name 过滤：</label>
-      <input type="text" class="form-control" id="nameInput" placeholder="输入关键词">
-    </div>
-    <div class="col-md-4">
-      <label for="descriptionInput" class="form-label">Description 过滤：</label>
-      <input type="text" class="form-control" id="descriptionInput" placeholder="输入关键词">
-    </div>
-    <div class="col-md-4">
-      <button class="btn btn-primary mt-4" onclick="applyFilter()">应用过滤</button>
+    <nav id="orders-table-tab" class="orders-table-tab app-nav-tabs nav shadow-sm flex-column flex-sm-row mb-4">
+      <a class="flex-sm-fill text-sm-center nav-link active" id="orders-all-tab" data-toggle="tab" href="#orders-all" role="tab" aria-controls="orders-all" aria-selected="true">全部</a>
+      <a class="flex-sm-fill text-sm-center nav-link" id="orders-paid-tab" data-toggle="tab" href="#orders-paid" role="tab" aria-controls="orders-paid" aria-selected="false">在售</a>
+      <a class="flex-sm-fill text-sm-center nav-link" id="orders-pending-tab" data-toggle="tab" href="#orders-pending" role="tab" aria-controls="orders-pending" aria-selected="false">已售</a>
+      <a class="flex-sm-fill text-sm-center nav-link" id="orders-cancelled-tab" data-toggle="tab" href="#orders-cancelled" role="tab" aria-controls="orders-cancelled" aria-selected="false">退货</a>
+    </nav>
+
+    <div class="tab-content" id="orders-table-tab-content">
+      <div class="tab-pane fade show active" id="orders-all" role="tabpanel" aria-labelledby="orders-all-tab">
+        <div class="app-card app-card-orders-table shadow-sm mb-5">
+          <div class="app-card-body">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0 text-left">
+                <thead class="table-light">
+                <tr>
+                  <th class="cell">券码</th>
+                  <th class="cell">品牌</th>
+                  <th class="cell">名称</th>
+                  <th class="cell">状态</th>
+                  <th class="cell">进货时间</th>
+                  <th class="cell">进货价</th>
+                  <th class="cell">账号</th>
+                  <th class="cell"></th>
+                </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <nav class="app-pagination">
+          <ul class="pagination justify-content-center">
+            <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="tab-pane fade" id="orders-paid" role="tabpanel" aria-labelledby="orders-paid-tab">
+        <div class="app-card app-card-orders-table mb-5">
+          <div class="app-card-body">
+            <div class="table-responsive">
+              <table class="table mb-0 text-left">
+                <thead>
+                <tr>
+                  <th class="cell">Order</th>
+                  <th class="cell">Product</th>
+                  <th class="cell">Customer</th>
+                  <th class="cell">Date</th>
+                  <th class="cell">Status</th>
+                  <th class="cell">Total</th>
+                  <th class="cell"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td class="cell">#15346</td>
+                  <td class="cell"><span class="truncate">Lorem ipsum dolor sit amet eget volutpat erat</span></td>
+                  <td class="cell">John Sanders</td>
+                  <td class="cell"><span>17 Oct</span><span class="note">2:16 PM</span></td>
+                  <td class="cell"><span class="badge bg-success">Paid</span></td>
+                  <td class="cell">$259.35</td>
+                  <td class="cell"><a class="btn-sm app-btn-secondary" href="#">View</a></td>
+                </tr>
+                <tr>
+                  <td class="cell">#15344</td>
+                  <td class="cell"><span class="truncate">Pellentesque diam imperdiet</span></td>
+                  <td class="cell">Teresa Holland</td>
+                  <td class="cell"><span class="cell-data">16 Oct</span><span class="note">01:16 AM</span></td>
+                  <td class="cell"><span class="badge bg-success">Paid</span></td>
+                  <td class="cell">$123.00</td>
+                  <td class="cell"><a class="btn-sm app-btn-secondary" href="#">View</a></td>
+                </tr>
+                <tr>
+                  <td class="cell">#15343</td>
+                  <td class="cell"><span class="truncate">Vestibulum a accumsan lectus sed mollis ipsum</span></td>
+                  <td class="cell">Jayden Massey</td>
+                  <td class="cell"><span class="cell-data">15 Oct</span><span class="note">8:07 PM</span></td>
+                  <td class="cell"><span class="badge bg-success">Paid</span></td>
+                  <td class="cell">$199.00</td>
+                  <td class="cell"><a class="btn-sm app-btn-secondary" href="#">View</a></td>
+                </tr>
+                <tr>
+                  <td class="cell">#15341</td>
+                  <td class="cell"><span class="truncate">Morbi vulputate lacinia neque et sollicitudin</span></td>
+                  <td class="cell">Raymond Atkins</td>
+                  <td class="cell"><span class="cell-data">11 Oct</span><span class="note">11:18 AM</span></td>
+                  <td class="cell"><span class="badge bg-success">Paid</span></td>
+                  <td class="cell">$678.26</td>
+                  <td class="cell"><a class="btn-sm app-btn-secondary" href="#">View</a></td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="orders-pending" role="tabpanel" aria-labelledby="orders-pending-tab">
+        <div class="app-card app-card-orders-table mb-5">
+          <div class="app-card-body">
+            <div class="table-responsive">
+              <table class="table mb-0 text-left">
+                <thead>
+                <tr>
+                  <th class="cell">Order</th>
+                  <th class="cell">Product</th>
+                  <th class="cell">Customer</th>
+                  <th class="cell">Date</th>
+                  <th class="cell">Status</th>
+                  <th class="cell">Total</th>
+                  <th class="cell"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td class="cell">#15345</td>
+                  <td class="cell"><span class="truncate">Consectetur adipiscing elit</span></td>
+                  <td class="cell">Dylan Ambrose</td>
+                  <td class="cell"><span class="cell-data">16 Oct</span><span
+                          class="note">03:16 AM</span></td>
+                  <td class="cell"><span class="badge bg-warning">Pending</span></td>
+                  <td class="cell">$96.20</td>
+                  <td class="cell"><a class="btn-sm app-btn-secondary" href="#">View</a></td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="orders-cancelled" role="tabpanel" aria-labelledby="orders-cancelled-tab">
+        <div class="app-card app-card-orders-table mb-5">
+          <div class="app-card-body">
+            <div class="table-responsive">
+              <table class="table mb-0 text-left">
+                <thead>
+                <tr>
+                  <th class="cell">Order</th>
+                  <th class="cell">Product</th>
+                  <th class="cell">Customer</th>
+                  <th class="cell">Date</th>
+                  <th class="cell">Status</th>
+                  <th class="cell">Total</th>
+                  <th class="cell"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td class="cell">#15342</td>
+                  <td class="cell"><span class="truncate">Justo feugiat neque</span></td><td class="cell">Reina Brooks</td>
+                  <td class="cell"><span class="cell-data">12 Oct</span><span class="note">04:23 PM</span></td>
+                  <td class="cell"><span class="badge bg-danger">Cancelled</span></td>
+                  <td class="cell">$59.00</td>
+                  <td class="cell"><a class="btn-sm app-btn-secondary" href="#">View</a></td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+</div>
 
-  <!-- 表格 -->
-  <table id="item-table" class="table">
-    <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">Name</th>
-      <th scope="col">Description</th>
-    </tr>
-    </thead>
-    <tbody>
-    <!-- 你的表格行将在这里动态加载 -->
-    </tbody>
-  </table>
-
-  <!-- 分页控件 -->
-  <nav aria-label="Page navigation">
-    <ul id="pagination" class="pagination">
-      <!-- 分页按钮将在这里动态加载 -->
-    </ul>
-  </nav>
+<!-- 详情 -->
+<div class="modal modal-xl fade" id="couponDetailModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">券码详情</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+        <button type="button" class="btn btn-primary">保存</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- 引入jQuery和Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
 
 <!-- 你的自定义脚本 -->
-<script>
-  // 模拟数据，实际使用时替换为你的数据
-  const data = [
-    { id: 1, name: "Item 1", description: "Description 1" },
-    { id: 2, name: "Item 2", description: "Description 2" },
-    { id: 3, name: "Item 3", description: "Description 3" },
-    { id: 4, name: "Item 4", description: "Description 4" },
-    { id: 5, name: "Item 5", description: "Description 5" },
-    { id: 6, name: "Item 6", description: "Description 6" },
-    { id: 7, name: "Item 7", description: "Description 7" },
-    { id: 8, name: "Item 8", description: "Description 8" },
-    { id: 9, name: "Item 9", description: "Description 9" },
-    { id: 10, name: "Item 10", description: "Description 10" },
-    // ...更多项
-  ];
-
-  // 每页显示的项数
-  const itemsPerPage = 3;
-
-  // 当前过滤条件
-  let nameFilter = "";
-  let descriptionFilter = "";
-
-  // 计算总页数
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-
-  // 初始化页面
-  function initPage(pageNumber) {
-    // 清空表格和分页控件
-    $("#item-table tbody").empty();
-    $("#pagination").empty();
-
-    // 计算起始和结束索引
-    const startIndex = (pageNumber - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, data.length);
-
-    // 动态加载当前页的表格行
-    for (let i = startIndex; i < endIndex; i++) {
-      const item = data[i];
-      $("#item-table tbody").append(`<tr><th scope="row">${item.id}</th><td>${item.name}</td><td>${item.description}</td></tr>`);
-    }
-
-    // 动态加载分页按钮
-    for (let i = 1; i <= totalPages; i++) {
-      const activeClass = i === pageNumber ? "active" : "";
-      $("#pagination").append(`<li class="page-item ${activeClass}"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`);
-    }
-  }
-
-  // 初始加载第一页
-  initPage(1);
-
-  // 切换页面
-  function changePage(pageNumber) {
-    initPage(pageNumber);
-
-
-  }
-
-  // 应用过滤条件
-  function applyFilter() {
-    nameFilter = $("#nameInput").val().toLowerCase();
-    descriptionFilter = $("#descriptionInput").val().toLowerCase();
-    initPage(1); // 重新加载第一页
-  }
-</script>
-
 </body>
+<script>
+  function isBlank(value) {
+    if (value == null || value.length === 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  function getStatusBadge(coupon) {
+    if (coupon.status === "ON_SALE") {
+      return "bg-primary";
+    } else if (coupon.status === "SELLING") {
+      return "bg-warning";
+    } else if (coupon.status === "SOLD") {
+      return "bg-success";
+    } else if (coupon.status === "REFUND") {
+      return "bg-danger";
+    } else {
+      return "bg-secondary";
+    }
+  }
+
+  $(document).ready(function () {
+    // 通过ajax调用后端接口获取图片数据
+    $.ajax({
+      url: "/coupons",
+      method: "GET",
+      data: {
+        "inUsed": false
+      },
+      success: function(response)
+      {
+        response.content.forEach(function (coupon) {
+          let statusBadge = getStatusBadge(coupon);
+
+          const newRow =
+                  '<tr>' +
+                  '<td className="cell"><span data-bs-toggle="tooltip" data-bs-placement="top" title="订单编号'+ coupon.orderNO +'">' + coupon.code + '</span></td>' +
+                  '<td className="cell"><span class="d-inline-block text-truncate">' + coupon.brand + '</span></td>' +
+                  '<td className="cell"><span data-bs-toggle="tooltip" data-bs-placement="top" title="' + coupon.description + '">' + coupon.name + '</span></td>' +
+                  '<td class="cell" data-bs-toggle="tooltip" data-bs-placement="top" title="' + coupon.statusDescription +'"><span class="badge ' + statusBadge + '">' + coupon.statusName + '</span></td>' +
+                  '<td className="cell">' + coupon.orderTime + '</td>' +
+                  '<td className="cell">￥' + coupon.originalPrice + '</td>' +
+                  '<td className="cell">' + coupon.accountMobile + '</td>' +
+                  //'<td className="cell"><button type="button" data-bs-toggle="modal" data-bs-target="#couponDetailModal" class="btn btn-dark" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;">查看</button></td>' +
+                  '<td className="cell"><button type="button" class="btn editbtn btn-dark" data-toggle="modal" data-target="" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;">查看</button></td></td></td>' +
+                  '</tr>';
+          $("#orders-all tbody").append(newRow);
+
+
+          // 查看详情
+          $('.editbtn').on('click', function(){
+            $('#couponDetailModal').modal('show');
+            $tr = $ (this).closest('tr');
+            var data = $tr.children("td").map(function(){
+              return $(this).text();
+            }).get();
+
+            debugger;
+
+            $('#couponDetailModal').find('.modal-title').text('券码详情：' + data[0]);
+          });
+        });
+      },
+      error: function()
+      {
+        alert("无法获取图片数据");
+      }
+    });
+
+    // 初始化tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+
+    /*const couponDetailModal = document.getElementById('couponDetailModal');
+    couponDetailModal.addEventListener('show.bs.modal', event => {
+        debugger;
+        console.log(event);
+
+        $.ajax({
+            url: "/coupons/",
+            method: "GET",
+            data: {
+                "inUsed": false
+            },
+            success: function (response) {
+
+            },
+            error: function () {
+                alert("无法获取图片数据");
+            }
+        });
+    });*/
+  });
+</script>
 </html>
