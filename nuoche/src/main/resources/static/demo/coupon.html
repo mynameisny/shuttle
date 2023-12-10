@@ -237,7 +237,10 @@
                   aria-label="Example input"
                   aria-describedby="button-addon1"
           />
-          <button class="btn btn-primary" type="button" id="button-addon1" data-mdb-ripple-color="dark" onclick="copyToClipboard()">
+          <!--<button class="btn btn-primary" type="button" id="button-addon1" data-mdb-ripple-color="dark"  onclick="copyToClipboard()">
+              <i class="bi-copy"></i>
+          </button>-->
+          <button type="button" id="copyCodeBtn" class="btn btn-primary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="已复制" data-bs-delay='{"show":0,"hide":150}' onclick="copyToClipboard()">
             <i class="bi-copy"></i>
           </button>
         </div>
@@ -268,8 +271,23 @@
         <p></p>
         <div class="input-group w-auto mp-3">
           <label for="description" class="col-sm-2 col-form-label">描述</label>
+          <textarea class="form-control" id="description" rows="3"></textarea>
+        </div>
+        <p></p>
+        <div class="input-group w-auto mp-3">
+          <label for="status" class="col-sm-2 col-form-label">状态</label>
+          <select class="form-select" aria-label="Default select example" id="status">
+            <option selected>Open this select menu</option>
+            <option value="1">One</option>
+            <option value="2">Two</option>
+            <option value="3">Three</option>
+          </select>
+        </div>
+        <p></p>
+        <div class="input-group w-auto mp-3">
+          <label for="status" class="col-sm-2 col-form-label">进货时间</label>
           <input
-                  id="description"
+                  id="orderTime"
                   type="text"
                   class="form-control"
                   placeholder="Example input"
@@ -277,7 +295,19 @@
                   aria-describedby="button-addon1"
           />
         </div>
-
+        <p></p>
+        <div class="input-group w-auto mp-3">
+          <label for="originalPrice" class="col-sm-2 col-form-label">进货价格</label>
+          <input
+                  id="originalPrice"
+                  type="text"
+                  class="form-control"
+                  placeholder="Example input"
+                  aria-label="Example input"
+                  aria-describedby="button-addon1"
+          />
+        </div>
+        <p></p>
       </div>
 
       <div class="modal-footer">
@@ -325,10 +355,30 @@
       console.log("Text copied to clipboard!");
       // Optional: Display a success message to the user
 
+      /*const exampleEl = document.getElementById('copyCodeBtn')
+      const popover = new bootstrap.Popover(exampleEl, {
+          popperConfig(defaultBsPopperConfig) {
+              debugger;
+              const newPopperConfig = {
+                  delay: { "show": 2000, "hide": 100 },
+                  placement: 'left',
+                  title: 'xxxx'
+              }
+              return newPopperConfig
+          }
+      });
+      debugger;
+      popover.show();*/
 
-      let myAlert = $('.toast');
+      setTimeout(function() {
+        const popover = bootstrap.Popover.getOrCreateInstance('#copyCodeBtn')
+        popover.hide();
+      }, 3000);
+
+
+      /*let myAlert = $('.toast');
       let toast = new bootstrap.Toast(myAlert);
-      toast.show();
+      toast.show();*/
 
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
@@ -406,6 +456,9 @@
     // 初始化tooltips
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
 
   });
 </script>
