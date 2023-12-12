@@ -154,7 +154,7 @@
             </div>
           </div>
           <div class="col-3">
-            <img src="" class="img-fluid img-thumbnail" id="couponImage" style="width: 200px; height: 200px;" alt="...">
+            <img src="" class="img-fluid img-thumbnail" id="couponImage" style="width: 200px; height: 200px;" alt="..." onclick="window.open(this.src, '_blank');">
           </div>
         </div>
         <div class="row">
@@ -170,7 +170,7 @@
           <div class="accordion accordion-flush" id="accordionFlushExample">
             <div class="accordion-item">
               <h2 class="accordion-header" id="flush-headingOrderInfo">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#orderInfo" aria-expanded="false" aria-controls="orderInfo">订单信息</button>
+                <button id="orderInfoBtn" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#orderInfo" aria-expanded="false" aria-controls="orderInfo">订单信息</button>
               </h2>
               <div id="orderInfo" class="accordion-collapse collapse" aria-labelledby="flush-headingOrderInfo" data-bs-parent="#accordionFlushExample">
                 <div class="raw accordion-body">
@@ -208,20 +208,11 @@
             </div>
             <div class="accordion-item">
               <h2 class="accordion-header" id="flush-headingSellInfo">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sellInfo" aria-expanded="false" aria-controls="sellInfo">销售信息</button>
+                <button id="sellInfoBtn" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sellInfo" aria-expanded="false" aria-controls="sellInfo">销售信息</button>
               </h2>
               <div id="sellInfo" class="accordion-collapse collapse" aria-labelledby="flush-headingSellInfo" data-bs-parent="#accordionFlushExample">
                 <div class="raw accordion-body">
                   <div class="row">
-                    <div class="col-4">
-                      <div class="input-group mb-3">
-                        <span class="input-group-text"><i class="bi-backpack"></i></span>
-                        <div class="form-floating">
-                          <input type="text" class="form-control" id="couponSellingNO" placeholder="订单号">
-                          <label for="couponSellingNO">订单号</label>
-                        </div>
-                      </div>
-                    </div>
                     <div class="col-5">
                       <div class="input-group mb-3">
                         <span class="input-group-text"><i class="bi-cart"></i></span>
@@ -231,12 +222,21 @@
                         </div>
                       </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-5">
                       <div class="input-group mb-3">
                         <span class="input-group-text">￥</span>
                         <div class="form-floating">
                           <input type="text" class="form-control" id="couponSellingPrice" placeholder="售出价">
                           <label for="couponSellingPrice">售出价</label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-2">
+                      <!--<button type="button" class="btn btn-warning" id="exportVideoBtn">生成视频</button>-->
+                      <div class="input-group btn-group mb-3">
+                        <span class="input-group-text"><i class="bi bi-film"></i></span>
+                        <div class="form-floating">
+                          <button type="button" class="btn btn-warning" id="exportVideoBtn" onclick="exportVideo()">生成视频</button>
                         </div>
                       </div>
                     </div>
@@ -248,8 +248,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+        <button type="button" class="btn btn-primary">保存</button>
       </div>
     </div>
   </div>
@@ -277,17 +277,16 @@
 <!-- 你的自定义脚本 -->
 </body>
 <script>
-  function isBlank(value) {
-    if (value == null || value.length === 0) {
-      return false;
-    } else {
-      return true;
-    }
+  function exportVideo()
+  {
+    let couponId = $('#couponDetailModal').attr('data-coupon-id');
+    alert(couponId);
   }
 
-  const copyToClipboard = async () => {
+  const copyToClipboard = async () =>
+  {
     try {
-      var code = $("#couponCode").val();
+      const code = $("#couponCode").val();
       await navigator.clipboard.writeText(code);
       console.log("Text copied to clipboard!");
 
@@ -316,9 +315,26 @@
     }
   }
 
-  function showEditModal(couponId)
+  function showEditModal(element)
   {
+    const couponId = element.parents("tr").attr("id");
+
+    $('#couponDetailModal').attr('data-coupon-id', couponId);
+
+
     $('#couponDetailModal').modal('show');
+
+    // $('div.accordion-collapse').removeClass("show");
+
+    if ($('#orderInfo').hasClass("show"))
+    {
+      $('#orderInfoBtn').trigger("click");
+    }
+    if ($('#sellInfo').hasClass("show"))
+    {
+      $('#sellInfoBtn').trigger("click");
+    }
+
 
     $.ajax({
       url: "/coupons/" + couponId,
@@ -342,7 +358,6 @@
         $('#couponOrderNO').val(response.orderNO);
         $('#couponOrderTime').val(response.orderTime);
         $('#couponOrderPrice').val(response.originalPrice);
-        $('#couponSellingNO').val("");
         $('#couponSellingTime').val(response.sellingTime);
         $('#couponSellingPrice').val(response.sellingPrice);
       },
@@ -353,7 +368,8 @@
     });
   }
 
-  $(document).ready(function () {
+  $(document).ready(function ()
+  {
     // 通过ajax调用后端接口获取图片数据
     $.ajax({
       url: "/coupons",
@@ -367,7 +383,7 @@
           let statusBadge = getStatusBadge(coupon);
 
           const newRow =
-                  '<tr>' +
+                  '<tr id=' + coupon.id + '>' +
                   '<td className="cell"><span data-bs-toggle="tooltip" data-bs-placement="top" title="订单编号'+ coupon.orderNO +'">' + coupon.code + '</span></td>' +
                   '<td className="cell"><span class="d-inline-block text-truncate">' + coupon.brand + '</span></td>' +
                   '<td className="cell"><span data-bs-toggle="tooltip" data-bs-placement="top" title="' + coupon.description + '">' + coupon.name + '</span></td>' +
@@ -375,32 +391,13 @@
                   '<td className="cell">' + coupon.orderTime + '</td>' +
                   '<td className="cell">￥' + coupon.originalPrice + '</td>' +
                   '<td className="cell">' + coupon.accountMobile + '</td>' +
-                  //'<td className="cell"><button type="button" data-bs-toggle="modal" data-bs-target="#couponDetailModal" class="btn btn-dark" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;">查看</button></td>' +
                   '<td className="cell"><button type="button" class="btn editbtn btn-dark" data-toggle="modal" data-target="" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;">查看</button></td></td></td>' +
                   '</tr>';
           $("#orders-all tbody").append(newRow);
 
-
           $('.editbtn').on('click', function(){
-            showEditModal(coupon.id);
+            showEditModal($(this));
           });
-
-          /*
-          // 查看详情
-          $('.editbtn').on('click', function(){
-              $('#couponDetailModal').modal('show');
-              $tr = $ (this).closest('tr');
-              var data = $tr.children("td").map(function(){
-                  return $(this).text();
-              }).get();
-
-              console.log(data);
-
-              $('#couponDetailModal').find('.modal-title').text('券码详情：' + data[1]);
-              $('#couponCode').val(data[0]);
-              $('#couponCode').prop( "disabled", true );
-              $('#couponCode').prop( "readonly", true );
-          });*/
         });
       },
       error: function()
