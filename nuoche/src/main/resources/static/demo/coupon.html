@@ -82,8 +82,7 @@
         </div>
         <nav class="app-pagination">
           <ul class="pagination justify-content-center">
-            <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-            </li>
+            <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a></li>
             <li class="page-item active"><a class="page-link" href="#">1</a></li>
             <li class="page-item"><a class="page-link" href="#">2</a></li>
             <li class="page-item"><a class="page-link" href="#">3</a></li>
@@ -120,13 +119,14 @@
               </div>
               <div class="col-6">
                 <div class="form-floating">
-                  <select class="form-select" id="floatingSelect" aria-label="Floating label select example">
+                  <select class="form-select" id="couponStatus" aria-label="Floating label select example">
                     <option selected>Open this select menu</option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
+                    <option value="ON_SALE">待出售</option>
+                    <option value="SELLING">销售中</option>
+                    <option value="SOLD">已售出</option>
+                    <option value="REFUND">已退货</option>
                   </select>
-                  <label for="floatingSelect">状态</label>
+                  <label for="couponStatus">状态</label>
                 </div>
               </div>
             </div>
@@ -280,7 +280,18 @@
   function exportVideo()
   {
     let couponId = $('#couponDetailModal').attr('data-coupon-id');
-    alert(couponId);
+    console.log(couponId);
+
+    debugger;
+    const win = window.open($('#couponImage').attr("src") + "/video", '_blank');
+    if (win)
+    {
+      win.focus();
+    }
+    else
+    {
+      alert('Please allow popups for this website');
+    }
   }
 
   const copyToClipboard = async () =>
@@ -326,6 +337,7 @@
 
     // $('div.accordion-collapse').removeClass("show");
 
+    // 如果之前将某个区块点击后，再次弹出时仍然会保持，因此，需要将“手风琴”设置回初始的状态
     if ($('#orderInfo').hasClass("show"))
     {
       $('#orderInfoBtn').trigger("click");
