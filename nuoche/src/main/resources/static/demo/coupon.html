@@ -80,14 +80,21 @@
             </div>
           </div>
         </div>
+        <!--
+        <nav class="app-pagination" id="pageBar">
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+            </ul>
+        </nav>
+        -->
         <nav class="app-pagination">
-          <ul class="pagination justify-content-center">
-            <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a></li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"><a class="page-link" href="#">Next</a></li>
-          </ul>
+          <div id="page">
+            <ul class="pagination justify-content-center"></ul>
+          </div>
         </nav>
       </div>
     </div>
@@ -110,7 +117,7 @@
                 <div class="input-group mb-3">
                   <div class="form-floating">
                     <input type="text" class="form-control" id="couponCode" placeholder="券码">
-                    <label for="couponCode">券码</label>
+                    <label for="couponCode"><i class="bi-c-circle"></i> 券码</label>
                   </div>
                   <button type="button" id="copyCodeBtn" class="btn btn-primary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="已复制" data-bs-delay='{"show":0,"hide":150}' onclick="copyToClipboard()">
                     <i class="bi-copy"></i>
@@ -118,15 +125,9 @@
                 </div>
               </div>
               <div class="col-6">
-                <div class="form-floating">
-                  <select class="form-select" id="couponStatus" aria-label="Floating label select example">
-                    <option selected>Open this select menu</option>
-                    <option value="ON_SALE">待出售</option>
-                    <option value="SELLING">销售中</option>
-                    <option value="SOLD">已售出</option>
-                    <option value="REFUND">已退货</option>
-                  </select>
-                  <label for="couponStatus">状态</label>
+                <div class="form-floating input-group mb-3">
+                  <input type="text" class="form-control" id="couponAccount" placeholder="所属账号" disabled>
+                  <label for="couponAccount"><i class="bi-person-bounding-box"></i> 所属账号</label>
                 </div>
               </div>
             </div>
@@ -134,13 +135,19 @@
               <div class="col">
                 <div class="form-floating input-group mb-3">
                   <input type="text" class="form-control" id="couponBrand" placeholder="品牌">
-                  <label for="couponBrand">品牌</label>
+                  <label for="couponBrand"><i class="bi-bag"></i> 品牌</label>
                 </div>
               </div>
               <div class="col">
-                <div class="form-floating input-group mb-3">
-                  <input type="text" class="form-control" id="couponAccount" placeholder="所属账号">
-                  <label for="couponAccount">所属账号</label>
+                <div class="form-floating">
+                  <select class="form-select" id="couponStatus" aria-label="Floating label select example">
+                    <option value="ON_SALE">待出售</option>
+                    <option value="SELLING">销售中</option>
+                    <option value="SOLD">已售出</option>
+                    <option value="REFUND">已退货</option>
+                    <option value="UNKNOWN">其它</option>
+                  </select>
+                  <label for="couponStatus"><i class="bi bi-menu-button-wide"></i> 状态</label>
                 </div>
               </div>
             </div>
@@ -148,7 +155,7 @@
               <div class="col">
                 <div class="form-floating input-group mb-3">
                   <input type="text" class="form-control" id="couponName" placeholder="名称">
-                  <label for="couponName">名称</label>
+                  <label for="couponName"><i class="bi-filter-left"></i> 名称</label>
                 </div>
               </div>
             </div>
@@ -161,7 +168,7 @@
           <div class="col">
             <div class="form-floating">
               <textarea class="form-control" placeholder="Leave a comment here" id="couponDescription"></textarea>
-              <label for="couponDescription">描述</label>
+              <label for="couponDescription"><i class="bi bi-body-text"></i> 描述</label>
             </div>
           </div>
         </div>
@@ -195,7 +202,7 @@
                     </div>
                     <div class="col-3">
                       <div class="input-group mb-3">
-                        <span class="input-group-text">￥</span>
+                        <span class="input-group-text"><i class="bi bi-currency-yen"></i></span>
                         <div class="form-floating">
                           <input type="text" class="form-control" id="couponOrderPrice" placeholder="购入价">
                           <label for="couponOrderPrice">购入价</label>
@@ -224,7 +231,7 @@
                     </div>
                     <div class="col-5">
                       <div class="input-group mb-3">
-                        <span class="input-group-text">￥</span>
+                        <span class="input-group-text"><i class="bi bi-currency-yen"></i></span>
                         <div class="form-floating">
                           <input type="text" class="form-control" id="couponSellingPrice" placeholder="售出价">
                           <label for="couponSellingPrice">售出价</label>
@@ -273,6 +280,7 @@
 <script src="js/jquery-3.7.1.min.js"></script>
 <script src="js/popper.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
+<script src="js/pagination.js"></script>
 
 <!-- 你的自定义脚本 -->
 </body>
@@ -282,7 +290,6 @@
     let couponId = $('#couponDetailModal').attr('data-coupon-id');
     console.log(couponId);
 
-    debugger;
     const win = window.open($('#couponImage').attr("src") + "/video", '_blank');
     if (win)
     {
@@ -323,6 +330,20 @@
       return "bg-danger";
     } else {
       return "bg-secondary";
+    }
+  }
+
+  function getStatusColor(status) {
+    if (status === "ON_SALE") {
+      return "#0d6efd";
+    } else if (status === "SELLING") {
+      return "#ffc107";
+    } else if (status === "SOLD") {
+      return "#198754";
+    } else if (status === "REFUND") {
+      return "#dc3545";
+    } else {
+      return "#6c757d";
     }
   }
 
@@ -372,6 +393,10 @@
         $('#couponOrderPrice').val(response.originalPrice);
         $('#couponSellingTime').val(response.sellingTime);
         $('#couponSellingPrice').val(response.sellingPrice);
+        $('#couponStatus').val(response.status);
+
+        $('#couponStatus').css("color", getStatusColor(response.status));
+
       },
       error: function()
       {
@@ -382,6 +407,16 @@
 
   $(document).ready(function ()
   {
+    $('#page').Pagination({
+      size: 11,
+      pageShow: 5,
+      page: 1,
+      limit: 10,
+    }, function(obj){
+      console.log('Current page: ' + obj.page);
+    });
+
+
     // 通过ajax调用后端接口获取图片数据
     $.ajax({
       url: "/coupons",
