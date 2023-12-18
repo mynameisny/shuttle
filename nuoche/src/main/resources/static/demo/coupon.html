@@ -454,9 +454,15 @@
           loadTable(obj.page - 1, 2)
         });
 
+        if (response.first)
+        {
+          $('#page-prev').parent("li").addClass("disabled");
+        }
 
-        $('#page-prev').parent("li").addClass("disabled");
-        $('#page-next').parent("li").addClass("disabled");
+        if (response.last)
+        {
+          $('#page-next').parent("li").addClass("disabled");
+        }
       },
       error: function()
       {
@@ -464,6 +470,10 @@
       }
     });
   }
+
+  $("#page-prev").click(function(){
+    $("p").slideToggle();
+  });
 
   $(document).ready(function ()
   {
@@ -477,6 +487,19 @@
 
     const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
     const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+
+    // Set theme to the user's preferred color scheme
+    function updateTheme()
+    {
+      const colorMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.querySelector("html").setAttribute("data-bs-theme", colorMode);
+    }
+
+    // Set theme on load
+    updateTheme();
+
+    // Update theme when the preferred scheme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme);
 
   });
 </script>
