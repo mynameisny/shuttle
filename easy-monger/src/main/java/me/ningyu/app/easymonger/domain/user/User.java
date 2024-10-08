@@ -5,6 +5,8 @@ import lombok.*;
 import me.ningyu.app.easymonger.domain.BaseEntity;
 import me.ningyu.app.easymonger.model.enums.Gender;
 
+import java.util.List;
+
 /**
  * 用户
  */
@@ -73,12 +75,15 @@ public class User extends BaseEntity
     private String remark;
     
     /**
+     * 角色
+     */
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_code", referencedColumnName = "code"), inverseJoinColumns = @JoinColumn(name = "role_code", referencedColumnName = "code"))
+    private List<Role> roles;
+    
+    /**
      * 用户持有的电商平台账号
      */
     /*@OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Account> accounts;*/
-
-    /*@ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
-    private Collection<Role> roles;*/
 }

@@ -54,7 +54,7 @@ public class BaseEntity implements Serializable
     private int isDeleted;
     
     @Override
-    public final boolean equals(Object o)
+    public boolean equals(Object o)
     {
         if (this == o) return true;
         if (!(o instanceof BaseEntity)) return false;
