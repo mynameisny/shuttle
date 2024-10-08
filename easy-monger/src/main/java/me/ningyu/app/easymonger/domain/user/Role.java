@@ -1,9 +1,6 @@
 package me.ningyu.app.easymonger.domain.user;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import me.ningyu.app.easymonger.domain.BaseEntity;
 
@@ -38,10 +35,13 @@ public class Role extends BaseEntity
      */
     @Column(name = "remark", columnDefinition = "VARCHAR(500) DEFAULT '' COMMENT '备注（预留字段）'")
     private String remark;
-
-    /*@ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "role_permission", joinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "permission_id", referencedColumnName = "id"))
-    private Collection<Permission> permissions;*/
+    
+    /**
+     * 角色上配置了哪些权限
+     */
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "role_permission", joinColumns = @JoinColumn(name = "role_code", referencedColumnName = "code"), inverseJoinColumns = @JoinColumn(name = "permission_code", referencedColumnName = "code"))
+    private List<Permission> permissions;
     
     /**
      * 角色分配给哪些用户
