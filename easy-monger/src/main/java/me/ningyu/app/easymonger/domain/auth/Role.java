@@ -1,4 +1,4 @@
-package me.ningyu.app.easymonger.domain.user;
+package me.ningyu.app.easymonger.domain.auth;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +10,7 @@ import java.util.List;
  * 角色
  */
 @Entity
-@Table(name = "role")
+@Table(name = "auth_role")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -39,12 +39,12 @@ public class Role extends BaseEntity
     /**
      * 角色上配置了哪些权限
      */
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "role_permission", joinColumns = @JoinColumn(name = "role_code", referencedColumnName = "code"), inverseJoinColumns = @JoinColumn(name = "permission_code", referencedColumnName = "code"))
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "auth_role_permission", joinColumns = @JoinColumn(name = "role_code", referencedColumnName = "code"), inverseJoinColumns = @JoinColumn(name = "permission_code", referencedColumnName = "code"))
     private List<Permission> permissions;
     
     /**
-     * 角色分配给哪些用户
+     * 角色被分配给哪些用户
      */
     @ManyToMany(mappedBy = "roles")
     private List<User> users;

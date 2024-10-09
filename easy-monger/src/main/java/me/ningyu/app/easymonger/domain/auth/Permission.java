@@ -1,4 +1,4 @@
-package me.ningyu.app.easymonger.domain.user;
+package me.ningyu.app.easymonger.domain.auth;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,14 +7,13 @@ import jakarta.persistence.Table;
 import lombok.*;
 import me.ningyu.app.easymonger.domain.BaseEntity;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
  * 权限
  */
 @Entity
-@Table(name = "permission")
+@Table(name = "auth_permission")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

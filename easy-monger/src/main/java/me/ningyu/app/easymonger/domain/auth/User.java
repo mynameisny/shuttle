@@ -1,4 +1,4 @@
-package me.ningyu.app.easymonger.domain.user;
+package me.ningyu.app.easymonger.domain.auth;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,11 +11,11 @@ import java.util.List;
  * 用户
  */
 @Entity
-@Table(name = "user")
-@Getter
-@Setter
+@Table(name = "auth_user")
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class User extends BaseEntity
 {
@@ -77,8 +77,8 @@ public class User extends BaseEntity
     /**
      * 角色
      */
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_code", referencedColumnName = "code"), inverseJoinColumns = @JoinColumn(name = "role_code", referencedColumnName = "code"))
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "auth_user_role", joinColumns = @JoinColumn(name = "user_code", referencedColumnName = "code"), inverseJoinColumns = @JoinColumn(name = "role_code", referencedColumnName = "code"))
     private List<Role> roles;
     
     /**
@@ -87,3 +87,6 @@ public class User extends BaseEntity
     /*@OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Account> accounts;*/
 }
+
+
+
