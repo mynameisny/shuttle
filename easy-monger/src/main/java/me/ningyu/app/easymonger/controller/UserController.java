@@ -8,6 +8,7 @@ import me.ningyu.app.easymonger.service.UserService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,15 +22,20 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class UserController
 {
     private final UserService userService;
-
-
+    
+    
+    /**
+     * 新增用户
+     * @param dto   新增用户参数
+     * @return  用户对象
+     */
     @PostMapping
-    public ResponseEntity<UserVo> add(@RequestBody UserDto dto)
+    public ResponseEntity<UserVo> add(@RequestBody @Validated UserDto dto)
     {
         UserVo vo = userService.add(dto);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", UriComponentsBuilder.fromUriString("/users/{userId}").buildAndExpand(vo.getId()).toUriString());
+        headers.add("Location", UriComponentsBuilder.fromUriString("/users/{userCode}").buildAndExpand(vo.getCode()).toUriString());
 
         return new ResponseEntity<>(vo, headers, HttpStatus.CREATED);
     }
