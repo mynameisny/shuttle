@@ -7,6 +7,7 @@ import me.ningyu.app.easymonger.domain.auth.User;
 import me.ningyu.app.easymonger.domain.auth.UserRepository;
 import me.ningyu.app.easymonger.exception.NotFoundException;
 import me.ningyu.app.easymonger.model.dto.UserDto;
+import me.ningyu.app.easymonger.model.mapstruct.UserMapper;
 import me.ningyu.app.easymonger.model.vo.UserVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -31,9 +32,8 @@ public class UserService
             System.out.println("###" + user);
         }
         
-        User user = userRepository.findByCode("123").orElseThrow(() -> new NotFoundException("用户不存在"));
-        UserVo vo = UserVo.builder().build();
-        BeanUtils.copyProperties(user, vo);
-        return vo;
+        User user = userRepository.findByCode(dto.getCode()).orElseThrow(() -> new NotFoundException("用户不存在"));
+        
+        return UserMapper.INSTANCE.entityToVo(user);
     }
 }
