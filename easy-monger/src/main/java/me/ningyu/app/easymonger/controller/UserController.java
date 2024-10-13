@@ -7,6 +7,8 @@ import me.ningyu.app.easymonger.domain.auth.User;
 import me.ningyu.app.easymonger.model.dto.UserDto;
 import me.ningyu.app.easymonger.model.vo.UserVo;
 import me.ningyu.app.easymonger.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,7 +35,7 @@ public class UserController
      * @return  用户对象
      */
     @PostMapping
-    public ResponseEntity<UserVo> add(@RequestBody @Validated UserDto dto, @QuerydslPredicate(root = User.class) Predicate predicate)
+    public ResponseEntity<UserVo> addUser(@RequestBody @Validated UserDto dto, @QuerydslPredicate(root = User.class) Predicate predicate)
     {
         UserVo vo = userService.add(dto, predicate);
 
@@ -41,6 +43,13 @@ public class UserController
         headers.add("Location", UriComponentsBuilder.fromUriString("/users/{userCode}").buildAndExpand(vo.getCode()).toUriString());
 
         return new ResponseEntity<>(vo, headers, HttpStatus.CREATED);
+    }
+    
+    public ResponseEntity<Page<UserVo>> listUsers(@QuerydslPredicate(root = User.class) Predicate predicate)
+    {
+        Page<UserVo> list = userService.list(predicate);
+        
+        return ResponseEntity.ok().body(list);
     }
 
     
