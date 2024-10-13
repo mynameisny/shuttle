@@ -10,6 +10,7 @@ import me.ningyu.app.easymonger.model.dto.UserDto;
 import me.ningyu.app.easymonger.model.mapstruct.UserMapper;
 import me.ningyu.app.easymonger.model.vo.UserVo;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,16 +23,16 @@ public class UserService
     
     
     @Transactional
-    public UserVo add(UserDto dto, Predicate predicate)
+    public UserVo add(UserDto dto)
     {
         User user = userRepository.findByCode(dto.getCode()).orElseThrow(() -> new NotFoundException("用户不存在"));
         
         return UserMapper.INSTANCE.entityToVo(user);
     }
     
-    public Page<UserVo> list(Predicate predicate)
+    public Page<UserVo> list(Predicate predicate, Pageable pageable)
     {
-        Iterable<User> all = userRepository.findAll(predicate);
-        return null;
+        Page<User> page = userRepository.findAll(predicate, pageable);
+        return page.map(UserMapper.INSTANCE::entityToVo);
     }
 }
