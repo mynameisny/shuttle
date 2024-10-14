@@ -93,6 +93,7 @@
         </dependency>
 
         <!-- apt 代表 "Annotation Processing Tool", 用于根据实体类生成对应的Q类型类 -->
+        <!-- JDK19以上必须有这个jakarta classifier，否则会提示java.lang.NoClassDefFoundError: javax/persistence/Entity -->
         <dependency>
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-apt</artifactId>
