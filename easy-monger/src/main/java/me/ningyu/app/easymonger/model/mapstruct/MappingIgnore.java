@@ -10,8 +10,8 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * 映射时忽略公共字段，在controller接口的方法上使用@MappingIgnore注解
  * 参考：
- * - https://mapstruct.org/documentation/stable/reference/html/#mapping-composition
- * - https://blog.csdn.net/zyw61483/article/details/112990760
+ * - <a href="https://mapstruct.org/documentation/stable/reference/html/#mapping-composition">...</a>
+ * - <a href="https://blog.csdn.net/zyw61483/article/details/112990760">...</a>
  */
 @Retention(RetentionPolicy.CLASS)
 @Mappings(value = {
