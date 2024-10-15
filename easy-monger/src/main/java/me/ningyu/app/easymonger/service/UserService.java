@@ -35,4 +35,10 @@ public class UserService
         Page<User> page = userRepository.findAll(predicate, pageable);
         return page.map(UserMapper.INSTANCE::entityToVo);
     }
+    
+    public UserVo get(String code)
+    {
+        User user = userRepository.findByCode(code).orElseThrow(() -> new NotFoundException(""));
+        return UserMapper.INSTANCE.entityToVo(user);
+    }
 }

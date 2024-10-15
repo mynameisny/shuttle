@@ -11,4 +11,6 @@ public interface UserMapper
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
     
     UserVo entityToVo(User user);
+    
+    UserVo entityToDetailVo(User user);
 }

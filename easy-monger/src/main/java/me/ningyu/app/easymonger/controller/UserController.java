@@ -51,6 +51,12 @@ public class UserController
         Page<UserVo> list = userService.list(predicate, pageable);
         return ResponseEntity.ok().body(list);
     }
+    
+    @GetMapping("/{code}")
+    public ResponseEntity<?> getUser(@PathVariable(name = "code") String code)
+    {
+        return ResponseEntity.ok(userService.get(code));
+    }
 
     
 }
