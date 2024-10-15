@@ -1,10 +1,7 @@
 package me.ningyu.app.easymonger.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import me.ningyu.app.easymonger.model.enums.Gender;
 
 import java.io.Serializable;
@@ -13,10 +10,11 @@ import java.time.LocalDateTime;
 /**
  * VO for {@link me.ningyu.app.easymonger.domain.auth.User}
  */
-@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserVo extends BaseVo
 {

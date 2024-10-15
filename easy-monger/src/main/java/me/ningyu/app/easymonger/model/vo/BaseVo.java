@@ -2,18 +2,17 @@ package me.ningyu.app.easymonger.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.ningyu.app.easymonger.model.enums.Gender;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BaseVo implements Serializable
 {
