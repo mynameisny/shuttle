@@ -30,6 +30,13 @@ public class UserService
         return UserMapper.INSTANCE.entityToVo(user);
     }
     
+    @Transactional
+    public void delete(String userCode)
+    {
+        User user = userRepository.findByCode(userCode).orElseThrow(() -> new NotFoundException("用户不存在"));
+        userRepository.delete(user);
+    }
+    
     public Page<UserVo> list(Predicate predicate, Pageable pageable)
     {
         Page<User> page = userRepository.findAll(predicate, pageable);

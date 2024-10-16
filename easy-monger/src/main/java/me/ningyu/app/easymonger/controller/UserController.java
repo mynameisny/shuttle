@@ -45,6 +45,13 @@ public class UserController
         return new ResponseEntity<>(vo, headers, HttpStatus.CREATED);
     }
     
+    @DeleteMapping("/{code}")
+    public ResponseEntity<Void> deleteUser(@PathVariable("code") String code)
+    {
+        userService.delete(code);
+        return ResponseEntity.noContent().build();
+    }
+    
     @GetMapping
     public ResponseEntity<?> listUsers(@QuerydslPredicate(root = User.class) Predicate predicate, @PageableDefault(size = 20) @SortDefault.SortDefaults({@SortDefault(sort = "modifiedDate", direction = Sort.Direction.DESC), @SortDefault(sort = "id", direction = Sort.Direction.ASC)}) Pageable pageable)
     {
