@@ -6,9 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.easymonger.domain.auth.User;
 import me.ningyu.app.easymonger.domain.auth.UserRepository;
 import me.ningyu.app.easymonger.exception.NotFoundException;
-import me.ningyu.app.easymonger.model.dto.UserDto;
+import me.ningyu.app.easymonger.model.dto.UserAddDto;
+import me.ningyu.app.easymonger.model.dto.UserUpdateDto;
 import me.ningyu.app.easymonger.model.mapstruct.UserMapper;
 import me.ningyu.app.easymonger.model.vo.UserVo;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,10 +25,9 @@ public class UserService
     
     
     @Transactional
-    public UserVo add(UserDto dto)
+    public UserVo add(UserAddDto dto)
     {
-        User user = userRepository.findByCode(dto.getCode()).orElseThrow(() -> new NotFoundException("用户不存在"));
-        
+        User user = UserMapper.INSTANCE.dtoToEntity(dto);
         return UserMapper.INSTANCE.entityToVo(user);
     }
     
@@ -35,6 +36,15 @@ public class UserService
     {
         User user = userRepository.findByCode(userCode).orElseThrow(() -> new NotFoundException("用户不存在"));
         userRepository.delete(user);
+    }
+    
+    public UserVo update(String code, UserUpdateDto dto)
+    {
+        User user = userRepository.findByCode(code).orElseThrow(() -> new NotFoundException("用户不存在"));
+        BeanUtils.copyProperties(dto, user);
+        userRepository.save(user);
+        
+        return UserMapper.INSTANCE.entityToVo(user);
     }
     
     public Page<UserVo> list(Predicate predicate, Pageable pageable)

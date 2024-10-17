@@ -4,7 +4,8 @@ import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.easymonger.domain.auth.User;
-import me.ningyu.app.easymonger.model.dto.UserDto;
+import me.ningyu.app.easymonger.model.dto.UserAddDto;
+import me.ningyu.app.easymonger.model.dto.UserUpdateDto;
 import me.ningyu.app.easymonger.model.vo.UserVo;
 import me.ningyu.app.easymonger.service.UserService;
 import org.springframework.data.domain.Page;
@@ -35,7 +36,7 @@ public class UserController
      * @return  用户对象
      */
     @PostMapping
-    public ResponseEntity<UserVo> addUser(@RequestBody @Validated UserDto dto, @QuerydslPredicate(root = User.class) Predicate predicate)
+    public ResponseEntity<UserVo> addUser(@RequestBody @Validated UserAddDto dto, @QuerydslPredicate(root = User.class) Predicate predicate)
     {
         UserVo vo = userService.add(dto);
 
@@ -43,6 +44,12 @@ public class UserController
         headers.add("Location", UriComponentsBuilder.fromUriString("/users/{userCode}").buildAndExpand(vo.getCode()).toUriString());
 
         return new ResponseEntity<>(vo, headers, HttpStatus.CREATED);
+    }
+    
+    @PutMapping("/{code}")
+    public ResponseEntity<UserVo> updateUser(@PathVariable("code") String code, @ResponseBody @Validated UserUpdateDto dto)
+    {
+        return ResponseEntity.ok(userService.update(code, dto));
     }
     
     @DeleteMapping("/{code}")

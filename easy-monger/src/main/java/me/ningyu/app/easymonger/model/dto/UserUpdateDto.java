@@ -8,17 +8,12 @@ import me.ningyu.app.easymonger.model.enums.Gender;
 
 import java.io.Serializable;
 
-/**
- * DTO for {@link me.ningyu.app.easymonger.domain.auth.User}
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserDto implements Serializable
+public class UserUpdateDto implements Serializable
 {
-    private String id;
-    private String code;
     private String name;
     private Gender gender;
     private String password;
