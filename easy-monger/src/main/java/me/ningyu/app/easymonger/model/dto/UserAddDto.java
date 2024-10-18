@@ -18,11 +18,18 @@ import java.io.Serializable;
 public class UserAddDto implements Serializable
 {
     private String id;
+    
     private String code;
+    
     private String name;
+    
     private Gender gender;
+    
     private String password;
+    
     private String mobile;
+    
     private String email;
+    
     private String remark;
 }

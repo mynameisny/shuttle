@@ -32,12 +32,13 @@ public class UserService
     }
     
     @Transactional
-    public void delete(String userCode)
+    public void delete(String userCode, boolean force)
     {
         User user = userRepository.findByCode(userCode).orElseThrow(() -> new NotFoundException("用户不存在"));
         userRepository.delete(user);
     }
     
+    @Transactional
     public UserVo update(String code, UserUpdateDto dto)
     {
         User user = userRepository.findByCode(code).orElseThrow(() -> new NotFoundException("用户不存在"));
@@ -55,7 +56,7 @@ public class UserService
     
     public UserVo get(String code)
     {
-        User user = userRepository.findByCode(code).orElseThrow(() -> new NotFoundException(""));
+        User user = userRepository.findByCode(code).orElseThrow(() -> new NotFoundException("用户不存在"));
         return UserMapper.INSTANCE.entityToVo(user);
     }
 }

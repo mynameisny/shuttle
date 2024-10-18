@@ -33,10 +33,10 @@ public class UserController
     /**
      * 新增用户
      * @param dto   新增用户参数
-     * @return  用户对象
+     * @return  用户对象 {@code UserVo}
      */
     @PostMapping
-    public ResponseEntity<UserVo> addUser(@RequestBody @Validated UserAddDto dto, @QuerydslPredicate(root = User.class) Predicate predicate)
+    public ResponseEntity<UserVo> addUser(@RequestBody @Validated UserAddDto dto)
     {
         UserVo vo = userService.add(dto);
 
@@ -46,26 +46,48 @@ public class UserController
         return new ResponseEntity<>(vo, headers, HttpStatus.CREATED);
     }
     
+    /**
+     * 删除用户
+     * @param code 用户编码
+     * @return HTTP 204
+     */
+    @DeleteMapping("/{code}")
+    public ResponseEntity<Void> deleteUser(@PathVariable("code") String code, @RequestParam(required = false, defaultValue = "false") boolean force)
+    {
+        userService.delete(code, force);
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * 修改用户
+     * @param code  用户编码
+     * @param dto   修改用户参数
+     * @return 修改后的用户对象 {@code UserVo}
+     */
     @PutMapping("/{code}")
-    public ResponseEntity<UserVo> updateUser(@PathVariable("code") String code, @ResponseBody @Validated UserUpdateDto dto)
+    public ResponseEntity<UserVo> updateUser(@PathVariable("code") String code, @RequestBody @Validated UserUpdateDto dto)
     {
         return ResponseEntity.ok(userService.update(code, dto));
     }
     
-    @DeleteMapping("/{code}")
-    public ResponseEntity<Void> deleteUser(@PathVariable("code") String code)
-    {
-        userService.delete(code);
-        return ResponseEntity.noContent().build();
-    }
-    
+    /**
+     * 列出用户
+     * @param predicate 查询条件
+     * @param pageable  分页参数
+     * @return  分页后的用户
+     */
     @GetMapping
-    public ResponseEntity<?> listUsers(@QuerydslPredicate(root = User.class) Predicate predicate, @PageableDefault(size = 20) @SortDefault.SortDefaults({@SortDefault(sort = "modifiedDate", direction = Sort.Direction.DESC), @SortDefault(sort = "id", direction = Sort.Direction.ASC)}) Pageable pageable)
+    public ResponseEntity<Page<UserVo>> listUsers(@QuerydslPredicate(root = User.class) Predicate predicate, @PageableDefault(size = 20) @SortDefault.SortDefaults({@SortDefault(sort = "modifiedDate", direction = Sort.Direction.DESC), @SortDefault(sort = "id", direction = Sort.Direction.ASC)}) Pageable pageable)
     {
         Page<UserVo> list = userService.list(predicate, pageable);
         return ResponseEntity.ok().body(list);
     }
     
+    /**
+     * 查看用户
+     * @param code  用户编码
+     * @return 用户对象 {@code UserVo}
+     */
     @GetMapping("/{code}")
     public ResponseEntity<?> getUser(@PathVariable(name = "code") String code)
     {
