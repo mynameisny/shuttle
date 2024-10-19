@@ -1,3 +1,4 @@
+/*
 package me.ningyu.app.easymonger.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -72,3 +73,4 @@ public class GlobalExceptionConfig
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
     }
 }
+*/

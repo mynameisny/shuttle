@@ -57,6 +57,6 @@ public class UserService
     public UserVo get(String code)
     {
         User user = userRepository.findByCode(code).orElseThrow(() -> new NotFoundException("用户不存在"));
-        return UserMapper.INSTANCE.entityToVo(user);
+        return UserMapper.INSTANCE.entityToDetailVo(user);
     }
 }
