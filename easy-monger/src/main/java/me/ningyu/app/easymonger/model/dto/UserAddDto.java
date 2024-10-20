@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import me.ningyu.app.easymonger.config.ValidGender;
 import me.ningyu.app.easymonger.domain.auth.User;
 import me.ningyu.app.easymonger.model.enums.Gender;
 
@@ -29,7 +30,7 @@ public class UserAddDto implements Serializable
     @Pattern(regexp = "^[a-zA-Z\\u4e00-\\u9fa5][a-zA-Z\\u4e00-\\u9fa5\\d_-]*${4,15}$", message = "姓名只能是5~15位以内的字母、数字、中文、下划线和中划线，且数字不能开头")
     private String name;
     
-    @Pattern(regexp = "^(MALE|FEMALE|OTHER)$", message = "性别只能是MALE或FEMALE或OTHER")
+    @ValidGender(message = "性别只能是MALE或FEMALE或OTHER")
     private Gender gender;
     
     @NotEmpty(message = "密码不能为空")
