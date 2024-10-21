@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.easymonger.domain.auth.User;
 import me.ningyu.app.easymonger.domain.auth.UserRepository;
+import me.ningyu.app.easymonger.exception.DuplicateException;
 import me.ningyu.app.easymonger.exception.NotFoundException;
 import me.ningyu.app.easymonger.model.dto.UserAddDto;
 import me.ningyu.app.easymonger.model.dto.UserUpdateDto;
@@ -27,10 +28,14 @@ public class UserService
     @Transactional
     public UserVo add(UserAddDto dto)
     {
+        userRepository.findByCode(dto.getCode()).ifPresent(user -> {
+            log.info("User already exists with code {}", dto.getCode());
+            throw new DuplicateException(String.format("用户[%s]n已存在", dto.getCode()));
+        });
         User user = UserMapper.INSTANCE.dtoToEntity(dto);
         return UserMapper.INSTANCE.entityToVo(user);
     }
-    
+
     @Transactional
     public void delete(String userCode, boolean force)
     {
