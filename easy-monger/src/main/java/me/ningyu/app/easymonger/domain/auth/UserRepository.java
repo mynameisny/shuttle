@@ -14,6 +14,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, String>, QuerydslPredicateExecutor<User>
 {
     Optional<User> findByCode(String code);
+
+    Optional<User> findByEmail(String email);
     
     Page<User> findAll(Predicate predicate, Pageable pageable);
 }

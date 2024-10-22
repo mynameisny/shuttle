@@ -29,8 +29,12 @@ public class UserService
     public UserVo add(UserAddDto dto)
     {
         userRepository.findByCode(dto.getCode()).ifPresent(user -> {
-            log.info("User already exists with code {}", dto.getCode());
-            throw new DuplicateException(String.format("用户[%s]n已存在", dto.getCode()));
+            log.info("用户[{}]已存在：{}", dto.getCode(), user);
+            throw new DuplicateException(String.format("用户[%s]已存在", dto.getCode()));
+        });
+        userRepository.findByEmail(dto.getEmail()).ifPresent(user -> {
+            log.info("邮箱[{}]已存在：{}", dto.getEmail(), user);
+            throw new DuplicateException(String.format("邮箱[%s]已存在", dto.getEmail()));
         });
         User user = UserMapper.INSTANCE.dtoToEntity(dto);
         return UserMapper.INSTANCE.entityToVo(user);
