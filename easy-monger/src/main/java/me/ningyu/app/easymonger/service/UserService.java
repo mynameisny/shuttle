@@ -8,6 +8,7 @@ import me.ningyu.app.easymonger.domain.auth.UserRepository;
 import me.ningyu.app.easymonger.exception.DuplicateException;
 import me.ningyu.app.easymonger.exception.NotFoundException;
 import me.ningyu.app.easymonger.model.dto.UserAddDto;
+import me.ningyu.app.easymonger.model.dto.UserRegisterDto;
 import me.ningyu.app.easymonger.model.dto.UserUpdateDto;
 import me.ningyu.app.easymonger.model.mapstruct.UserMapper;
 import me.ningyu.app.easymonger.model.vo.UserVo;
@@ -23,7 +24,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService
 {
     private final UserRepository userRepository;
-    
+
+    @Transactional
+    public UserVo register(UserRegisterDto dto)
+    {
+        User user = UserMapper.INSTANCE.dtoToEntity(dto);
+        return UserMapper.INSTANCE.entityToVo(user);
+    }
     
     @Transactional
     public UserVo add(UserAddDto dto)

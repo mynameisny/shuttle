@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.easymonger.domain.auth.User;
 import me.ningyu.app.easymonger.model.dto.UserAddDto;
+import me.ningyu.app.easymonger.model.dto.UserRegisterDto;
 import me.ningyu.app.easymonger.model.dto.UserUpdateDto;
 import me.ningyu.app.easymonger.model.vo.UserVo;
 import me.ningyu.app.easymonger.service.UserService;
@@ -28,8 +29,24 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class UserController
 {
     private final UserService userService;
-    
-    
+
+
+    /**
+     * 用户注册
+     * @param dto   用户注册参数
+     * @return  用户对象 {@code UserVo}
+     */
+    @PostMapping("/register")
+    public ResponseEntity<UserVo> registerUser(@RequestBody @Validated UserRegisterDto dto)
+    {
+        UserVo vo = userService.register(dto);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", UriComponentsBuilder.fromUriString("/users/{userCode}").buildAndExpand(vo.getCode()).toUriString());
+
+        return new ResponseEntity<>(vo, headers, HttpStatus.ACCEPTED);
+    }
+
     /**
      * 新增用户
      * @param dto   新增用户参数
