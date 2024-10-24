@@ -6,10 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.easymonger.domain.auth.User;
 import me.ningyu.app.easymonger.domain.auth.UserRepository;
 import me.ningyu.app.easymonger.exception.DuplicateException;
+import me.ningyu.app.easymonger.exception.InvalidTokenException;
 import me.ningyu.app.easymonger.exception.NotFoundException;
 import me.ningyu.app.easymonger.model.dto.UserAddDto;
 import me.ningyu.app.easymonger.model.dto.UserRegisterDto;
 import me.ningyu.app.easymonger.model.dto.UserUpdateDto;
+import me.ningyu.app.easymonger.model.enums.UserStatus;
 import me.ningyu.app.easymonger.model.mapstruct.UserMapper;
 import me.ningyu.app.easymonger.model.vo.UserVo;
 import org.springframework.beans.BeanUtils;
@@ -24,13 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService
 {
     private final UserRepository userRepository;
-
-    @Transactional
-    public UserVo register(UserRegisterDto dto)
-    {
-        User user = UserMapper.INSTANCE.dtoToEntity(dto);
-        return UserMapper.INSTANCE.entityToVo(user);
-    }
     
     @Transactional
     public UserVo add(UserAddDto dto)
@@ -74,5 +69,40 @@ public class UserService
     {
         User user = userRepository.findByCode(code).orElseThrow(() -> new NotFoundException("用户不存在"));
         return UserMapper.INSTANCE.entityToDetailVo(user);
+    }
+
+    @Transactional
+    public UserVo register(UserRegisterDto dto)
+    {
+        User user = UserMapper.INSTANCE.dtoToEntity(dto);
+        return UserMapper.INSTANCE.entityToVo(user);
+    }
+
+    @Transactional
+    public UserVo activate(String activationToken)
+    {
+        String code = parseUserCode(activationToken);
+        User user = userRepository.findByCode(code).orElseThrow(() -> new NotFoundException("用户不存在"));
+
+        if (!isValidToken(user, activationToken))
+        {
+            throw new InvalidTokenException("无效的激活Token");
+        }
+
+        // 更新用户状态为已激活
+        user.setStatus(UserStatus.ACTIVE);
+        userRepository.save(user);
+
+        return UserMapper.INSTANCE.entityToVo(user);
+    }
+
+    private boolean isValidToken(User user, String activationToken)
+    {
+        return false;
+    }
+
+    private String parseUserCode(String activationToken)
+    {
+        return null;
     }
 }

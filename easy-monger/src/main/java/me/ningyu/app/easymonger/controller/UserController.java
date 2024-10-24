@@ -32,22 +32,6 @@ public class UserController
 
 
     /**
-     * 用户注册
-     * @param dto   用户注册参数
-     * @return  用户对象 {@code UserVo}
-     */
-    @PostMapping("/register")
-    public ResponseEntity<UserVo> registerUser(@RequestBody @Validated UserRegisterDto dto)
-    {
-        UserVo vo = userService.register(dto);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", UriComponentsBuilder.fromUriString("/users/{userCode}").buildAndExpand(vo.getCode()).toUriString());
-
-        return new ResponseEntity<>(vo, headers, HttpStatus.ACCEPTED);
-    }
-
-    /**
      * 新增用户
      * @param dto   新增用户参数
      * @return  用户对象 {@code UserVo}
@@ -111,5 +95,31 @@ public class UserController
         return ResponseEntity.ok(userService.get(code));
     }
 
-    
+    /**
+     * 用户注册
+     * @param dto   用户注册参数
+     * @return  用户对象 {@code UserVo}
+     */
+    @PostMapping("/register")
+    public ResponseEntity<UserVo> registerUser(@RequestBody @Validated UserRegisterDto dto)
+    {
+        UserVo vo = userService.register(dto);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", UriComponentsBuilder.fromUriString("/users/{userCode}").buildAndExpand(vo.getCode()).toUriString());
+
+        return new ResponseEntity<>(vo, headers, HttpStatus.ACCEPTED);
+    }
+
+    /**
+     * 用户注册激活
+     * @param activationToken   用户激活参数
+     * @return  用户对象 {@code UserVo}
+     */
+    @GetMapping("/activate")
+    public ResponseEntity<UserVo> activateUser(@RequestParam("activationToken") String activationToken)
+    {
+        UserVo vo = userService.activate(activationToken);
+        return ResponseEntity.ok(vo);
+    }
 }

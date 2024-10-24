@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import me.ningyu.app.easymonger.domain.BaseEntity;
 import me.ningyu.app.easymonger.model.enums.Gender;
+import me.ningyu.app.easymonger.model.enums.UserStatus;
 
 import java.util.List;
 
@@ -61,12 +62,13 @@ public class User extends BaseEntity
      */
     @Column(name = "avatar", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '用户头像Path'")
     private String avatar;
-    
+
     /**
-     * 用户是否被锁定
+     * 状态
      */
-    @Column(name = "is_locked", columnDefinition = "TINYINT(1) DEFAULT 0 COMMENT '用户是否被锁定：1是，0否'")
-    private boolean isLocked;
+    @Column(name = "status", columnDefinition = "VARCHAR(10) DEFAULT '' COMMENT '状态'")
+    @Enumerated(EnumType.STRING)
+    private UserStatus status;
     
     /**
      * 备注（预留字段）
