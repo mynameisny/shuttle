@@ -17,5 +17,7 @@ public interface UserRepository extends JpaRepository<User, String>, QuerydslPre
 
     Optional<User> findByEmail(String email);
     
+    Optional<User> findByMobile(String mobile);
+    
     Page<User> findAll(Predicate predicate, Pageable pageable);
 }

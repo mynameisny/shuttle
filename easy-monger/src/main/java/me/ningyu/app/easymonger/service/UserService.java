@@ -38,6 +38,10 @@ public class UserService
             log.info("邮箱[{}]已存在：{}", dto.getEmail(), user);
             throw new DuplicateException(String.format("邮箱[%s]已存在", dto.getEmail()));
         });
+        userRepository.findByMobile(dto.getEmail()).ifPresent(user -> {
+            log.info("手机号码[{}]已存在：{}", dto.getEmail(), user);
+            throw new DuplicateException(String.format("手机号码[%s]已存在", dto.getEmail()));
+        });
         User user = UserMapper.INSTANCE.dtoToEntity(dto);
         return UserMapper.INSTANCE.entityToVo(user);
     }
