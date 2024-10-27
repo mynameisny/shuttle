@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService
 {
     private final UserRepository userRepository;
+    private final EmailService emailService;
     
     @Transactional
     public UserVo add(UserAddDto dto)
@@ -79,7 +80,9 @@ public class UserService
     public UserVo register(UserRegisterDto dto)
     {
         User user = UserMapper.INSTANCE.dtoToEntity(dto);
-        return UserMapper.INSTANCE.entityToVo(user);
+        UserVo vo = UserMapper.INSTANCE.entityToVo(user);
+        emailService.sendSimpleMail("mynameisny@126.com", "TEST", "Hello");
+        return vo;
     }
 
     @Transactional
