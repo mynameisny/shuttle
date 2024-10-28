@@ -113,13 +113,13 @@ public class UserController
 
     /**
      * 用户注册激活
-     * @param activationToken   用户激活参数
+     * @param activationCode   用户激活参数
      * @return  用户对象 {@code UserVo}
      */
-    @GetMapping("/activate")
-    public ResponseEntity<UserVo> activateUser(@RequestParam("activationToken") String activationToken)
+    @GetMapping("/{code}/activate")
+    public ResponseEntity<UserVo> activateUser(@PathVariable String code, @RequestParam("activationCode") String activationCode)
     {
-        UserVo vo = userService.activate(activationToken);
+        UserVo vo = userService.activate(code, activationCode);
         return ResponseEntity.ok(vo);
     }
 }

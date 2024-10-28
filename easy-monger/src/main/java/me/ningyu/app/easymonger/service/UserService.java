@@ -14,11 +14,18 @@ import me.ningyu.app.easymonger.model.dto.UserUpdateDto;
 import me.ningyu.app.easymonger.model.enums.UserStatus;
 import me.ningyu.app.easymonger.model.mapstruct.UserMapper;
 import me.ningyu.app.easymonger.model.vo.UserVo;
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.AlgorithmConstraints;
+import java.security.AlgorithmParameters;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.ZoneOffset;
 
 @Service
 @RequiredArgsConstructor
@@ -80,16 +87,18 @@ public class UserService
     public UserVo register(UserRegisterDto dto)
     {
         User user = UserMapper.INSTANCE.dtoToEntity(dto);
+        user.setStatus(UserStatus.INACTIVE);
+        userRepository.save(user);
+        
         UserVo vo = UserMapper.INSTANCE.entityToVo(user);
-        emailService.sendSimpleMail("mynameisny@126.com", "TEST", "Hello");
+        emailService.sendActivationEmail(vo.getEmail(), "");
         return vo;
     }
 
     @Transactional
-    public UserVo activate(String activationToken)
+    public UserVo activate(String userCode, String activationToken)
     {
-        String code = parseUserCode(activationToken);
-        User user = userRepository.findByCode(code).orElseThrow(() -> new NotFoundException("用户不存在"));
+        User user = userRepository.findByCode(userCode).orElseThrow(() -> new NotFoundException("用户不存在"));
 
         if (!isValidToken(user, activationToken))
         {
@@ -105,11 +114,28 @@ public class UserService
 
     private boolean isValidToken(User user, String activationToken)
     {
-        return false;
+        return generateActivationCode(user.getId(), user.getEmail(), user.getCode(), user.getCreatedDate().toInstant(ZoneOffset.UTC).toEpochMilli()).equals(activationToken);
     }
-
-    private String parseUserCode(String activationToken)
+    
+    public String generateActivationCode(String id, String email, String username, long registrationTime)
     {
-        return null;
+        try
+        {
+            // 创建哈希对象
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            
+            // 拼接用户信息
+            String input = id + email + username + registrationTime;
+            
+            // 计算哈希值
+            byte[] hashBytes = digest.digest(input.getBytes());
+            
+            // 使用 Apache Commons Codec 将字节数组转换为十六进制字符串
+            return Hex.encodeHexString(hashBytes);
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            throw new RuntimeException("激活码生成失败", e);
+        }
     }
 }
