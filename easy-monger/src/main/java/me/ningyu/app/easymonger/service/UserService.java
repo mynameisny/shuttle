@@ -21,6 +21,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -30,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZoneOffset;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -162,6 +165,8 @@ public class UserService implements UserDetailsService
             throw new LockedException("用户已被锁定");
         }
         
-        return null;
+        List<GrantedAuthority> grantedAuthorities = AuthorityUtils.createAuthorityList("admin");
+        return new org.springframework.security.core.userdetails.User(user.getCode(), user.getPassword(), grantedAuthorities);
+        
     }
 }
