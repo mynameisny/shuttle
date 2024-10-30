@@ -18,6 +18,7 @@ import me.ningyu.app.easymonger.model.vo.UserVo;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.LockedException;
@@ -42,6 +43,9 @@ public class UserService implements UserDetailsService
     private final UserRepository userRepository;
     
     private final EmailService emailService;
+    
+    @Value("${activeUrlPrefix:localhost}")
+    private String activeUrlPrefix;
     
     @Transactional
     public UserVo add(UserAddDto dto)
@@ -101,8 +105,11 @@ public class UserService implements UserDetailsService
         user.setStatus(UserStatus.INACTIVE);
         userRepository.save(user);
         
+        String activationCode = generateActivationCode(user.getId(), user.getEmail(), user.getCode(), user.getCreatedDate().toInstant(ZoneOffset.UTC).toEpochMilli());
+        String activationLink = activeUrlPrefix + "/" + activationCode;
+        
         UserVo vo = UserMapper.INSTANCE.entityToVo(user);
-        emailService.sendActivationEmail(vo.getEmail(), "");
+        emailService.sendActivationEmail(vo.getEmail(), activationLink);
         return vo;
     }
     
