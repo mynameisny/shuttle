@@ -3,9 +3,7 @@ package me.ningyu.app.easymonger.service;
 import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.ningyu.app.easymonger.domain.auth.QUser;
-import me.ningyu.app.easymonger.domain.auth.User;
-import me.ningyu.app.easymonger.domain.auth.UserRepository;
+import me.ningyu.app.easymonger.domain.auth.*;
 import me.ningyu.app.easymonger.exception.DuplicateException;
 import me.ningyu.app.easymonger.exception.InvalidTokenException;
 import me.ningyu.app.easymonger.exception.NotFoundException;
@@ -24,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,7 +32,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -172,8 +175,26 @@ public class UserService implements UserDetailsService
             throw new LockedException("用户已被锁定");
         }
         
-        List<GrantedAuthority> grantedAuthorities = AuthorityUtils.createAuthorityList("admin");
+        Collection<? extends GrantedAuthority> grantedAuthorities = getAuthorities(user.getRoles());
         return new org.springframework.security.core.userdetails.User(user.getCode(), user.getPassword(), grantedAuthorities);
+    }
+    
+    private Collection<? extends GrantedAuthority> getAuthorities(Collection<Role> roles)
+    {
+        List<String> permissions = getPermissions(roles);
         
+        return permissions.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
+    
+    private List<String> getPermissions(Collection<Role> roles)
+    {
+        Set<Permission> permissions = new HashSet<>();
+        for (Role role : roles)
+        {
+            permissions.addAll(role.getPermissions());
+        }
+        return permissions.stream().map(Permission::getCode).collect(Collectors.toList());
     }
 }
