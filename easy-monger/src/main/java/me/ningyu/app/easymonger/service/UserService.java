@@ -26,16 +26,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +44,8 @@ public class UserService implements UserDetailsService
     private final UserRepository userRepository;
     
     private final EmailService emailService;
+    
+    private final PasswordEncoder passwordEncoder;
     
     @Value("${activeUrlPrefix:localhost}")
     private String activeUrlPrefix;
@@ -68,7 +68,12 @@ public class UserService implements UserDetailsService
             log.info("手机号码[{}]已存在：{}", dto.getEmail(), user);
             throw new DuplicateException(String.format("手机号码[%s]已存在", dto.getEmail()));
         });
+        
+        
         User user = UserMapper.INSTANCE.dtoToEntity(dto);
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        //user.setRoles(Collections.singletonList(roleRepository.findByCode("ROLE_USER").orElseThrow(() -> new NotFoundException("角色不存在"))));
+        
         return UserMapper.INSTANCE.entityToVo(user);
     }
     
@@ -105,6 +110,7 @@ public class UserService implements UserDetailsService
     public UserVo register(UserRegisterDto dto)
     {
         User user = UserMapper.INSTANCE.dtoToEntity(dto);
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setStatus(UserStatus.INACTIVE);
         userRepository.save(user);
         
