@@ -72,6 +72,7 @@ public class UserService implements UserDetailsService
         
         User user = UserMapper.INSTANCE.dtoToEntity(dto);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setStatus(UserStatus.ACTIVE);
         //user.setRoles(Collections.singletonList(roleRepository.findByCode("ROLE_USER").orElseThrow(() -> new NotFoundException("角色不存在"))));
         
         return UserMapper.INSTANCE.entityToVo(user);
