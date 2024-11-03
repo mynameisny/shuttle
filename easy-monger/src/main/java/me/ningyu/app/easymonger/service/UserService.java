@@ -3,7 +3,8 @@ package me.ningyu.app.easymonger.service;
 import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.ningyu.app.easymonger.domain.auth.*;
+import me.ningyu.app.easymonger.domain.auth.User;
+import me.ningyu.app.easymonger.domain.auth.UserRepository;
 import me.ningyu.app.easymonger.exception.DuplicateException;
 import me.ningyu.app.easymonger.exception.InvalidTokenException;
 import me.ningyu.app.easymonger.exception.NotFoundException;
@@ -14,18 +15,10 @@ import me.ningyu.app.easymonger.model.enums.UserStatus;
 import me.ningyu.app.easymonger.model.mapstruct.UserMapper;
 import me.ningyu.app.easymonger.model.vo.UserVo;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,13 +26,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZoneOffset;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserService implements UserDetailsService
+public class UserService
 {
     private final UserRepository userRepository;
     
@@ -165,43 +156,5 @@ public class UserService implements UserDetailsService
         {
             throw new RuntimeException("激活码生成失败", e);
         }
-    }
-    
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
-    {
-        if (StringUtils.isBlank(username))
-        {
-            throw new UsernameNotFoundException("用户名不能为空");
-        }
-        
-        User user = userRepository.findOne(QUser.user.code.eq(username)).orElseThrow(() -> new UsernameNotFoundException("用户不存在"));
-        
-        if (user.getStatus() == UserStatus.LOCKED)
-        {
-            throw new LockedException("用户已被锁定");
-        }
-        
-        Collection<? extends GrantedAuthority> grantedAuthorities = getAuthorities(user.getRoles());
-        return new org.springframework.security.core.userdetails.User(user.getCode(), user.getPassword(), grantedAuthorities);
-    }
-    
-    private Collection<? extends GrantedAuthority> getAuthorities(Collection<Role> roles)
-    {
-        List<String> permissions = getPermissions(roles);
-        
-        return permissions.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
-    }
-    
-    private List<String> getPermissions(Collection<Role> roles)
-    {
-        Set<Permission> permissions = new HashSet<>();
-        for (Role role : roles)
-        {
-            permissions.addAll(role.getPermissions());
-        }
-        return permissions.stream().map(Permission::getCode).collect(Collectors.toList());
     }
 }
