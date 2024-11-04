@@ -2,14 +2,11 @@ package me.ningyu.app.easymonger.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
-import me.ningyu.app.easymonger.model.enums.Gender;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * VO for {@link me.ningyu.app.easymonger.domain.auth.User}
+ * VO for {@link me.ningyu.app.easymonger.domain.auth.Permission}
  */
 @Builder
 @NoArgsConstructor
@@ -17,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserVo extends BaseVo
+public class PermissionVo extends BaseVo
 {
     private String id;
     
@@ -25,11 +22,5 @@ public class UserVo extends BaseVo
     
     private String name;
     
-    private Gender gender;
-    
-    private String mobile;
-    
-    private String email;
-    
-    private List<RoleVo> roles;
+    private String remark;
 }

@@ -34,6 +34,12 @@ public class Permission extends BaseEntity
     private String name;
     
     /**
+     * 备注（预留字段）
+     */
+    @Column(name = "remark", columnDefinition = "VARCHAR(500) DEFAULT '' COMMENT '备注（预留字段）'")
+    private String remark;
+    
+    /**
      * 权限配置给哪些角色
      */
     @ManyToMany(mappedBy = "permissions")
