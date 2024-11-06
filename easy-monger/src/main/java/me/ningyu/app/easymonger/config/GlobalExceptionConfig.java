@@ -1,10 +1,10 @@
-/*
 package me.ningyu.app.easymonger.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import me.ningyu.app.easymonger.exception.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -66,11 +66,10 @@ public class GlobalExceptionConfig
     }
     
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(BindException.class)
+    @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<?> onNotFound(HttpServletRequest request, Exception exception) throws JsonProcessingException
     {
         log.error("无法找到资源", exception);
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
     }
 }
-*/
