@@ -32,7 +32,7 @@ public class Account extends BaseEntity
      * 账号属于哪个平台，如：美团、点评、抖音
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "platform", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '账号所属平台，如：美团、点评、抖音'")
+    @Column(name = "platform", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '账号所属平台，如：美团、点评、抖音'", nullable = false)
     private PlatformEnum platform;
 
     /**
