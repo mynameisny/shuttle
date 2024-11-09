@@ -7,9 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.ningyu.app.easymonger.domain.BaseEntity;
 import me.ningyu.app.easymonger.domain.auth.User;
-import me.ningyu.app.easymonger.model.enums.PlatformEnum;
-
-import java.util.List;
+import me.ningyu.app.easymonger.model.enums.AccountPlatformEnum;
 
 /**
  * 电商平台账号
@@ -33,7 +31,7 @@ public class Account extends BaseEntity
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "platform", columnDefinition = "VARCHAR(50) DEFAULT '' COMMENT '账号所属平台，如：美团、点评、抖音'", nullable = false)
-    private PlatformEnum platform;
+    private AccountPlatformEnum platform;
 
     /**
      * 手机号码

@@ -1,6 +1,6 @@
 package me.ningyu.app.easymonger.model.enums;
 
-public enum PlatformEnum
+public enum AccountPlatformEnum
 {
     MEI_TUAN("美团"),
 
@@ -12,7 +12,7 @@ public enum PlatformEnum
 
     private final String name;
 
-    PlatformEnum(String name)
+    AccountPlatformEnum(String name)
     {
         this.name = name;
     }
