@@ -3,6 +3,7 @@ package me.ningyu.app.easymonger.domain.auth;
 import jakarta.persistence.*;
 import lombok.*;
 import me.ningyu.app.easymonger.domain.BaseEntity;
+import me.ningyu.app.easymonger.domain.coupon.Account;
 import me.ningyu.app.easymonger.model.enums.Gender;
 import me.ningyu.app.easymonger.model.enums.UserStatus;
 
@@ -86,8 +87,8 @@ public class User extends BaseEntity
     /**
      * 用户持有的电商平台账号
      */
-    /*@OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Account> accounts;*/
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Account> accounts;
 }
 
 
