@@ -11,6 +11,7 @@ import me.ningyu.app.easymonger.domain.auth.User;
 import me.ningyu.app.easymonger.domain.auth.UserRepository;
 import me.ningyu.app.easymonger.domain.coupon.*;
 import me.ningyu.app.easymonger.exception.NotFoundException;
+import me.ningyu.app.easymonger.model.enums.Field;
 import me.ningyu.app.easymonger.model.vo.CouponVo;
 import me.ningyu.app.easymonger.model.vo.ImageVo;
 import org.apache.commons.io.FileUtils;
