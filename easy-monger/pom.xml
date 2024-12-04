@@ -100,6 +100,11 @@
             <artifactId>dozer-spring-boot-starter</artifactId>
             <version>7.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.jcodec</groupId>
+            <artifactId>jcodec-javase</artifactId>
+            <version>0.2.5</version>
+        </dependency>
 
         <!-- apt 代表 "Annotation Processing Tool", 用于根据实体类生成对应的Q类型类 -->
         <!-- JDK19以上必须有这个jakarta classifier，否则会提示java.lang.NoClassDefFoundError: javax/persistence/Entity -->
