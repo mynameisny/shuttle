@@ -110,6 +110,11 @@
             <artifactId>jcodec-javase</artifactId>
             <version>0.2.5</version>
         </dependency>
+        <dependency>
+            <groupId>net.sourceforge.tess4j</groupId>
+            <artifactId>tess4j</artifactId>
+            <version>5.8.0</version>
+        </dependency>
 
         <!-- apt 代表 "Annotation Processing Tool", 用于根据实体类生成对应的Q类型类 -->
         <!-- JDK19以上必须有这个jakarta classifier，否则会提示java.lang.NoClassDefFoundError: javax/persistence/Entity -->

@@ -16,6 +16,7 @@ import me.ningyu.app.easymonger.exception.UnauthorizedException;
 import me.ningyu.app.easymonger.model.enums.Field;
 import me.ningyu.app.easymonger.model.vo.CouponVo;
 import me.ningyu.app.easymonger.model.vo.ImageVo;
+import net.sourceforge.tess4j.ITesseract;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,6 +64,7 @@ public class ImageService
     public static final String VIDEO_TEMPLATE = "easy-monger";
 
     private final CouponRepository couponRepository;
+    
     private List<String> DELETE_REGEX_DEFAULT = Collections.singletonList("\\s");
 
     private final ImageRepository imageRepository;
