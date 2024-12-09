@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.easymonger.domain.auth.User;
 import me.ningyu.app.easymonger.domain.auth.UserRepository;
 import me.ningyu.app.easymonger.domain.coupon.*;
-import me.ningyu.app.easymonger.domain.coupon.Image;
 import me.ningyu.app.easymonger.exception.NotFoundException;
 import me.ningyu.app.easymonger.exception.UnauthorizedException;
 import me.ningyu.app.easymonger.model.enums.Field;
@@ -39,7 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,7 +62,6 @@ public class ImageService
     public static final String VIDEO_TEMPLATE = "easy-monger";
 
     private final CouponRepository couponRepository;
-    
     private List<String> DELETE_REGEX_DEFAULT = Collections.singletonList("\\s");
 
     private final ImageRepository imageRepository;
