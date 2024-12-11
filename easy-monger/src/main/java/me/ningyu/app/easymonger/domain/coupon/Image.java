@@ -1,8 +1,6 @@
 package me.ningyu.app.easymonger.domain.coupon;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -47,10 +45,10 @@ public class Image extends BaseEntity
     @Column(name = "remark", columnDefinition = "VARCHAR(500) DEFAULT '' COMMENT '备注（预留字段）'")
     private String remark;
 
-    /*@ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", columnDefinition = "VARCHAR(36) DEFAULT NULL COMMENT '账号ID'")
     private Account account;
 
-    @ManyToOne
+    /*@ManyToOne
     private User user;*/
 }
