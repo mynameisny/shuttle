@@ -9,6 +9,8 @@ import me.ningyu.app.easymonger.domain.BaseEntity;
 import me.ningyu.app.easymonger.domain.auth.User;
 import me.ningyu.app.easymonger.model.enums.AccountPlatformEnum;
 
+import java.util.List;
+
 /**
  * 电商平台账号
  */
@@ -54,12 +56,12 @@ public class Account extends BaseEntity
     /**
      * 券
      */
-    // @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE)
-    // private List<Coupon> coupons;
+    @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE)
+    private List<Coupon> coupons;
 
     /**
      * 解析模板
      */
-    // @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE)
-    // private List<ParseTemplate> parseTemplates;
+    @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE)
+    private List<ParseTemplate> parseTemplates;
 }

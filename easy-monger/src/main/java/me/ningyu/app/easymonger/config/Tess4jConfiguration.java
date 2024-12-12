@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 public class Tess4jConfiguration
 {
     @Bean
-    public ITesseract tesseract()
+    public ITesseract tesseracts()
     {
         ITesseract instance = new Tesseract();
 
