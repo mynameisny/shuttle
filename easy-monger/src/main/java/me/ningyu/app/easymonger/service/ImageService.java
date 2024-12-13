@@ -13,6 +13,7 @@ import me.ningyu.app.easymonger.domain.coupon.*;
 import me.ningyu.app.easymonger.domain.coupon.Image;
 import me.ningyu.app.easymonger.exception.NotFoundException;
 import me.ningyu.app.easymonger.exception.UnauthorizedException;
+import me.ningyu.app.easymonger.model.enums.CouponStatus;
 import me.ningyu.app.easymonger.model.enums.Field;
 import me.ningyu.app.easymonger.model.vo.CouponVo;
 import me.ningyu.app.easymonger.model.vo.ImageVo;
@@ -358,11 +359,11 @@ public class ImageService
             {
                 if ("待到店使用".equals(statusStr))
                 {
-                    result.setStatus(CouponStatusEnum.ON_SALE);
+                    result.setStatus(CouponStatus.ON_SALE);
                 }
                 else
                 {
-                    result.setStatus(CouponStatusEnum.UNKNOWN);
+                    result.setStatus(CouponStatus.UNKNOWN);
                 }
             }
 
