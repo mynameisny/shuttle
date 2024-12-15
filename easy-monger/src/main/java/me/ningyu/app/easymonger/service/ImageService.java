@@ -18,6 +18,7 @@ import me.ningyu.app.easymonger.model.enums.Field;
 import me.ningyu.app.easymonger.model.vo.CouponVo;
 import me.ningyu.app.easymonger.model.vo.ImageVo;
 import net.sourceforge.tess4j.ITesseract;
+import net.sourceforge.tess4j.TesseractException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -82,7 +83,7 @@ public class ImageService
 
     private final ITesseract tess4jInstance;
 
-    private final Mapper mapper;
+    // private final Mapper mapper;
 
 
     @Transactional
@@ -413,7 +414,7 @@ public class ImageService
         }
     }
 
-    private String parseImage(File imageFile, Field field, Map<Field, ParseTemplateCoordinate> coordinateMap) throws TesseractException
+    private String parseImage(File imageFile, Field field, Map<Field, ParseTemplateCoordinate> coordinateMap) throws TesseractException, TesseractException
     {
         ParseTemplateCoordinate coordinate = coordinateMap.getOrDefault(field, null);
         if (coordinate != null)
@@ -457,7 +458,7 @@ public class ImageService
     private CouponVo entityToVo(Coupon entity)
     {
         CouponVo vo = new CouponVo();
-        mapper.map(entity, vo);
+        // mapper.map(entity, vo);
         return vo;
     }
 
