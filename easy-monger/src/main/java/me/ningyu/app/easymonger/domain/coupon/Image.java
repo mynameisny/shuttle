@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.ningyu.app.easymonger.domain.BaseEntity;
+import me.ningyu.app.easymonger.domain.auth.User;
 
 @Entity
 @Table(name = "image")
@@ -49,6 +50,6 @@ public class Image extends BaseEntity
     @JoinColumn(name = "account_id", columnDefinition = "VARCHAR(36) DEFAULT NULL COMMENT '账号ID'")
     private Account account;
 
-    /*@ManyToOne
-    private User user;*/
+    @ManyToOne
+    private User user;
 }
