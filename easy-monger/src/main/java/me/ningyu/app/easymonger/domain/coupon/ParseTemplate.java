@@ -1,9 +1,6 @@
 package me.ningyu.app.easymonger.domain.coupon;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,10 +36,10 @@ public class ParseTemplate extends BaseEntity
     private String deviceName;
 
     /**
-    //  * 解析模板的截图坐标
-    //  */
-    // @OneToMany(mappedBy = "parseTemplate", cascade = CascadeType.REMOVE)
-    // private List<ParseTemplateCoordinate> coordinates;
+     * 解析模板的截图坐标
+     */
+    @OneToMany(mappedBy = "parseTemplate", cascade = CascadeType.REMOVE)
+    private List<ParseTemplateCoordinate> coordinates;
 
     /**
      * 解析模板是否启用
