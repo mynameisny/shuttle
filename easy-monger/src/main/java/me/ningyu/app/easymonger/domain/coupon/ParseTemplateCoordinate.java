@@ -1,14 +1,12 @@
 package me.ningyu.app.easymonger.domain.coupon;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import me.ningyu.app.easymonger.domain.BaseEntity;
+import me.ningyu.app.easymonger.model.enums.Field;
 
 @Entity
 @Table(name = "parse_template_coordinate")
@@ -51,9 +49,9 @@ public class ParseTemplateCoordinate extends BaseEntity
     /**
      * 字段标识
      */
-    /*@Column(name = "field", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '字段标识'")
+    @Column(name = "field", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '字段标识'")
     @Enumerated(EnumType.STRING)
-    private Field field;*/
+    private Field field;
 
     /**
      * 是否要删除字符串中间的空格
