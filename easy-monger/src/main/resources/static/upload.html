@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>截图上传</title>
+
+        <link rel="stylesheet" type="text/css" href="assets/css/upload/webuploader.css"/>
+        <link rel="stylesheet" type="text/css" href="assets/css/upload/style.css"/>
+        <style>
+            .width_auto {
+                width: 900px;
+                margin: 100px auto;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div class="width_auto">
+            <select id="accounts">
+                <optgroup label="选择账号">
+                </optgroup>
+            </select>
+            <a target="_self" href="/image.html" class="btn btn-warning"><i class="fas fa-volume-up left"></i>返回</a>
+
+
+            <div id="container">
+                <!--头部，相册选择和格式选择-->
+                <div id="uploader">
+                    <div class="item_container">
+                        <div id="" class="queueList">
+                            <div id="dndArea" class="placeholder">
+                                <div id="filePicker"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="statusBar" style="display:none;">
+                        <div class="progress">
+                            <span class="text">0%</span>
+                            <span class="percentage"></span>
+                        </div>
+                        <div class="info"></div>
+                        <div class="btns">
+                            <div id="filePicker2"></div>
+                            <div class="uploadBtn">开始上传</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="assets/js/upload/jquery-1.9.min.js"></script>
+        <script src="assets/js/upload/webuploader.js"></script>
+        <script src="assets/js/upload/jquery.sortable.js"></script>
+        <script src="assets/js/upload/upload.js"></script>
+
+        <script>
+            $(document).ready(function() {
+                $.ajax({
+                    url: "/accounts",
+                    type: "GET",
+                    success: function(data) {
+                        var accounts = data.content;
+                        for (var i = 0; i < accounts.length; i++) {
+                            var option = document.createElement("option");
+                            option.value = accounts[i].id;
+                            option.text = accounts[i].mobile + "(" + accounts[i].platformText + ")";
+                            document.getElementById("accounts").appendChild(option);
+                        }
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

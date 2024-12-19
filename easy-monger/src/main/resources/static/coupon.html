@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>券码</title>
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/bootstrap-icons.min.css">
+    </head>
+
+    <body>
+        <div class="container mt-5">
+            <div class="container-xl">
+                <div class="row g-3 mb-4 align-items-center justify-content-between">
+                    <div class="col-auto">
+                        <h1 class="app-page-title mb-0">券库</h1>
+                    </div>
+                    <div class="col-auto">
+                        <div class="page-utilities">
+                            <div class="row g-2 justify-content-start justify-content-md-end align-items-center">
+                                <div class="col-auto">
+                                    <form class="table-search-form row gx-1 align-items-center">
+                                        <div class="col-auto">
+                                            <input type="text" id="search-orders" name="searchorders" class="form-control search-orders" placeholder="Search">
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="submit" class="btn btn-primary">Search</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="col-auto">
+                                    <select class="form-select w-auto">
+                                        <option selected value="option-1">All</option>
+                                        <option value="option-2">This week</option>
+                                        <option value="option-3">This month</option>
+                                        <option value="option-4">Last 3 months</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <a class="btn app-btn-secondary" href="#">
+                                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-download mr-1" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                        <path fill-rule="evenodd" d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                    </svg>
+                                    导出数据 </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <nav id="orders-table-tab" class="orders-table-tab app-nav-tabs nav shadow-sm flex-column flex-sm-row mb-4">
+                    <a class="flex-sm-fill text-sm-center nav-link active" id="orders-all-tab" data-toggle="tab" href="#orders-all" role="tab" aria-controls="orders-all" aria-selected="true">全部</a>
+                    <a class="flex-sm-fill text-sm-center nav-link" id="orders-paid-tab" data-toggle="tab" href="#orders-paid" role="tab" aria-controls="orders-paid" aria-selected="false">在售</a>
+                    <a class="flex-sm-fill text-sm-center nav-link" id="orders-pending-tab" data-toggle="tab" href="#orders-pending" role="tab" aria-controls="orders-pending" aria-selected="false">已售</a>
+                    <a class="flex-sm-fill text-sm-center nav-link" id="orders-cancelled-tab" data-toggle="tab" href="#orders-cancelled" role="tab" aria-controls="orders-cancelled" aria-selected="false">退货</a>
+                </nav>
+
+                <div class="tab-content" id="orders-table-tab-content">
+                    <div class="tab-pane fade show active" id="orders-all" role="tabpanel" aria-labelledby="orders-all-tab">
+                        <div class="app-card app-card-orders-table shadow-sm mb-5">
+                            <div class="app-card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0 text-left">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th class="cell">券码</th>
+                                            <th class="cell">品牌</th>
+                                            <th class="cell">名称</th>
+                                            <th class="cell">状态</th>
+                                            <th class="cell">进货时间</th>
+                                            <th class="cell">进货价</th>
+                                            <th class="cell">账号</th>
+                                            <th class="cell"></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="table-group-divider">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!--
+                        <nav class="app-pagination" id="pageBar">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a></li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                            </ul>
+                        </nav>
+                        -->
+                        <nav class="app-pagination">
+                            <div id="page">
+                                <ul class="pagination justify-content-center"></ul>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 详情 -->
+        <div class="modal modal-lg fade" id="couponDetailModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">详情</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-9">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="input-group mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="couponCode" placeholder="券码">
+                                                <label for="couponCode"><i class="bi-c-circle"></i> 券码</label>
+                                            </div>
+                                            <button type="button" id="copyCodeBtn" class="btn btn-primary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="已复制" data-bs-delay='{"show":0,"hide":150}' onclick="copyToClipboard()">
+                                                <i class="bi-copy"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-floating input-group mb-3">
+                                            <input type="text" class="form-control" id="couponAccount" placeholder="所属账号" disabled>
+                                            <label for="couponAccount"><i class="bi-person-bounding-box"></i> 所属账号</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="form-floating input-group mb-3">
+                                            <input type="text" class="form-control" id="couponBrand" placeholder="品牌">
+                                            <label for="couponBrand"><i class="bi-bag"></i> 品牌</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="couponStatus" aria-label="Floating label select example">
+                                                <option value="ON_SALE">待出售</option>
+                                                <option value="SELLING">销售中</option>
+                                                <option value="SOLD">已售出</option>
+                                                <option value="REFUND">已退货</option>
+                                                <option value="UNKNOWN">其它</option>
+                                            </select>
+                                            <label for="couponStatus"><i class="bi bi-menu-button-wide"></i> 状态</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="form-floating input-group mb-3">
+                                            <input type="text" class="form-control" id="couponName" placeholder="名称">
+                                            <label for="couponName"><i class="bi-filter-left"></i> 名称</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <img src="" class="img-fluid img-thumbnail" id="couponImage" style="width: 200px; height: 200px;" alt="..." onclick="window.open(this.src, '_blank');">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-floating">
+                                    <textarea class="form-control" placeholder="Leave a comment here" id="couponDescription"></textarea>
+                                    <label for="couponDescription"><i class="bi bi-body-text"></i> 描述</label>
+                                </div>
+                            </div>
+                        </div>
+                        <p></p>
+                        <div class="row">
+                            <div class="accordion accordion-flush" id="accordionFlushExample">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="flush-headingOrderInfo">
+                                        <button id="orderInfoBtn" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#orderInfo" aria-expanded="false" aria-controls="orderInfo">订单信息</button>
+                                    </h2>
+                                    <div id="orderInfo" class="accordion-collapse collapse" aria-labelledby="flush-headingOrderInfo" data-bs-parent="#accordionFlushExample">
+                                        <div class="raw accordion-body">
+                                            <div class="row">
+                                                <div class="col-4">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text"><i class="bi-backpack"></i></span>
+                                                        <div class="form-floating">
+                                                            <input type="text" class="form-control" id="couponOrderNO" placeholder="订单号">
+                                                            <label for="couponOrderNO">订单号</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-5">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text"><i class="bi-cart"></i></span>
+                                                        <div class="form-floating">
+                                                            <input type="datetime-local" class="form-control" id="couponOrderTime" placeholder="订单时间">
+                                                            <label for="couponOrderTime">订单时间</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text"><i class="bi bi-currency-yen"></i></span>
+                                                        <div class="form-floating">
+                                                            <input type="text" class="form-control" id="couponOrderPrice" placeholder="购入价">
+                                                            <label for="couponOrderPrice">购入价</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="flush-headingSellInfo">
+                                        <button id="sellInfoBtn" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sellInfo" aria-expanded="false" aria-controls="sellInfo">销售信息</button>
+                                    </h2>
+                                    <div id="sellInfo" class="accordion-collapse collapse" aria-labelledby="flush-headingSellInfo" data-bs-parent="#accordionFlushExample">
+                                        <div class="raw accordion-body">
+                                            <div class="row">
+                                                <div class="col-5">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text"><i class="bi-cart"></i></span>
+                                                        <div class="form-floating">
+                                                            <input type="datetime-local" class="form-control" id="couponSellingTime" placeholder="售出时间">
+                                                            <label for="couponSellingTime">售出时间</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-5">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text"><i class="bi bi-currency-yen"></i></span>
+                                                        <div class="form-floating">
+                                                            <input type="text" class="form-control" id="couponSellingPrice" placeholder="售出价">
+                                                            <label for="couponSellingPrice">售出价</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-2">
+                                                    <!--<button type="button" class="btn btn-warning" id="exportVideoBtn">生成视频</button>-->
+                                                    <div class="input-group btn-group mb-3">
+                                                        <span class="input-group-text"><i class="bi bi-film"></i></span>
+                                                        <div class="form-floating">
+                                                            <button type="button" class="btn btn-warning" id="exportVideoBtn" onclick="exportVideo()">生成视频</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast">
+            <div class="toast-header">
+                <strong class="mr-auto">Bootstrap</strong>
+                <small>11 mins ago</small>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="toast-body">
+                Hello, world! This is a toast message.
+            </div>
+        </div>
+
+        <!-- 引入jQuery和Bootstrap JS -->
+        <script src="js/jquery-3.7.1.min.js"></script>
+        <script src="js/popper.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/pagination.js"></script>
+
+        <!-- 你的自定义脚本 -->
+    </body>
+    <script>
+        function exportVideo()
+        {
+            let couponId = $('#couponDetailModal').attr('data-coupon-id');
+            console.log(couponId);
+
+            const win = window.open($('#couponImage').attr("src") + "/video", '_blank');
+            if (win)
+            {
+                win.focus();
+            }
+            else
+            {
+                alert('Please allow popups for this website');
+            }
+        }
+
+        const copyToClipboard = async () =>
+        {
+            try {
+                const code = $("#couponCode").val();
+                await navigator.clipboard.writeText(code);
+                console.log("Text copied to clipboard!");
+
+                setTimeout(function() {
+                    const popover = bootstrap.Popover.getOrCreateInstance('#copyCodeBtn')
+                    popover.hide();
+                }, 3000);
+
+            } catch (error) {
+                console.error("Failed to copy to clipboard:", error);
+                // Optional: Display an error message to the user
+            }
+        };
+
+        function getStatusBadge(coupon) {
+            if (coupon.status === "ON_SALE") {
+                return "bg-primary";
+            } else if (coupon.status === "SELLING") {
+                return "bg-warning";
+            } else if (coupon.status === "SOLD") {
+                return "bg-success";
+            } else if (coupon.status === "REFUND") {
+                return "bg-danger";
+            } else {
+                return "bg-secondary";
+            }
+        }
+
+        function getStatusColor(status) {
+            if (status === "ON_SALE") {
+                return "#0d6efd";
+            } else if (status === "SELLING") {
+                return "#ffc107";
+            } else if (status === "SOLD") {
+                return "#198754";
+            } else if (status === "REFUND") {
+                return "#dc3545";
+            } else {
+                return "#6c757d";
+            }
+        }
+
+        function showEditModal(element)
+        {
+            const couponId = element.parents("tr").attr("id");
+
+            $('#couponDetailModal').attr('data-coupon-id', couponId);
+
+
+            $('#couponDetailModal').modal('show');
+
+            // $('div.accordion-collapse').removeClass("show");
+
+            // 如果之前将某个区块点击后，再次弹出时仍然会保持，因此，需要将“手风琴”设置回初始的状态
+            if ($('#orderInfo').hasClass("show"))
+            {
+                $('#orderInfoBtn').trigger("click");
+            }
+            if ($('#sellInfo').hasClass("show"))
+            {
+                $('#sellInfoBtn').trigger("click");
+            }
+
+
+            $.ajax({
+                url: "/coupons/" + couponId,
+                method: "GET",
+                data: {
+                },
+                success: function(response)
+                {
+                    $('#couponDetailModal').find('.modal-title').text('券码详情：' + response.code);
+                    $('#couponCode').val(response.code);
+                    $('#couponCode').prop( "disabled", true );
+                    $('#couponCode').prop( "readonly", true );
+
+                    $('#couponBrand').val(response.brand);
+                    $('#couponName').val(response.name);
+                    $('#couponDescription').val(response.description);
+
+                    $('#couponImage').attr("src", "/images/" + response.imageId);
+                    $('#couponAccount').val(response.accountMobile);
+                    $('#couponTags').val(response.tags);
+                    $('#couponOrderNO').val(response.orderNO);
+                    $('#couponOrderTime').val(response.orderTime);
+                    $('#couponOrderPrice').val(response.originalPrice);
+                    $('#couponSellingTime').val(response.sellingTime);
+                    $('#couponSellingPrice').val(response.sellingPrice);
+                    $('#couponStatus').val(response.status);
+
+                    $('#couponStatus').css("color", getStatusColor(response.status));
+
+                },
+                error: function()
+                {
+                    alert("无法获取图片数据");
+                }
+            });
+        }
+
+        function loadTable(currentPageNO, pageSize)
+        {
+            // 通过ajax调用后端接口获取图片数据
+            $.ajax({
+                url: "/coupons",
+                method: "GET",
+                data: {
+                    "page": currentPageNO,
+                    "size": pageSize
+                },
+                success: function(response)
+                {
+                    $("#orders-all tbody").empty();
+                    response.content.forEach(function(coupon)
+                    {
+                        let statusBadge = getStatusBadge(coupon);
+
+                        const newRow =
+                            '<tr id=' + coupon.id + '>' +
+                            '<td className="cell"><span data-bs-toggle="tooltip" data-bs-placement="top" title="订单编号'+ coupon.orderNO +'">' + coupon.code + '</span></td>' +
+                            '<td className="cell"><span class="d-inline-block text-truncate">' + coupon.brand + '</span></td>' +
+                            '<td className="cell"><span data-bs-toggle="tooltip" data-bs-placement="top" title="' + coupon.description + '">' + coupon.name + '</span></td>' +
+                            '<td class="cell" data-bs-toggle="tooltip" data-bs-placement="top" title="' + coupon.statusDescription +'"><span class="badge ' + statusBadge + '">' + coupon.statusName + '</span></td>' +
+                            '<td className="cell">' + coupon.orderTime + '</td>' +
+                            '<td className="cell">￥' + coupon.originalPrice + '</td>' +
+                            '<td className="cell">' + coupon.accountMobile + '</td>' +
+                            '<td className="cell"><button type="button" class="btn editbtn btn-dark" data-toggle="modal" data-target="" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;">查看</button></td></td></td>' +
+                            '</tr>';
+                        $("#orders-all tbody").append(newRow);
+
+                        $('.editbtn').on('click', function(){
+                            showEditModal($(this));
+                        });
+                    });
+
+                    $('#page').Pagination({
+                        size: response.totalElements,
+                        pageShow: response.totalPages,
+                        page: response.pageable.pageNumber + 1,
+                        limit: response.pageable.pageSize,
+                    }, function(obj){
+                        console.log('Current page: ' + obj.page);
+                        loadTable(obj.page - 1, 2)
+                    });
+
+                    debugger;
+
+                    if (response.first)
+                    {
+                        $('#page-prev').parent("li").addClass("disabled");
+                    }
+
+                    if (response.last)
+                    {
+                        $('#page-next').parent("li").addClass("disabled");
+                    }
+                },
+                error: function()
+                {
+                    alert("无法获取图片数据");
+                }
+            });
+        }
+
+        $("#page-prev").click(function(){
+            $("p").slideToggle();
+        });
+
+        $(document).ready(function ()
+        {
+            loadTable(0, 2);
+
+
+            // 初始化tooltips
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+            const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+            const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+
+            // Set theme to the user's preferred color scheme
+            function updateTheme()
+            {
+                const colorMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+                document.querySelector("html").setAttribute("data-bs-theme", colorMode);
+            }
+
+            // Set theme on load
+            updateTheme();
+
+            // Update theme when the preferred scheme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme);
+
+        });
+    </script>
+</html>

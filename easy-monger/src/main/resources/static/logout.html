@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <title>您已成功登出</title>
+        <link href="assets/css/logout/style.css" rel="stylesheet" type="text/css" />
+        <script src="assets/js/jquery-3.7.1.min.js"></script>
+        <script type="text/javascript">
+            $(function() {
+                const h = $(window).height();
+                $('body').height(h);
+                $('.mianBox').height(h);
+                centerWindow(".tipInfo");
+            });
+
+            //2.将盒子方法放入这个方，方便法统一调用
+            function centerWindow(a) {
+                center(a);
+                //自适应窗口
+                $(window).bind('scroll resize',
+                    function() {
+                        center(a);
+                    });
+            }
+
+            //1.居中方法，传入需要剧中的标签
+            function center(a) {
+                const wWidth = $(window).width();
+                const wHeight = $(window).height();
+                const boxWidth = $(a).width();
+                const boxHeight = $(a).height();
+                const scrollTop = $(window).scrollTop();
+                const scrollLeft = $(window).scrollLeft();
+                const top = scrollTop + (wHeight - boxHeight) / 2;
+                const left = scrollLeft + (wWidth - boxWidth) / 2;
+                $(a).css({
+                    "top": top,
+                    "left": left
+                });
+            }
+        </script>
+    </head>
+
+    <body>
+        <div class="mianBox">
+            <img src="assets/image/logout/yun0.png" alt="" class="yun yun0" />
+            <img src="assets/image/logout/yun1.png" alt="" class="yun yun1" />
+            <img src="assets/image/logout/yun2.png" alt="" class="yun yun2" />
+            <img src="assets/image/logout/bird.png" alt="" class="bird" />
+            <img src="assets/image/logout/san.png" alt="" class="san" />
+            <div class="tipInfo">
+                <div class="in">
+                    <div class="textThis">
+                        <h2>您已成功登出</h2>
+                        <p>页面将在<span style="margin:5px;"><b id="wait">5</b>秒</span>后，自动<span><a id="href" href="login.html">跳转</a></span></p>
+                        <script type="text/javascript">
+                            (function() {
+                                const wait = document.getElementById('wait'),
+                                    href = document.getElementById('href').href;
+                                const interval = setInterval(function () {
+                                    const time = --wait.innerHTML;
+                                    if (time <= 0) {
+                                        clearInterval(interval);
+                                        location.href = href;
+                                        //alert("开始跳转提示");
+                                    };
+                                }, 1000);
+                            })();
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

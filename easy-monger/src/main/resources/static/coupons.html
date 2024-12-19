@@ -1,0 +1,1056 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>忙哥是一个易货贩子</title>
+        <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+        <link rel="stylesheet" href="assets/css/bootstrap-icons.min.css">
+        <link rel="stylesheet" href="assets/css/bootstrap-icons-1.7.2.css">
+        <link rel="stylesheet" href="assets/css/bootstrap-table-1.22.1.min.css">
+        <link rel="stylesheet" href="assets/css/avatar.css">
+        <link rel="shortcut icon" href="assets/image/logo/logo.ico">
+    </head>
+
+    <body>
+        <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+            <symbol id="bootstrap" viewBox="0 0 118 94">
+                <title>Bootstrap</title>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M24.509 0c-6.733 0-11.715 5.893-11.492 12.284.214 6.14-.064 14.092-2.066 20.577C8.943 39.365 5.547 43.485 0 44.014v5.972c5.547.529 8.943 4.649 10.951 11.153 2.002 6.485 2.28 14.437 2.066 20.577C12.794 88.106 17.776 94 24.51 94H93.5c6.733 0 11.714-5.893 11.491-12.284-.214-6.14.064-14.092 2.066-20.577 2.009-6.504 5.396-10.624 10.943-11.153v-5.972c-5.547-.529-8.934-4.649-10.943-11.153-2.002-6.484-2.28-14.437-2.066-20.577C105.214 5.894 100.233 0 93.5 0H24.508zM80 57.863C80 66.663 73.436 72 62.543 72H44a2 2 0 01-2-2V24a2 2 0 012-2h18.437c9.083 0 15.044 4.92 15.044 12.474 0 5.302-4.01 10.049-9.119 10.88v.277C75.317 46.394 80 51.21 80 57.863zM60.521 28.34H49.948v14.934h8.905c6.884 0 10.68-2.772 10.68-7.727 0-4.643-3.264-7.207-9.012-7.207zM49.948 49.2v16.458H60.91c7.167 0 10.964-2.876 10.964-8.281 0-5.406-3.903-8.178-11.425-8.178H49.948z"></path>
+            </symbol>
+            <symbol id="check2" viewBox="0 0 16 16">
+                <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+            </symbol>
+            <symbol id="circle-half" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+            </symbol>
+            <symbol id="moon-stars-fill" viewBox="0 0 16 16">
+                <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+            </symbol>
+            <symbol id="sun-fill" viewBox="0 0 16 16">
+                <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+            </symbol>
+        </svg>
+
+        <!-- 顶部导航 -->
+        <header class="p-3 mb-3 border-bottom text-bg-dark">
+            <div class="container">
+                <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+                    <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+                        <img src="assets/image/logo/logo-white.png" style="width: 32px;height: 32px;">
+                    </a>
+
+                    <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                        <li><a href="coupons.html" class="nav-link px-2 text-white link-secondary">首页</a></li>
+                        <li><a href="image.html" class="nav-link px-2 text-white link-secondary">图片仓库</a></li>
+                        <li><a href="upload.html" class="nav-link px-2 text-white link-secondary">上传图片</a></li>
+                    </ul>
+
+                    <div class="dropdown text-end">
+                        <a href="#" class="d-block text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="users/avatar" id="navbarAvatar" alt="mdo" width="32px" height="32px" class="rounded-circle">
+                        </a>
+                        <ul class="dropdown-menu text-small">
+                            <li><a class="dropdown-item" href="#" onclick="updateProfile($(this))"><i class="bi bi-person-fill" style="margin-right: 5px;"></i>个人中心</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="updatePassword($(this))"><i class="bi bi-asterisk" style="margin-right: 5px;"></i>修改密码</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="alert('真没工夫搞啊')"><i class="bi bi-gear" style="margin-right: 5px;"></i>系统设置</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/auth/logout"><i class="bi bi-box-arrow-right" style="margin-right: 5px;"></i>退出</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主体表格 -->
+        <div class="container mt-5">
+            <div class="tab-content" id="orders-table-tab-content">
+                <table id="table"
+                    data-toggle="table"
+                    data-locale="zh-CN"
+                    data-maintain-meta-data="true"
+                    data-height="460"
+                    data-url="/coupons"
+                    data-pagination="true"
+                    data-page-size="10"
+                    data-side-pagination="server"
+                    data-server-sort="true"
+                    data-pagination-pre-text="上一页"
+                    data-pagination-next-text="下一页"
+                    data-pagination-loop="false"
+                    data-pagination-parts="['pageInfo', 'pageSize', 'pageList']"
+                    data-page-list="[5, 10, 25, 50, 100, 200, All]"
+                    data-query-params="queryParams"
+                    data-total-field="totalElements"
+                    data-data-field="content"
+                    data-checkbox-header="true"
+                    data-header-style="headerStyle"
+                    data-click-to-select="true"
+                    data-multiple-select-row="true"
+                    data-search="true"
+                    data-search-on-enter-key="true"
+                    data-show-search-clear-button="true"
+                    data-show-columns="true"
+                    data-buttons="buttons"
+                    data-show-columns-toggle-all="true"
+                    data-buttons-align="right"
+                    data-buttons-class="primary"
+                    data-show-fullscreen="true"
+                    data-show-pagination-switch="true"
+                    data-show-refresh="true"
+                    data-show-toggle="true"
+                    data-show-search-button="true"
+                    data-show-export="true"
+                    data-minimum-count-columns="2"
+                    data-filter-control="true"
+                    data-loading-template="loadingTemplate">
+                    <thead>
+                        <tr>
+                            <th data-field="state" data-checkbox="true"></th>
+                            <th data-field="id" data-visible="false">ID</th>
+                            <th data-field="code" data-sortable="true" data-title-tooltip="券码">券码</th>
+                            <th data-field="brand" data-sortable="true" data-title-tooltip="品牌">品牌</th>
+                            <th data-field="name" data-sortable="true" data-title-tooltip="名称">名称</th>
+                            <th data-field="statusName" data-sortable="true" data-title-tooltip="状态" data-formatter="statusFormatter">状态</th>
+                            <th data-field="orderTime" data-sortable="true" data-title-tooltip="进货时间">进货时间</th>
+                            <th data-field="originalPrice" data-sortable="true" data-title-tooltip="进货价" data-formatter="originalPriceFormatter"><i class="bi bi-currency-yen"></i>进货价</th>
+                            <th data-field="accountMobile" data-sortable="true" data-title-tooltip="账号" data-formatter="accountFormatter">账号</th>
+                            <th data-field="sellingTime" data-sortable="true" data-title-tooltip="售出时间">售出时间</th>
+                            <th data-field="sellingPrice" data-sortable="true" data-title-tooltip="售出价" data-formatter="originalPriceFormatter"><i class="bi bi-currency-yen"></i>售出价</th>
+                            <th data-field="operate" data-formatter="operateFormatter" data-events="operateEvents">操作</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+
+        <!-- 券码编辑弹出框 -->
+        <div class="modal modal-xl fade" id="couponDetailModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">详情</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-9">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="input-group mb-3">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="couponCode" placeholder="券码">
+                                                <label for="couponCode"><i class="bi-c-circle"></i> 券码</label>
+                                            </div>
+                                            <button type="button" id="copyCodeBtn" class="btn btn-primary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="已复制" onclick="copyToClipboard()"><i class="bi bi-copy"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-floating input-group mb-3">
+                                            <input type="text" class="form-control" id="couponAccount" placeholder="所属账号" disabled>
+                                            <label for="couponAccount"><i class="bi-person-bounding-box"></i> 所属账号</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="form-floating input-group mb-3">
+                                            <input type="text" class="form-control" id="couponBrand" placeholder="品牌">
+                                            <label for="couponBrand"><i class="bi-bag"></i> 品牌</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="couponStatus" aria-label="Floating label select example">
+                                                <option value="ON_SALE">待出售</option>
+                                                <option value="SELLING">销售中</option>
+                                                <option value="SOLD">已售出</option>
+                                                <option value="REFUND">已退货</option>
+                                                <option value="UNKNOWN">其它</option>
+                                            </select>
+                                            <label for="couponStatus"><i class="bi bi-menu-button-wide"></i> 状态</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="form-floating input-group mb-3">
+                                            <input type="text" class="form-control" id="couponName" placeholder="名称">
+                                            <label for="couponName"><i class="bi-filter-left"></i> 名称</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <img src="" class="img-fluid img-thumbnail" id="couponImage" style="width: 200px; height: 200px;" alt="..." onclick="window.open(this.src, '_blank');">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-floating">
+                                    <textarea class="form-control" placeholder="Leave a comment here" id="couponDescription"></textarea>
+                                    <label for="couponDescription"><i class="bi bi-body-text"></i> 描述</label>
+                                </div>
+                            </div>
+                        </div>
+                        <p></p>
+                        <div class="row">
+                            <div class="accordion accordion-flush" id="accordionFlushExample">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="flush-headingOrderInfo">
+                                        <button id="orderInfoBtn" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#orderInfo" aria-expanded="false" aria-controls="orderInfo">订单信息</button>
+                                    </h2>
+                                    <div id="orderInfo" class="accordion-collapse collapse" aria-labelledby="flush-headingOrderInfo" data-bs-parent="#accordionFlushExample">
+                                        <div class="raw accordion-body">
+                                            <div class="row">
+                                                <div class="col-4">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text"><i class="bi-backpack"></i></span>
+                                                        <div class="form-floating">
+                                                            <input type="text" class="form-control" id="couponOrderNO" placeholder="订单号">
+                                                            <label for="couponOrderNO">订单号</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-5">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text"><i class="bi-cart"></i></span>
+                                                        <div class="form-floating">
+                                                            <input type="datetime-local" class="form-control" id="couponOrderTime" placeholder="订单时间">
+                                                            <label for="couponOrderTime">订单时间</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text"><i class="bi bi-currency-yen"></i></span>
+                                                        <div class="form-floating">
+                                                            <input type="text" class="form-control" id="couponOrderPrice" placeholder="购入价">
+                                                            <label for="couponOrderPrice">购入价</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="flush-headingSellInfo">
+                                        <button id="sellInfoBtn" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sellInfo" aria-expanded="false" aria-controls="sellInfo">销售信息</button>
+                                    </h2>
+                                    <div id="sellInfo" class="accordion-collapse collapse" aria-labelledby="flush-headingSellInfo" data-bs-parent="#accordionFlushExample">
+                                        <div class="raw accordion-body">
+                                            <div class="row">
+                                                <div class="col-5">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text"><i class="bi-cart"></i></span>
+                                                        <div class="form-floating">
+                                                            <input type="datetime-local" class="form-control" id="couponSellingTime" placeholder="售出时间">
+                                                            <label for="couponSellingTime">售出时间</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-5">
+                                                    <div class="input-group mb-3">
+                                                        <span class="input-group-text"><i class="bi bi-currency-yen"></i></span>
+                                                        <div class="form-floating">
+                                                            <input type="text" class="form-control" id="couponSellingPrice" placeholder="售出价">
+                                                            <label for="couponSellingPrice">售出价</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-2">
+                                                    <div class="input-group btn-group mb-3">
+                                                        <span class="input-group-text"><i class="bi bi-film"></i></span>
+                                                        <div class="form-floating">
+                                                            <button type="button" class="btn btn-warning" id="exportVideoBtn" onclick="exportVideo()">生成视频</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" id="updateCouponBtn">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 编辑个人信息弹出框 -->
+        <div class="modal modal-lg fade" id="profileModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="profileModalLabel">详情</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="row" style="margin-bottom: 20px;">
+                                <div class="col-12">
+                                    <div id="AvatarFileUpload">
+                                        <div class="selected-image-holder">
+                                            <img src="assets/image/default-avatar.png" id="avatarHolder" alt="AvatarInput">
+                                        </div>
+                                        <div class="avatar-selector">
+                                            <a href="#" class="avatar-selector-btn">
+                                                <img src="assets/image/camera.svg" alt="cam">
+                                            </a>
+                                            <input type="file" accept="images/jpg, images/jpeg, images/png, images/gif" name="avatar">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-bottom: 20px;">
+                                <div class="col-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="name" placeholder="请输入姓名">
+                                        <label for="name"><i class="bi bi-input-cursor"></i> 姓名</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-floating">
+                                        <select class="form-select" id="gender" aria-label="Floating label select example">
+                                            <option value="MALE">男</option>
+                                            <option value="FEMALE">女</option>
+                                        </select>
+                                        <label for="gender"><i class="bi bi-gender-ambiguous"></i> 性别</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-bottom: 20px;">
+                                <div class="col-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="mobile" placeholder="请输入手机号码">
+                                        <label for="mobile"><i class="bi bi-phone"></i> 手机号码</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-floating">
+                                        <input type="email" class="form-control" id="email" placeholder="请输入邮箱地址">
+                                        <label for="email"><i class="bi bi-envelope-at"></i> 电子邮箱</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-bottom: 20px;">
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <textarea class="form-control" id="description" rows="5" placeholder-shown="请输入个人简介"></textarea>
+                                        <label for="description"><i class="bi bi-info-square"></i> 个人简介</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" id="updateProfileBtn">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 修改密码弹出框 -->
+        <div class="modal modal-lg fade" id="passwordModifyModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="passwordModifyModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="passwordModifyModalLabel">详情</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="row" style="margin-bottom: 20px;">
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="password" class="form-control" id="oldPassword" placeholder="请输入原密码">
+                                        <label for="oldPassword"><i class="bi bi-input-cursor"></i> 原密码</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-bottom: 20px;">
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="password" class="form-control" id="newPassword" placeholder="请输入新密码">
+                                        <label for="newPassword"><i class="bi bi-asterisk"></i> 新密码</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-bottom: 20px;">
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="password" class="form-control" id="confirmNewPassword" placeholder="请确认新密码">
+                                        <label for="confirmNewPassword"><i class="bi bi-asterisk"></i> 确认新密码</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" id="updatePasswordBtn">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--切换主题悬浮按钮-->
+        <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
+            <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center"
+                    id="bd-theme"
+                    type="button"
+                    aria-expanded="false"
+                    data-bs-toggle="dropdown"
+                    aria-label="Toggle theme (auto)">
+                <svg class="bi my-1 theme-icon-active" width="1em" height="1em"><use href="#circle-half"></use></svg>
+                <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
+                <li>
+                    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+                        <svg class="bi me-2 opacity-50 theme-icon" width="1em" height="1em"><use href="#sun-fill"></use></svg>
+                        Light
+                        <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
+                        <svg class="bi me-2 opacity-50 theme-icon" width="1em" height="1em"><use href="#moon-stars-fill"></use></svg>
+                        Dark
+                        <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
+                        <svg class="bi me-2 opacity-50 theme-icon" width="1em" height="1em"><use href="#circle-half"></use></svg>
+                        Auto
+                        <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <script src="assets/js/jquery-3.7.1.min.js"></script>
+        <script src="assets/js/bootstrap.bundle-5.1.3.min.js"></script>
+        <script src="assets/js/bootstrap-table-1.22.1.min.js"></script>
+        <script src="assets/js/tableExport-1.10.21.min.js"></script>
+        <script src="assets/js/jspdf-1.10.21.min.js"></script>
+        <script src="assets/js/jspdf.plugin.autotable-1.10.21.js"></script>
+        <script src="assets/js/bootstrap-table-export-1.22.1.min.js"></script>
+        <script src="assets/js/bootstrap-table-locale-all-1.22.1.min.js"></script>
+        <script src="assets/js/bootstrap-table-filter-control-1.22.1.min.js"></script>
+        <script src="assets/js/moment-2.30.1.js"></script>
+        <script src="assets/js/color-modes-5.3.js"></script>
+        <script>
+            $(function() {
+                let table = '#table';
+
+                $(table).bootstrapTable('refreshOptions', {
+                    //theadClasses: "table-light",
+                    exportDataType: "selected", //导出全部传“all”
+                    exportTypes: ['json', 'xml', 'csv', 'txt', 'sql', 'excel', 'pdf']
+                });
+
+                $(table).bootstrapTable('hideColumn', 'sellingTime');
+                $(table).bootstrapTable('hideColumn', 'sellingPrice');
+
+                // 加载全部的弹出框
+                const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+                const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+
+                // 加载时设置主题
+                updateTheme();
+
+                // 当浏览者的电脑使用主题发生变化时，自动切换主题
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme);
+
+                // 初始化个人信息头像上传组件
+                initAvatarUploader();
+
+                // 回车键触发编辑个人信息
+                $('#name,#gender,#email,#mobile,#remark').keydown(function(e)
+                {
+                    if(e.keyCode === 13)
+                    {
+                        $("#updateProfileBtn").click();
+                    }
+                });
+
+                // 个人信息编辑框弹出时，就聚焦到姓名输入框
+                $('#profileModal').on('shown.bs.modal', function() {
+                    $('#name').trigger('focus');
+                });
+
+                // 修改密码框弹出时，就聚焦到旧密码输入框
+                $('#passwordModifyModal').on('shown.bs.modal', function() {
+                    $('#oldPassword').trigger('focus');
+                });
+
+            });
+
+            function queryParams(params)
+            {
+                params.page = params.offset / params.limit;
+                params.size = params.limit;
+
+                if (params.sort)
+                {
+                    params.sort = params.sort + "," + params.order;
+                }
+
+                delete params.offset;
+                delete params.limit;
+                if (!params.search) {
+                    delete params.search;
+                }
+
+                return params
+            }
+
+            function loadingTemplate(message)
+            {
+                return '<i class="fa fa-spinner fa-spin fa-fw fa-2x"></i>';
+            }
+
+            function originalPriceFormatter(value, row)
+            {
+                let color = "";
+
+                switch (true)
+                {
+                    case value > 300:
+                        color = "#bd2130";
+                        break;
+                    case value > 200:
+                        color = "#ffc107";
+                        break;
+                    case value > 100:
+                        color = "#5cb85c";
+                        break;
+                    case value > 50:
+                        color = "#955CB8FF";
+                        break;
+                    default:
+                        color = "black";
+                        break;
+                }
+
+                return "<span style='color: " + color + "'><i>" + value + "</i></span>";
+            }
+
+            function statusFormatter(value, row)
+            {
+                let icon = "";
+                const status = row.status;
+                if (status === "ON_SALE")
+                {
+                    icon = "bg-primary";
+                }
+                else if (status === "SELLING")
+                {
+                    icon = "bg-warning";
+                }
+                else if (status === "SOLD")
+                {
+                    icon = "bg-success";
+                }
+                else if (status === "REFUND")
+                {
+                    icon = "bg-danger";
+                }
+                else
+                {
+                    icon = "bg-secondary";
+                }
+
+                return '<span title="' + row.statusDescription + '" class="badge ' + icon + '">' + value + '</span>';
+            }
+
+            function accountFormatter(value, row)
+            {
+                let img = '';
+                if (row.accountPlatform === "美团") {
+                    img = '<img src="assets/image/logo/meituan-logo.png" style="width:24px;height:24px;margin-right:5px;vertical-align:middle" />';
+                }
+                if (row.accountPlatform === "抖音") {
+                    img = '<img src="assets/image/logo/douyin-logo.png" style="width:24px;height:24px;margin-right:5px;vertical-align:middle" />';
+                }
+
+                return '<p style="margin-bottom: 0;" title="' + value + '">' + img + '<span style="vertical-align:middle">' + value.substring(7) + '</span></p>';
+            }
+
+            function operateFormatter(value, row, index)
+            {
+                return [
+                    '<a class="btn editbtn btn-sm btn-dark" href="javascript:void(0)" title="查看详情">',
+                    '查看',
+                    '</a>'
+                ].join('')
+            }
+
+            window.operateEvents = {
+                'click .editbtn': function (e, value, row, index)
+                {
+                    console.log('You click like action, row: ' + JSON.stringify(row))
+                    showEditModal(row);
+                },
+                'click .remove': function (e, value, row, index)
+                {
+                    $table.bootstrapTable('remove', {
+                        field: 'id',
+                        values: [row.id]
+                    })
+                }
+            }
+
+            function buttons ()
+            {
+                return {
+                    couponExportBtn: {
+                        text: '导出视频',
+                        icon: 'bi bi-collection-play',
+                        event: function ()
+                        {
+                            let selection = $("#table").bootstrapTable('getSelections');
+                            console.log(selection);
+                            if (selection.length < 1)
+                            {
+                                alert('请先选择卡券（按住Shift再点击可以多选）');
+                            }
+                            else
+                            {
+                                alert("还没做，气人不");
+                            }
+                        },
+                        attributes: {
+                            title: '导出'
+                        }
+                    },
+                    couponImportBtn: {
+                        text: '删除',
+                        icon: 'bi bi-x-circle',
+                        event: function ()
+                        {
+                            let selection = $("#table").bootstrapTable('getSelections');
+                            console.log(selection);
+                            if (selection.length < 1)
+                            {
+                                alert('请先选择卡券（按住Shift再点击可以多选）');
+                            }
+                            else
+                            {
+                                alert("还没做，气人不");
+                            }
+                        },
+                        attributes: {
+                            title: '删除'
+                        }
+                    }
+                }
+            }
+
+            // 设置列头的样式
+            function headerStyle(column) {
+                return {
+                    code: {
+                        //classes: 'btn bg-danger',
+                        //css: {background: '#F5F5F5'}
+                    },
+                    name: {
+                        //css: {background: '#F5F5F5'}
+                    }
+                }[column.field]
+            }
+
+            // 弹出券码编辑框
+            function showEditModal(row)
+            {
+                $('#couponDetailModal').modal('show');
+                $('#couponDetailModal').attr('data-coupon-id', row.id);
+
+                // 如果之前将某个区块点击后，再次弹出时仍然会保持，因此，需要将“手风琴”设置回初始的状态
+                if ($('#orderInfo').hasClass("show"))
+                {
+                    $('#orderInfoBtn').trigger("click");
+                }
+                if ($('#sellInfo').hasClass("show"))
+                {
+                    $('#sellInfoBtn').trigger("click");
+                }
+
+                $.ajax({
+                    url: "/coupons/" + row.id,
+                    method: "GET",
+                    data: {
+                    },
+                    success: function(response)
+                    {
+                        $('#couponDetailModal').find('.modal-title').text('券码详情：' + response.code);
+                        $('#couponCode').val(response.code);
+                        $('#couponCode').prop( "disabled", true );
+                        $('#couponCode').prop( "readonly", true );
+
+                        $('#couponBrand').val(response.brand);
+                        $('#couponName').val(response.name);
+                        $('#couponDescription').val(response.description);
+
+                        $('#couponImage').attr("src", "/images/" + response.imageId);
+                        $('#couponAccount').val(response.accountMobile);
+                        $('#couponTags').val(response.tags);
+                        $('#couponOrderNO').val(response.orderNO);
+                        $('#couponOrderTime').val(response.orderTime);
+                        $('#couponOrderPrice').val(response.originalPrice);
+                        $('#couponSellingTime').val(response.sellingTime);
+                        $('#couponSellingPrice').val(response.sellingPrice);
+                        $('#couponStatus').val(response.status);
+
+                        $('#couponStatus').css("color", getStatusColor(response.status));
+
+                    },
+                    error: function()
+                    {
+                        alert("无法获取图片数据");
+                    }
+                });
+            }
+
+            // 执行券码更新请求
+            $("#updateCouponBtn").click(function(e)
+            {
+                let couponId = $('#couponDetailModal').attr('data-coupon-id');
+                let couponCode = $("#couponCode").val().trim();
+                let couponAccount = $("#couponAccount").val().trim();
+                let couponBrand = $("#couponBrand").val().trim();
+                let couponStatus = $("#couponStatus").val().trim();
+                let couponName = $("#couponName").val().trim();
+                let couponDescription = $("#couponDescription").val().trim();
+                let couponOrderNO = $("#couponOrderNO").val().trim();
+                let couponOrderTime = $("#couponOrderTime").val().trim();
+                let couponOrderPrice = $("#couponOrderPrice").val().trim();
+                let couponSellingTime = $("#couponSellingTime").val().trim();
+                let couponSellingPrice = $("#couponSellingPrice").val().trim();
+
+                if (couponStatus === "SOLD")
+                {
+                    if (!couponSellingTime) {
+                        alert("啥时候卖滴啊？");
+                        return;
+                    }
+                    if (!couponSellingPrice || couponSellingPrice === "0") {
+                        alert("踱钱卖滴啊？");
+                        return;
+                    }
+                }
+
+                let date_formatter = "yyyy-MM-DD HH:mm:ss";
+                if (couponOrderTime) {
+                    couponOrderTime = moment(couponOrderTime).format(date_formatter);
+                }
+                if (couponSellingTime) {
+                    couponSellingTime = moment(couponSellingTime).format(date_formatter);
+                }
+
+                const obj = {
+                    brand: couponBrand,
+                    code: couponCode,
+                    name: couponName,
+                    description: couponDescription,
+                    orderNO: couponOrderNO,
+                    orderTime: couponOrderTime,
+                    originalPrice: couponOrderPrice,
+                    sellingPrice: couponSellingPrice,
+                    sellingTime: couponSellingTime,
+                    status: couponStatus,
+                    accountId: couponAccount
+                };
+
+                $.ajax({
+                    url: "/coupons/" + couponId,
+                    method: "PUT",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify(obj),
+                    success: function(response)
+                    {
+                        alert("修改成功");
+                        $('#couponDetailModal').modal('hide');
+                        $('#table').bootstrapTable('refresh');
+                    },
+                    error: function()
+                    {
+                        alert("无法获取图片数据");
+                    }
+                });
+            });
+
+            // 弹出个人信息编辑框
+            function updateProfile(element)
+            {
+                const modal = $('#profileModal');
+                modal.modal('show');
+
+                $.ajax({
+                    url: "/users/profile",
+                    method: "GET",
+                    success: function(response)
+                    {
+                        modal.attr('data-user-id', response.id);
+                        modal.find('.modal-title').text('用户详情：' + response.code);
+                        $('#name').val(response.name);
+                        $('#gender').val(response.gender);
+                        $('#mobile').val(response.mobile);
+                        $('#email').val(response.email);
+                        $('#description').val(response.remark);
+                        $('#avatarHolder').attr("src", "/users/avatar");
+                    },
+                    error: function()
+                    {
+                        alert("无法获取个人信息");
+                    }
+                });
+            }
+
+            // 执行个人信息更新请求
+            $("#updateProfileBtn").click(function(e)
+            {
+                let userId = $('#profileModal').attr('data-user-id');
+                let name = $("#name").val().trim();
+                let gender = $('#gender').val().trim();
+                let mobile = $('#mobile').val().trim();
+                let email = $('#email').val().trim();
+                let remark = $('#description').val().trim();
+
+                const obj = {
+                    name: name,
+                    gender: gender,
+                    mobile: mobile,
+                    email: email,
+                    remark: remark
+                };
+
+                $.ajax({
+                    url: "/users/" + userId,
+                    method: "PUT",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify(obj),
+                    success: function(response)
+                    {
+                        alert("修改成功");
+                        $('#profileModal').modal('hide');
+                        location.reload();
+                    },
+                    error: function()
+                    {
+                        alert("修改失败");
+                    }
+                });
+            });
+
+            // 弹出修改密码编辑框
+            function updatePassword(element)
+            {
+                const modal = $('#passwordModifyModal');
+
+                $.ajax({
+                    url: "/users/profile",
+                    method: "GET",
+                    async: false,
+                    success: function(response)
+                    {
+                        modal.attr('data-user-id', response.id);
+                        modal.modal('show');
+                        modal.find('.modal-title').text('用户' + response.code + '修改密码');
+                    },
+                    error: function()
+                    {
+                        alert("无法获取个人信息");
+                    }
+                });
+            }
+
+            // 执行修改密码请求
+            $("#updatePasswordBtn").click(function(e)
+            {
+                let userId = $('#passwordModifyModal').attr('data-user-id');
+                let oldPassword = $("#oldPassword").val().trim();
+                let newPassword = $('#newPassword').val().trim();
+                let confirmNewPassword = $('#confirmNewPassword').val().trim();
+
+                const obj = {
+                    oldPassword: oldPassword,
+                    newPassword: newPassword,
+                    confirmNewPassword: confirmNewPassword
+                };
+
+                $.ajax({
+                    url: "/users/" + userId + "/password",
+                    method: "PUT",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify(obj),
+                    success: function(response)
+                    {
+                        alert("修改成功");
+                        $('#passwordModifyModal').modal('hide');
+
+                        setTimeout( function(){
+                            location.href = "/auth/logout";
+                        }, 2000);
+                    },
+                    error: function()
+                    {
+                        alert("修改失败");
+                    }
+                });
+            });
+
+            function initAvatarUploader()
+            {
+                // Main Wrapper Selector
+                const avatarFileUpload = document.getElementById('AvatarFileUpload')
+
+                // Preview Wrapper Selector
+                const imageViewer = avatarFileUpload.querySelector('.selected-image-holder>img')
+
+                // Image Selector button Selector
+                const imageSelector = avatarFileUpload.querySelector('.avatar-selector-btn')
+
+                // Image Input File Selector
+                const imageInput = avatarFileUpload.querySelector('input[name="avatar"]')
+
+                const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+                /** Trigger Browsing Image to Upload */
+                imageSelector.addEventListener('click', e => {
+                    e.preventDefault()
+                    // Trigger Image input click
+                    imageInput.click()
+                })
+
+                /** IF Selected Image has change */
+                imageInput.addEventListener('change', e => {
+                    // Open File eader
+                    const reader = new FileReader();
+                    reader.onload = function(){
+                        // Preview Image
+                        imageViewer.src = reader.result;
+                    };
+
+                    // Read Selected Image as DataURL
+                    let file = e.target.files[0];
+                    if (file.size > MAX_FILE_SIZE)
+                    {
+                        alert("上传文件不能超过5MB");
+                    }
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    $.ajax({
+                        url: "/users/avatar",
+                        method: "PUT",
+                        data: formData,
+                        async: false,
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function(response)
+                        {
+                            console.log("头像修改成功");
+                            reader.readAsDataURL(file);
+                        },
+                        error: function()
+                        {
+                            console.log("头像修改失败");
+                        }
+                    });
+                })
+            }
+
+            function getStatusColor(status)
+            {
+                if (status === "ON_SALE")
+                {
+                    return "#0d6efd";
+                }
+                else if (status === "SELLING")
+                {
+                    return "#ffc107";
+                }
+                else if (status === "SOLD")
+                {
+                    return "#198754";
+                }
+                else if (status === "REFUND")
+                {
+                    return "#dc3545";
+                }
+                else
+                {
+                    return "#6c757d";
+                }
+            }
+
+            $("#couponStatus").change(function(e) {
+                $('#couponStatus').css("color", getStatusColor(e.target.value));
+            });
+
+            // 将选中的券码导出成视频（单个）
+            function exportVideo()
+            {
+                let couponId = $('#couponDetailModal').attr('data-coupon-id');
+                console.log(couponId);
+
+                const win = window.open($('#couponImage').attr("src") + "/video", '_blank');
+                if (win)
+                {
+                    win.focus();
+                }
+                else
+                {
+                    alert('Please allow popups for this website');
+                }
+            }
+
+            // 复制券码到剪贴板
+            const copyToClipboard = async () =>
+            {
+                try {
+                    const code = $("#couponCode").val();
+                    await navigator.clipboard.writeText(code);
+                    console.log("Text copied to clipboard!");
+
+                    setTimeout(function () {
+                        const popover = bootstrap.Popover.getOrCreateInstance('#copyCodeBtn')
+                        popover.hide();
+                    }, 3000);
+
+                } catch (error) {
+                    console.error("Failed to copy to clipboard:", error);
+                    // Optional: Display an error message to the user
+                }
+            };
+
+            // 切换主题：明亮/昏暗
+            function updateTheme()
+            {
+                const colorMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+                document.querySelector("html").setAttribute("data-bs-theme", colorMode);
+            }
+        </script>
+    </body>
+</html>
