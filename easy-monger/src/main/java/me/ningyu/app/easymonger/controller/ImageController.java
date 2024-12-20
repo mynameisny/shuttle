@@ -46,7 +46,12 @@ public class ImageController
 
         return new ResponseEntity<>(list, HttpStatus.CREATED);
     }
-
+    
+    /**
+     * 删除图片
+     * @param id    图片的ID
+     * @return
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id)
     {
