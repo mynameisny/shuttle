@@ -18,4 +18,17 @@ public enum UserStatus
         this.name = name;
     }
     
+    
+    public static UserStatus fromName(String name)
+    {
+        for (UserStatus userStatus : UserStatus.values())
+        {
+            if (userStatus.getName().equals(name))
+            {
+                return userStatus;
+            }
+        }
+        throw new IllegalArgumentException("Unknown user status: " + name);
+    }
+    
 }
