@@ -21,4 +21,16 @@ public enum AccountPlatformEnum
     {
         return name;
     }
+    
+    public static AccountPlatformEnum fromName(String name)
+    {
+        for (AccountPlatformEnum accountPlatformEnum : AccountPlatformEnum.values())
+        {
+            if (accountPlatformEnum.getName().equals(name))
+            {
+                return accountPlatformEnum;
+            }
+        }
+        throw new IllegalArgumentException("Unknown account platform: " + name);
+    }
 }
