@@ -12,15 +12,27 @@ public enum Field
     TAGS("标签"),
     OTHER("其它");
 
-    private final String field;
+    private final String name;
 
-    Field(String field)
+    Field(String name)
     {
-        this.field = field;
+        this.name = name;
     }
 
-    public String getField()
+    public String getName()
     {
-        return field;
+        return name;
+    }
+    
+    public static Field fromName(String name)
+    {
+        for (Field field : Field.values())
+        {
+            if (field.getName().equals(name))
+            {
+                return field;
+            }
+        }
+        throw new IllegalArgumentException("Unknown field: " + name);
     }
 }
