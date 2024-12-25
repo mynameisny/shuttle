@@ -23,4 +23,16 @@ public enum ParserField
     {
         return field;
     }
+    
+    public static ParserField fromName(String name)
+    {
+        for (ParserField values : ParserField.values())
+        {
+            if (values.field.equals(name))
+            {
+                return values;
+            }
+        }
+        throw new IllegalArgumentException("Unknown parser field: " + name);
+    }
 }
