@@ -1,5 +1,7 @@
 package me.ningyu.app.easymonger.model.enums;
 
+import java.util.EnumSet;
+
 public enum CouponStatus
 {
     ON_SALE("待出售", "已上架，等待出售"),
@@ -15,6 +17,7 @@ public enum CouponStatus
     private final String name;
 
     private final String description;
+    
 
     CouponStatus(String name, String description)
     {
@@ -34,6 +37,12 @@ public enum CouponStatus
         }
 
         return null;
+    }
+    
+    public boolean canSale()
+    {
+        EnumSet<CouponStatus> available = EnumSet.of(CouponStatus.ON_SALE, CouponStatus.SELLING);
+        return available.contains(this);
     }
 
     public String getName()
