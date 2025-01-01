@@ -4,36 +4,35 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import me.ningyu.app.easymonger.domain.coupon.Coordinate;
 
 import java.io.Serializable;
-import java.util.List;
+
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ParseTemplateDto implements Serializable
+public class AccountDto implements Serializable
 {
     /**
-     * 解析模板名称
+     * 账号属于哪个用户
      */
-    private String name;
+    private String userId;
 
     /**
-     * 设备名称
+     * 账号属于哪个平台，如：美团、点评、抖音
      */
-    private String deviceName;
+    private PlatformEnum platform;
 
     /**
-     * 坐标
+     * 手机号码
      */
-    private List<Coordinate> coordinates;
+    private String mobile;
 
     /**
-     * 是否启用
+     * 电子邮箱
      */
-    private boolean enabled;
+    private String email;
 
     /**
      * 备注（预留字段）
