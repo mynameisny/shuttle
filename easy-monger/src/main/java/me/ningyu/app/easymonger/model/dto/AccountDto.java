@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import me.ningyu.app.easymonger.model.enums.AccountPlatformEnum;
 
 import java.io.Serializable;
 
@@ -22,7 +23,7 @@ public class AccountDto implements Serializable
     /**
      * 账号属于哪个平台，如：美团、点评、抖音
      */
-    private PlatformEnum platform;
+    private AccountPlatformEnum platform;
 
     /**
      * 手机号码
