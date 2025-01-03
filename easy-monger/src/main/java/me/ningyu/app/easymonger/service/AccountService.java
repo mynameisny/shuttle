@@ -9,6 +9,7 @@ import me.ningyu.app.easymonger.domain.auth.UserRepository;
 import me.ningyu.app.easymonger.domain.coupon.*;
 import me.ningyu.app.easymonger.exception.DuplicateException;
 import me.ningyu.app.easymonger.exception.NotFoundException;
+import me.ningyu.app.easymonger.model.dto.AccountDto;
 import me.ningyu.app.easymonger.model.dto.ParseTemplateDto;
 import me.ningyu.app.easymonger.model.enums.Field;
 import me.ningyu.app.easymonger.model.vo.AccountVo;
