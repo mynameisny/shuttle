@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZoneOffset;
+import java.util.EnumSet;
 
 @Service
 @RequiredArgsConstructor
@@ -73,6 +74,13 @@ public class UserService
     public void delete(String userCode, boolean force)
     {
         User user = userRepository.findByCode(userCode).orElseThrow(() -> new NotFoundException("用户不存在"));
+        
+        EnumSet<UserStatus> deletableStatus = EnumSet.of(UserStatus.ACTIVE, UserStatus.INACTIVE);
+        if (!deletableStatus.contains(user.getStatus()))
+        {
+            throw new RuntimeException("状态冲突");
+        }
+        
         userRepository.delete(user);
     }
     
