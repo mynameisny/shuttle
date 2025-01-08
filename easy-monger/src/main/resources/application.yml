@@ -16,3 +16,8 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+custom:
+  file:
+    upload:
+      base-path: /Users/xxx/Downloads/images
+      avatar: /Users/xxx/Downloads/avatars
