@@ -1,6 +1,7 @@
 package me.ningyu.app.easymonger.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.easymonger.domain.auth.*;
 import me.ningyu.app.easymonger.model.enums.UserStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService implements UserDetailsService
 {
     private final UserRepository userRepository;
@@ -47,6 +49,7 @@ public class AuthService implements UserDetailsService
     private Collection<? extends GrantedAuthority> getAuthorities(Collection<Role> roles)
     {
         List<String> permissions = getPermissions(roles);
+        log.info("permissions: {}", permissions);
         
         return permissions.stream()
                 .map(SimpleGrantedAuthority::new)
