@@ -173,7 +173,7 @@ public class AccountService
         return entity;
     }
 
-    private ParseTemplateVo entityToVo(ParseTemplate entity)
+    public ParseTemplateVo entityToVo(ParseTemplate entity)
     {
         ParseTemplateVo vo = new ParseTemplateVo();
         mapper.map(entity, vo);
