@@ -14,6 +14,8 @@ import me.ningyu.app.easymonger.domain.coupon.QCoupon;
 import me.ningyu.app.easymonger.exception.DuplicateException;
 import me.ningyu.app.easymonger.exception.NotFoundException;
 import me.ningyu.app.easymonger.exception.UnauthorizedException;
+import me.ningyu.app.easymonger.model.dto.CouponDto;
+import me.ningyu.app.easymonger.model.enums.CouponStatus;
 import me.ningyu.app.easymonger.model.vo.CouponVo;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +56,7 @@ public class CouponService
 
         Account account = accounts.stream().filter(item -> item.getId().equals(dto.getAccountId())).findFirst().orElseThrow(() -> new NotFoundException("账号不存在"));
         entity.setAccount(account);
-        entity.setStatus(CouponStatusEnum.ON_SALE);
+        entity.setStatus(CouponStatus.ON_SALE);
 
         couponRepository.save(entity);
 
@@ -135,8 +137,8 @@ public class CouponService
     {
         CouponVo vo = new CouponVo();
         mapper.map(entity, vo);
-        vo.setStatusName(vo.getStatus().getName());
-        vo.setStatusDescription(vo.getStatus().getDescription());
+        vo.setStatusName(vo.getStatusName());
+        vo.setStatusDescription(vo.getStatusDescription());
         vo.setAccountMobile(entity.getAccount().getMobile());
         vo.setAccountPlatform(entity.getAccount().getPlatform().getName());
         vo.setImageId(entity.getImage().getId());
@@ -184,7 +186,7 @@ public class CouponService
 
     private void checkUpdateParam(CouponDto dto)
     {
-        if (dto.getStatus() == CouponStatusEnum.SOLD)
+        if (dto.getStatus() == CouponStatus.SOLD)
         {
             if (dto.getSellingTime() == null || StringUtils.isBlank(dto.getSellingTime().toString()))
             {
