@@ -7,7 +7,12 @@ import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.ningyu.app.easymonger.domain.coupon.Coupon;
+import me.ningyu.app.easymonger.domain.coupon.QCoupon;
+import me.ningyu.app.easymonger.model.dto.CouponDto;
+import me.ningyu.app.easymonger.model.enums.CouponStatus;
 import me.ningyu.app.easymonger.model.vo.CouponVo;
+import me.ningyu.app.easymonger.service.CouponService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -94,10 +99,10 @@ public class CouponController
                 BooleanExpression e4 = root.orderNO.contains(value);
 
                 BooleanExpression condition = e1.or(e2).or(e3).or(e4);
-                CouponStatusEnum couponStatusEnum = CouponStatusEnum.findByValue(value);
-                if (couponStatusEnum != null)
+                CouponStatus CouponStatus = CouponStatus.findByValue(value);
+                if (CouponStatus != null)
                 {
-                    BooleanExpression e5 = root.status.eq(couponStatusEnum);
+                    BooleanExpression e5 = root.status.eq(CouponStatus);
                     condition = condition.or(e5);
                 }
 
