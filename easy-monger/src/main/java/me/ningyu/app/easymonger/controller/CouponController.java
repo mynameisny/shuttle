@@ -99,10 +99,10 @@ public class CouponController
                 BooleanExpression e4 = root.orderNO.contains(value);
 
                 BooleanExpression condition = e1.or(e2).or(e3).or(e4);
-                CouponStatus CouponStatus = CouponStatus.findByValue(value);
-                if (CouponStatus != null)
+                CouponStatus couponStatus = CouponStatus.findByValue(value);
+                if (couponStatus != null)
                 {
-                    BooleanExpression e5 = root.status.eq(CouponStatus);
+                    BooleanExpression e5 = root.status.eq(couponStatus);
                     condition = condition.or(e5);
                 }
 
