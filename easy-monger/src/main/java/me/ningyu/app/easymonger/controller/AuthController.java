@@ -3,6 +3,7 @@ package me.ningyu.app.easymonger.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.easymonger.model.dto.RegistrationDto;
+import me.ningyu.app.easymonger.model.dto.UserAddDto;
 import me.ningyu.app.easymonger.model.dto.UserDto;
 import me.ningyu.app.easymonger.model.vo.UserVo;
 import me.ningyu.app.easymonger.service.UserService;
@@ -28,12 +29,12 @@ public class AuthController
     @PostMapping("/register")
     public ResponseEntity<UserVo> register(@RequestBody @Validated RegistrationDto dto)
     {
-        UserDto userDto = new UserDto();
+        UserAddDto userDto = new UserAddDto();
         userDto.setCode(dto.getUsername());
         userDto.setPassword(dto.getPassword());
         userDto.setMobile(dto.getMobile());
 
-        UserVo vo = null;//userService.add(userDto);
+        UserVo vo = userService.add(userDto);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Location", UriComponentsBuilder.fromUriString("/users/{userId}").buildAndExpand(vo.getId()).toUriString());
