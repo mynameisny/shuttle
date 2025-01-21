@@ -17,6 +17,7 @@ import me.ningyu.app.easymonger.model.enums.CouponStatus;
 import me.ningyu.app.easymonger.model.enums.Field;
 import me.ningyu.app.easymonger.model.vo.CouponVo;
 import me.ningyu.app.easymonger.model.vo.ImageVo;
+import me.ningyu.app.easymonger.model.vo.OcrCoordinate;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.TesseractException;
 import org.apache.commons.io.FileUtils;
@@ -553,7 +554,7 @@ public class ImageService
 
 
 
-    /*public void parseImage1(File imageFile, ParseTemplate dto)
+    public void parseImage1(File imageFile, ParseTemplate dto)
     {
         try
         {
@@ -604,5 +605,5 @@ public class ImageService
             log.error("无法解析图片：{}", imageFile, e);
             throw new RuntimeException(e);
         }
-    }*/
+    }
 }
