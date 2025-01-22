@@ -511,7 +511,7 @@ public class ImageService
         }
     }
 
-    /*public File imageToVideo(File file)
+    public File imageToVideo(File file)
     {
         String userCode = "mynameisny"; //todo 获得当前登陆用户
 
@@ -550,7 +550,7 @@ public class ImageService
         }
 
         return null;
-    }*/
+    }
 
 
 
