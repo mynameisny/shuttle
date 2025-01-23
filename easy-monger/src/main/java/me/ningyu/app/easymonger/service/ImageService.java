@@ -559,7 +559,7 @@ public class ImageService
         try
         {
             List<OcrCoordinate> coordinates = new ArrayList<>();
-            coordinates.add(OcrCoordinate.builder().field("status").position("91,299,300,60").deleteRegex(`DELETE_REGEX_DEFAULT`).build());
+            coordinates.add(OcrCoordinate.builder().field("status").position("91,299,300,60").deleteRegex(DELETE_REGEX_DEFAULT).build());
             coordinates.add(OcrCoordinate.builder().field("name").position("237,459,563,54").deleteRegex(DELETE_REGEX_DEFAULT).build());
             coordinates.add(OcrCoordinate.builder().field("description").position("52,1244,578,48").deleteRegex(DELETE_REGEX_DEFAULT).build());
             coordinates.add(OcrCoordinate.builder().field("code").position("76,1141,218,50").deleteRegex(DELETE_REGEX_DEFAULT).build());
