@@ -1,0 +1,20 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: shuttle
+  datasource:
+    url: jdbc:mysql://svc-mysql.ucmp-ctl.svc.cluster.local:3001/ucmp_shuttle?sslMode=REQUIRED&verifyServerCertificate=false
+    username: ucmp_dev
+    password: xeeNADMYQpqZ8F9Wh3Zn
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
