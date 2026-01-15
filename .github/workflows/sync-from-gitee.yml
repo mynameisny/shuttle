@@ -18,7 +18,7 @@ jobs:
         run: |
           # 使用 Gitee Personal Access Token 克隆私有仓库
           git clone https://oauth2:${GITEE_TOKEN}@gitee.com/mynameisny/shuttle.git .
-          git checkout demo
+          git checkout develop
 
       - name: Push to GitHub
         env:
@@ -32,4 +32,4 @@ jobs:
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/mynameisny/shuttle.git
 
           # 强制推送，确保 GitHub 与 Gitee 完全一致
-          git push origin demo --force
+          git push origin develop --force
