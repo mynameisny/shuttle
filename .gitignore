@@ -27,4 +27,7 @@ hs_err_pid*
 /server/mvnw.cmd
 
 .DS_Store
-*/.DS_Store 
+*/.DS_Store
+
+# Local development configuration
+src/main/resources/application-local.yml 

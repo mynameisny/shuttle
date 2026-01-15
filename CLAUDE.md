@@ -62,7 +62,7 @@ Shuttle 是一个基于 Spring Boot 4.0.1 和 Java 21 构建的班车调度管�
 
 **审计功能**
 - 所有实体继承 `AbstractAuditable`（通过 Application.java 中的 `@EnableJpaAuditing` 启用）
-- 自动提供 createdAt、updatedAt、createdBy、updatedBy 字段跟踪
+- 自动提供 createdDate、lastModifiedDate、createdBy、lastModifiedBy 字段跟踪
 
 **API 版本控制**
 - 所有接口端点都需要 `X-API-Version: v1` 请求头
@@ -104,18 +104,36 @@ me.ningyu.app.shuttle/
 注意：application.yml 包含真实凭据 - 请勿提交凭据变更。
 
 ### 本地开发环境
-本地开发使用 `application-local.yml` 配置文件（已在 .gitignore 中排除）：
+本地开发使用 `application-local.yml` 配置文件（需添加到 .gitignore）：
 
 1. 创建本地数据库：
    ```sql
    CREATE DATABASE shuttle CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
 
-2. 复制配置模板并修改连接信息：
-   - 数据库地址：根据本地 MySQL 配置修改
-   - 用户名/密码：根据本地环境配置
+2. 创建 `src/main/resources/application-local.yml` 文件：
+   ```yaml
+   spring:
+     datasource:
+       url: jdbc:mysql://localhost:3306/shuttle?useSSL=false&serverTimezone=Asia/Shanghai
+       username: root
+       password: your_password
+     jpa:
+       hibernate:
+         ddl-auto: update
+       show-sql: true
+       properties:
+         hibernate:
+           format_sql: true
+   ```
+   根据本地 MySQL 配置修改数据库地址、用户名和密码。
 
-3. 启动应用时指定 local profile：
+3. 将 `application-local.yml` 添加到 .gitignore（如果尚未添加）：
+   ```
+   src/main/resources/application-local.yml
+   ```
+
+4. 启动应用时指定 local profile：
    ```bash
    # 使用 Maven
    mvn spring-boot:run -Dspring-boot.run.profiles=local
@@ -123,7 +141,7 @@ me.ningyu.app.shuttle/
    # 或在 IDEA 中设置 Active profiles: local
    ```
 
-4. 配置特性：
+5. 配置特性：
    - 启用 SQL 格式化（format_sql: true）便于调试
    - 关闭 SSL 连接
    - 使用 Asia/Shanghai 时区

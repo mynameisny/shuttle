@@ -36,7 +36,6 @@ public class ShuttleScheduleService
     /**
      * 批量创建排班计划
      */
-    @NonNull
     public List<ShuttleSchedule> createBulkSchedules(CreateScheduleRequest request)
     {
         RouteDirection routeDirection = routeDirectionRepository.findById(request.getRouteDirectionId()).orElseThrow(() -> new IllegalArgumentException("线路方向不存在"));
