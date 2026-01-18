@@ -34,4 +34,9 @@ public interface RouteDirectionStopRepository extends JpaRepository<RouteDirecti
             "WHERE rds.directionalRoute.id = :routeDirectionId " +
             "ORDER BY rds.sequence ASC")
     Optional<RouteDirectionStop> findFirstByRouteDirectionIdOrderBySequenceAsc(@Param("routeDirectionId") Long routeDirectionId);
+
+    /**
+     * 检查线路方向下是否存在站点
+     */
+    boolean existsByDirectionalRouteId(Long routeDirectionId);
 }

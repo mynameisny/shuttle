@@ -1,6 +1,7 @@
 package me.ningyu.app.shuttle.facade.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.*;
 import me.ningyu.app.shuttle.domain.repo.*;
 import me.ningyu.app.shuttle.model.schedule.CreateScheduleRequest;
@@ -18,6 +19,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class ShuttleScheduleService
 {
     private final ShuttleScheduleRepository scheduleRepository;

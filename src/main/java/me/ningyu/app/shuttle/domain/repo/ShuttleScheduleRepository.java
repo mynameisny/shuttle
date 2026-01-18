@@ -86,4 +86,9 @@ public interface ShuttleScheduleRepository extends JpaRepository<ShuttleSchedule
 
     List<ShuttleSchedule> findByDriverIdAndOperatingDateGreaterThanEqualOrderByOperatingDateAsc(
             Long driverId, LocalDate date);
+
+    /**
+     * 检查线路方向下是否存在排班
+     */
+    boolean existsByRouteDirectionId(Long routeDirectionId);
 }
