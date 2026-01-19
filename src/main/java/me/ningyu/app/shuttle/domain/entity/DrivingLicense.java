@@ -34,7 +34,7 @@ public class DrivingLicense extends AbstractAuditable
     @Column(name = "license_number", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '驾照号'")
     private String licenseNumber;
 
-    @Column(name = "date_of_birth", columnDefinition = "DATE COMMENT '初次领证时间'")
+    @Column(name = "date_of_birth", columnDefinition = "DATE COMMENT '出生日期'")
     private LocalTime birthDate;
 
     @Column(name = "date_of_first_issue", columnDefinition = "DATE COMMENT '初次领证时间'")
