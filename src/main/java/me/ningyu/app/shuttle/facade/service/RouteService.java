@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.Route;
 import me.ningyu.app.shuttle.domain.repo.RouteDirectionRepository;
-import me.ningyu.app.shuttle.domain.repo.RouteDirectionStopRepository;
+import me.ningyu.app.shuttle.domain.repo.RouteStopRepository;
 import me.ningyu.app.shuttle.domain.repo.RouteRepository;
 import me.ningyu.app.shuttle.model.route.CreateRouteRequest;
 import me.ningyu.app.shuttle.model.route.UpdateRouteRequest;
@@ -23,7 +23,7 @@ public class RouteService
 {
     private final RouteRepository routeRepository;
     private final RouteDirectionRepository routeDirectionRepository;
-    private final RouteDirectionStopRepository routeDirectionStopRepository;
+    private final RouteStopRepository routeStopRepository;
 
 
     /**

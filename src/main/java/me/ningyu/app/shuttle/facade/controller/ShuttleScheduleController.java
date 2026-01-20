@@ -8,10 +8,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import me.ningyu.app.shuttle.domain.entity.ShuttleSchedule;
+import me.ningyu.app.shuttle.domain.entity.Shift;
 import me.ningyu.app.shuttle.facade.service.ShuttleScheduleService;
 import me.ningyu.app.shuttle.model.schedule.CreateScheduleRequest;
 import me.ningyu.app.shuttle.model.schedule.UpdateScheduleRequest;
+import me.ningyu.app.shuttle.model.shift.ApproveShiftSwapRequest;
+import me.ningyu.app.shuttle.model.shift.ShiftSwapRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +32,7 @@ public class ShuttleScheduleController
     @Operation(summary = "创建排班计划", description = "支持批量，仅限今天及未来")
     public ResponseEntity<?> create(@Valid @RequestBody CreateScheduleRequest request)
     {
-        List<ShuttleSchedule> schedules = scheduleService.createBulkSchedules(request);
+        List<Shift> schedules = scheduleService.createBulkSchedules(request);
         return ResponseEntity.ok(schedules);
     }
 
@@ -42,7 +44,7 @@ public class ShuttleScheduleController
     })
     public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody UpdateScheduleRequest request)
     {
-        ShuttleSchedule updated = scheduleService.updateSchedule(id, request);
+        Shift updated = scheduleService.updateSchedule(id, request);
         return ResponseEntity.ok(updated);
     }
 
@@ -56,5 +58,31 @@ public class ShuttleScheduleController
     {
         scheduleService.cancelSchedule(id);
         return ResponseEntity.noContent().build(); // 204 No Content
+    }
+
+    // ==================== 调班相关功能 ====================
+
+    @PostMapping("/shift-swap")
+    @Operation(summary = "申请调班", description = "司机发起调班申请（需审批）或运营管理员直接调班（无需审批）")
+    public ResponseEntity<Shift> requestShiftSwap(@Valid @RequestBody ShiftSwapRequest request)
+    {
+        Shift shift = scheduleService.requestShiftSwap(request);
+        return ResponseEntity.ok(shift);
+    }
+
+    @PostMapping("/shift-swap/approve")
+    @Operation(summary = "审批调班申请", description = "运营管理员审批司机发起的调班申请")
+    public ResponseEntity<Shift> approveShiftSwap(@Valid @RequestBody ApproveShiftSwapRequest request)
+    {
+        Shift shift = scheduleService.approveShiftSwap(request);
+        return ResponseEntity.ok(shift);
+    }
+
+    @GetMapping("/shift-swap/pending")
+    @Operation(summary = "查询待审批的调班申请", description = "获取所有待审批状态的调班申请列表")
+    public ResponseEntity<List<Shift>> getPendingShiftSwaps()
+    {
+        List<Shift> shifts = scheduleService.getPendingShiftSwaps();
+        return ResponseEntity.ok(shifts);
     }
 }

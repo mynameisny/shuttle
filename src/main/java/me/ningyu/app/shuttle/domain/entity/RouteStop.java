@@ -9,15 +9,17 @@ import java.time.LocalTime;
 /**
  * <pre>
  * 线路方向停靠点
+ * 按照 GUIDES.md 规范，原 RouteDirectionStop 类重命名为 RouteStop
  * </pre>
  */
-@Entity(name = "route_direction_stop")
+@Entity(name = "route_stop")
+@Table(name = "route_direction_stop")  // 保持数据库表名不变，避免数据迁移
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RouteDirectionStop extends AbstractAuditable
+public class RouteStop extends AbstractAuditable
 {
     /**
      * 所属的带方向线路
@@ -31,7 +33,7 @@ public class RouteDirectionStop extends AbstractAuditable
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stop_id", nullable = false, columnDefinition = "BIGINT COMMENT '物理站点的ID'")
-    private Stop stop;
+    private PhysicalStop stop;
 
     /**
      * 计划到达时间（可为空，首站通常无到达时间）

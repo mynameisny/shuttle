@@ -34,7 +34,7 @@ public class RouteDirection extends AbstractAuditable
     @OneToMany(mappedBy = "directionalRoute", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @JsonManagedReference
-    private List<RouteDirectionStop> stops = new ArrayList<>();
+    private List<RouteStop> stops = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id", nullable = false, columnDefinition = "BIGINT COMMENT '线路ID'")

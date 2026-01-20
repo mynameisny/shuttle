@@ -13,13 +13,14 @@ import java.util.List;
  * “物理站点”是地理实体，不应包含任何与“线路”或“时间”相关的业务属性
  * </pre>
  */
-@Entity(name = "stop")
+@Entity(name = "physical_stop")
+@Table(name = "stop")  // 保持数据库表名不变，避免数据迁移
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Stop extends AbstractAuditable
+public class PhysicalStop extends AbstractAuditable
 {
     @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '站点编码'")
     private String code;

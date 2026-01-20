@@ -5,9 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.Route;
 import me.ningyu.app.shuttle.domain.entity.RouteDirection;
 import me.ningyu.app.shuttle.domain.repo.RouteDirectionRepository;
-import me.ningyu.app.shuttle.domain.repo.RouteDirectionStopRepository;
+import me.ningyu.app.shuttle.domain.repo.RouteStopRepository;
 import me.ningyu.app.shuttle.domain.repo.RouteRepository;
-import me.ningyu.app.shuttle.domain.repo.ShuttleScheduleRepository;
+import me.ningyu.app.shuttle.domain.repo.ShiftRepository;
 import me.ningyu.app.shuttle.model.route.CreateRouteDirectionRequest;
 import me.ningyu.app.shuttle.model.route.UpdateRouteDirectionRequest;
 import org.springframework.lang.NonNull;
@@ -24,8 +24,8 @@ public class RouteDirectionService
 {
     private final RouteDirectionRepository routeDirectionRepository;
     private final RouteRepository routeRepository;
-    private final RouteDirectionStopRepository routeDirectionStopRepository;
-    private final ShuttleScheduleRepository scheduleRepository;
+    private final RouteStopRepository routeStopRepository;
+    private final ShiftRepository shiftRepository;
 
 
     /**
@@ -94,13 +94,13 @@ public class RouteDirectionService
                 .orElseThrow(() -> new IllegalArgumentException("带方向的线路不存在"));
 
         // 检查是否有关联的站点
-        if (routeDirectionStopRepository.existsByDirectionalRouteId(id))
+        if (routeStopRepository.existsByDirectionalRouteId(id))
         {
             throw new IllegalStateException("该线路方向下存在站点，不能删除");
         }
 
         // 检查是否有关联的排班
-        if (scheduleRepository.existsByRouteDirectionId(id))
+        if (shiftRepository.existsByRouteDirectionId(id))
         {
             throw new IllegalStateException("该线路方向存在排班记录，不能删除");
         }

@@ -31,5 +31,5 @@ public class StopCoordinate extends AbstractAuditable
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stop_id", nullable = false, columnDefinition = "BIGINT COMMENT '站点ID'")
-    private Stop stop;
+    private PhysicalStop stop;
 }

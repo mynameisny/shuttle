@@ -1,7 +1,6 @@
 package me.ningyu.app.shuttle.domain.repo;
 
-import me.ningyu.app.shuttle.domain.entity.ShuttleSchedule;
-import me.ningyu.app.shuttle.domain.entity.Vehicle;
+import me.ningyu.app.shuttle.domain.entity.Shift;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -13,8 +12,12 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+/**
+ * 班次 Repository
+ * 按照 GUIDES.md 规范，原 ShuttleSchedule 改为 Shift
+ */
 @Repository
-public interface ShuttleScheduleRepository extends JpaRepository<ShuttleSchedule, Long>, PagingAndSortingRepository<ShuttleSchedule, Long>, JpaSpecificationExecutor<ShuttleSchedule>
+public interface ShiftRepository extends JpaRepository<Shift, Long>, PagingAndSortingRepository<Shift, Long>, JpaSpecificationExecutor<Shift>
 {
 
     // ========================
@@ -82,9 +85,9 @@ public interface ShuttleScheduleRepository extends JpaRepository<ShuttleSchedule
     // 其他 JPQL 查询（非时间冲突）
     // ========================
 
-    List<ShuttleSchedule> findByOperatingDate(LocalDate date);
+    List<Shift> findByOperatingDate(LocalDate date);
 
-    List<ShuttleSchedule> findByDriverIdAndOperatingDateGreaterThanEqualOrderByOperatingDateAsc(
+    List<Shift> findByDriverIdAndOperatingDateGreaterThanEqualOrderByOperatingDateAsc(
             Long driverId, LocalDate date);
 
     /**
