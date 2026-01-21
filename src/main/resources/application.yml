@@ -12,6 +12,12 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+  mvc:
+    apiversion:
+      use:
+        header: X-API-Version
+      default: v1
+
 
 springdoc:
   swagger-ui:
