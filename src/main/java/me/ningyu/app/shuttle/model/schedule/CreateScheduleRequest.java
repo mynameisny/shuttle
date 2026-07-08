@@ -12,8 +12,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class CreateScheduleRequest
 {
-    @NotNull(message = "带方向的线路ID不能为空")
-    private Long routeDirectionId;
+    @NotNull(message = "线路方向ID不能为空")
+    private Long routeId;
 
     @NotNull(message = "司机ID不能为空")
     private Long driverId;
@@ -29,5 +29,6 @@ public class CreateScheduleRequest
     private LocalDate endDate;
 
     @NotNull(message = "是否包含周末不能为空")
+    @Builder.Default
     private Boolean includeWeekends = false;
 }

@@ -11,26 +11,14 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * 运营记录 Repository
- */
 @Repository
 public interface OperationLogEntryRepository extends JpaRepository<OperationLogEntry, Long>, PagingAndSortingRepository<OperationLogEntry, Long>, JpaSpecificationExecutor<OperationLogEntry>
 {
-    /**
-     * 查询某个班次的所有运营记录
-     */
-    List<OperationLogEntry> findByShiftIdOrderByActualArrivalTimeAsc(Long shiftId);
+    List<OperationLogEntry> findByTripIdOrderByActualArrivalTimeAsc(Long tripId);
 
-    /**
-     * 查询某个班次在某个站点的运营记录
-     */
-    @Query("SELECT ole FROM operation_log_entry ole WHERE ole.shift.id = :shiftId AND ole.stop.id = :stopId")
-    List<OperationLogEntry> findByShiftIdAndStopId(@Param("shiftId") Long shiftId, @Param("stopId") Long stopId);
+    @Query("SELECT ole FROM operation_log_entry ole WHERE ole.trip.id = :tripId AND ole.stop.id = :stopId")
+    List<OperationLogEntry> findByTripIdAndStopId(@Param("tripId") Long tripId, @Param("stopId") Long stopId);
 
-    /**
-     * 查询某一天的所有运营记录
-     */
     @Query("SELECT ole FROM operation_log_entry ole WHERE DATE(ole.actualArrivalTime) = :date ORDER BY ole.actualArrivalTime ASC")
     List<OperationLogEntry> findByOperatingDate(@Param("date") LocalDate date);
 }

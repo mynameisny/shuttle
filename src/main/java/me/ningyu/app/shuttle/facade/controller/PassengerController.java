@@ -16,9 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * 乘客管理 Controller
- */
 @RestController
 @RequestMapping("/api/passengers")
 @RequiredArgsConstructor
@@ -132,18 +129,18 @@ public class PassengerController
 
     // ==================== 统计查询 ====================
 
-    @GetMapping("/by-route-direction/{routeDirectionId}")
+    @GetMapping("/by-route/{routeId}")
     @Operation(summary = "查询某线路的常乘客列表", description = "用于满载率统计")
-    @Parameter(name = "routeDirectionId", description = "线路方向ID", required = true)
-    public ResponseEntity<List<PassengerPreference>> getPassengersByRouteDirection(@PathVariable Long routeDirectionId)
+    @Parameter(name = "routeId", description = "线路方向ID", required = true)
+    public ResponseEntity<List<PassengerPreference>> getPassengersByRoute(@PathVariable Long routeId)
     {
-        List<PassengerPreference> preferences = passengerService.getPassengersByRouteDirection(routeDirectionId);
+        List<PassengerPreference> preferences = passengerService.getPassengersByRoute(routeId);
         return ResponseEntity.ok(preferences);
     }
 
     @GetMapping("/by-stop/{stopId}")
     @Operation(summary = "查询某站点的常乘客列表")
-    @Parameter(name = "stopId", description = "站点ID", required = true)
+    @Parameter(name = "stopId", description = "停靠点ID", required = true)
     public ResponseEntity<List<PassengerPreference>> getPassengersByStop(@PathVariable Long stopId)
     {
         List<PassengerPreference> preferences = passengerService.getPassengersByStop(stopId);

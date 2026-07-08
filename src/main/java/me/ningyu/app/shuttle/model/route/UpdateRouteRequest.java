@@ -12,16 +12,16 @@ import me.ningyu.app.shuttle.enums.Direction;
 @AllArgsConstructor
 public class UpdateRouteRequest
 {
-    @NotBlank(message = "线路名称不能为空")
+    @NotNull(message = "线路ID不能为空")
+    private Long lineId;
+
+    @NotBlank(message = "方向名称不能为空")
     private String name;
 
     @NotNull(message = "方向不能为空")
     private Direction direction;
 
+    private String shape;
+
     private String description;
-
-    private Integer sequence;
-
-    @NotBlank(message = "班车管理员不能为空")
-    private String manager;
 }

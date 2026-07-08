@@ -1,12 +1,13 @@
 package me.ningyu.app.shuttle.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.*;
+import me.ningyu.app.shuttle.enums.VehicleStatus;
 
 /**
  * <pre>
- * 车俩
+ * 车辆
+ * 支持：公交车、班车、商务车、大巴等
  * </pre>
  */
 @Entity(name = "vehicle")
@@ -17,24 +18,21 @@ import lombok.*;
 @AllArgsConstructor
 public class Vehicle extends AbstractAuditable
 {
-    @Column(name = "brand", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '品牌，例如“金龙”'")
-    private String brand;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属组织ID'")
+    private Organization organization;
 
-    @Column(name = "series", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '车系，例如“凯锐”'")
-    private String series;
+    @Column(name = "plate_no", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '车牌号，如京N3RJ66'")
+    private String plateNo;
 
-    @Column(name = "model", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '车型，例如“浩克”'")
-    private String model;
-
-    @Column(name = "type", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '类型（大巴/中巴/小巴）'")
+    @Column(name = "type", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '车辆类型（公交车/班车/大巴/商务车）'")
     private String type;
 
-    @Column(name = "license_plate", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '车牌号，例如“京N3RJ66”'")
-    private String licensePlate;
-
-    @Column(name = "seat_count", columnDefinition = "INT(11) COMMENT '座位数'")
+    @Column(name = "seat_count", columnDefinition = "INT COMMENT '座位数'")
     private Integer seatCount;
 
-    @Column(name = "supplier", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '供应商，例如“新朗途客运有限公司”'")
-    private String supplier;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'ACTIVE' COMMENT '车辆状态'")
+    @Builder.Default
+    private VehicleStatus status = VehicleStatus.ACTIVE;
 }

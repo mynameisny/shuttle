@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-Shuttle 是一个基于 Spring Boot 4.0.1 和 Java 21 构建的班车调度管理系统。它管理线路、站点、车辆、司机以及乘客乘车记录等班车运营相关的业务。
+Shuttle 是一个通用交通运输系统，参考 GTFS（Google Transit Feed Specification）数据模型设计，支持公交线路、企业班车、园区摆渡车、景区接驳车等多种交通场景。基于 Spring Boot 4.0.1 和 Java 21 构建。
 
 ## 构建与开发命令
 
@@ -13,75 +13,96 @@ Shuttle 是一个基于 Spring Boot 4.0.1 和 Java 21 构建的班车调度管�
 - `mvn spring-boot:run` - 本地运行应用
 - `mvn test` - 运行所有测试
 - `mvn test -Dtest=ClassName` - 运行单个测试类
-- `mvn test -Dtest=ClassName#methodName` - 运行单个测试方法
 
 ### 应用访问
 - 应用运行在 8080 端口
 - Swagger UI: http://localhost:8080/swagger-ui.html
 - API 文档: http://localhost:8080/api-docs
-- 所有 API 请求需要携带请求头: `X-API-Version: v1` (由 ApiVersionInterceptor 强制校验)
 
 ## 核心领域架构
 
-### 实体关系模型
+### 实体关系模型（参考 GTFS）
 
-系统遵循领域驱动设计，职责边界清晰：
+系统遵循领域驱动设计，参考 GTFS 标准，支持多组织（SaaS）模式：
 
-**线路体系**
-- `Route` - 线路模板（如"霍营3线"），包含线路名称、管理员等基础信息
-- `RouteDirection` - 带方向的线路（上行/下行/环线），包含唯一编码
-- `RouteDirectionStop` - 线路方向上的有序停靠站点，包含到达/出发时间
+```
+Organization（组织/租户）
+│
+├── Line（线路）
+│      │
+│      ├── Route（线路方向）
+│      │      │
+│      │      └── RouteStop（路线站点）
+│      │               │
+│      │               ▼
+│      │             Stop（停靠点）
+│      │               │
+│      │               ▼
+│      │           StopArea（站点区域）
+│      │
+│      └── Trip（班次）
+│              │
+│              ├── Vehicle（车辆）
+│              └── Driver（司机）
+│
+└── VehicleLocation（车辆位置）
+```
 
-**物理实体**
-- `Stop` - 物理站点位置（地理实体），不应包含与线路或时间相关的属性
-- `StopCoordinate` - 不同坐标系下的 GPS 坐标（WGS84, GCJ02, BD09）
+**核心实体说明**
+
+| 实体 | GTFS 对应 | 说明 |
+|------|-----------|------|
+| Organization | 无 | 多租户扩展 |
+| Line | routes.txt | 业务线路（如"463路"） |
+| Route | trips + shapes + direction | 线路方向/变体（如"463去程"） |
+| StopArea | parent_station | 站点名称聚合（用户看到的站名） |
+| Stop | stops.txt | 实际停靠点（含GPS坐标） |
+| RouteStop | stop_times | 路线上的停靠顺序 |
+| Trip | trips.txt | 一次具体运行（日期+时间+车辆+司机） |
+| Vehicle | GTFS-Realtime Vehicle | 车辆 |
+| VehicleLocation | GTFS-Realtime VehiclePosition | 实时位置 |
+| Driver | 无 | 企业运营扩展 |
+
+**关键设计原则**
+
+1. **Line 与 Route 分离**：Line 是业务线路，Route 是具体运行方向
+2. **StopArea 与 Stop 分离**：StopArea 是用户看到的站名，Stop 是实际停车位置（含GPS）
+3. **Trip 独立建模**：某一天某一时间执行的一次 Route
+4. **RouteStop 关联 Stop**：而非 StopArea，确保去程/返程停靠不同位置
+
+**辅助实体**
+- `Passenger` - 乘客（员工编号、类型、偏好）
+- `PassengerPreference` - 乘客偏好（常坐线路方向和站点）
+- `RideRecord` - 乘车记录
+- `OperationLogEntry` - 运营记录（实际到站/离站时间）
 - `StopPhoto` - 站点实拍照片
-- `Vehicle` - 车辆，包含品牌、车型、车牌号、座位数、供应商等信息
-- `Driver` - 司机，包含个人信息、联系方式、所属公司、驾驶证
-
-**调度与运营**
-- `ShuttleSchedule` - 每日排班：司机 + 车辆 + 线路方向 + 发车时间
-  - 核心原则：司机不与车辆或线路永久绑定
-  - 按天排班以应对不同的工作日程
-- `RideRecord` - 乘客乘车记录，关联到具体的班次
 
 ### 关键业务规则（Service 层校验）
 
-来自 README.md，以下约束必须在 Service 层强制执行：
 1. 同一时间，司机不能开两辆车
 2. 同一时间，车辆不能跑两条线
-3. 班次发车时间不能早于线路方向中首站发车时间
-4. Stop 实体应仅包含地理数据，不应包含线路相关的时间属性（时间属性归属于 RouteDirectionStop）
+3. Trip 是系统核心，GPS、到站预测、调度都围绕 Trip 展开
+4. Stop 实体包含 GPS 坐标，StopArea 不包含
 
 ### 核心设计模式
 
-**解耦策略**
-- 司机通过 `ShuttleSchedule` 与车辆和线路解耦
-- 直接"司机-线路"绑定缺少时间上下文（哪一天、哪个方向）
-- 排班的最小单位是每天：具体日期 + 线路方向 + 司机 + 车辆
-
 **审计功能**
 - 所有实体继承 `AbstractAuditable`（通过 Application.java 中的 `@EnableJpaAuditing` 启用）
-- 自动提供 createdDate、lastModifiedDate、createdBy、lastModifiedBy 字段跟踪
-
-**API 版本控制**
-- 所有接口端点都需要 `X-API-Version: v1` 请求头
-- 由 `ApiVersionInterceptor` 拦截器强制执行
-- 缺失或无效的版本号会返回 400 错误和 JSON 错误信息
+- 自动提供 createdDate、lastModifiedDate、createdBy、lastModifiedBy 字段
 
 ## 包结构
 
 ```
 me.ningyu.app.shuttle/
 ├── domain/
-│   ├── entity/          # JPA 实体，包含注解和中文注释
+│   ├── entity/          # JPA 实体（Organization, Line, Route, Stop, StopArea, Trip, Vehicle, Driver 等）
 │   └── repo/            # Spring Data JPA 仓储接口
 ├── facade/
-│   ├── controller/      # REST 控制器
-│   └── service/         # 业务逻辑和校验
+│   ├── controller/      # REST 控制器（LineController, RouteController, TripController 等）
+│   └── service/         # 业务逻辑和校验（LineService, RouteService, TripService 等）
 ├── model/               # DTO 和请求/响应对象
-├── config/              # Spring 配置（WebConfig, SpringDocConfig, 拦截器）
-├── enums/               # 枚举类（Direction, Gender, CoordinateSystem）
+├── config/              # Spring 配置
+├── enums/               # 枚举类（Direction, LineStatus, RouteStatus, TripStatus, VehicleStatus, DriverStatus）
 └── exception/           # 自定义异常
 ```
 
@@ -126,25 +147,11 @@ me.ningyu.app.shuttle/
          hibernate:
            format_sql: true
    ```
-   根据本地 MySQL 配置修改数据库地址、用户名和密码。
 
-3. 将 `application-local.yml` 添加到 .gitignore（如果尚未添加）：
-   ```
-   src/main/resources/application-local.yml
-   ```
-
-4. 启动应用时指定 local profile：
+3. 启动应用时指定 local profile：
    ```bash
-   # 使用 Maven
    mvn spring-boot:run -Dspring-boot.run.profiles=local
-
-   # 或在 IDEA 中设置 Active profiles: local
    ```
-
-5. 配置特性：
-   - 启用 SQL 格式化（format_sql: true）便于调试
-   - 关闭 SSL 连接
-   - 使用 Asia/Shanghai 时区
 
 ## 代码风格
 
@@ -152,18 +159,16 @@ me.ningyu.app.shuttle/
 - JPA 实体的 columnDefinition 包含中文注释说明业务含义
 - Repository 接口继承 Spring Data JPA repositories
 - Service 使用 `@Transactional` 并通过构造器注入 repositories（使用 Lombok @RequiredArgsConstructor）
-- 校验逻辑在 Service 层实现，而不仅仅依赖注解
+- 校验逻辑在 Service 层实现
 
 ## 测试
 
 - 测试类位于 `src/test/java/`，使用 JUnit
-- 当前测试覆盖率较低
 - 测试框架：Spring Boot Test with JPA, Validation, and WebMvc test starters
 
 ## 重要说明
 
-- AGENTS.md 是另一个项目的文档（使用 Gradle、不同的包结构）- 请忽略
+- AGENTS.md 是另一个项目的文档 - 请忽略
 - 本项目使用 Maven，不是 Gradle
-- `ShuttleScheduleService` 中的调度逻辑包含冲突校验和乘车记录检查
+- TripService 中的调度逻辑包含冲突校验和乘车记录检查
 - 删除班次要求：不能是过去的日期、不能有现有的乘车记录
-- 批量创建排班会生成日期列表，可选择排除周末

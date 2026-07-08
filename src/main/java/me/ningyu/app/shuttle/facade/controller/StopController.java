@@ -6,12 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "站点管理")
+@Tag(name = "停靠点管理")
 @SecurityRequirement(name = "TONY")
 @RestController
 @Slf4j
 @RequiredArgsConstructor
 public class StopController
 {
-
+    // TODO: 实现停靠点 CRUD API
 }

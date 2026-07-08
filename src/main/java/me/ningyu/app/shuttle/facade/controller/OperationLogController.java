@@ -16,10 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * 运营记录 Controller
- * 用于记录班次实际运行数据
- */
 @RestController
 @RequestMapping("/api/operation-logs")
 @RequiredArgsConstructor
@@ -66,22 +62,22 @@ public class OperationLogController
         return ResponseEntity.ok(logEntry);
     }
 
-    @GetMapping("/by-shift/{shiftId}")
+    @GetMapping("/by-trip/{tripId}")
     @Operation(summary = "查询某个班次的所有运营记录", description = "按到达时间升序排列")
-    @Parameter(name = "shiftId", description = "班次ID", required = true)
-    public ResponseEntity<List<OperationLogEntry>> getOperationLogsByShift(@PathVariable Long shiftId)
+    @Parameter(name = "tripId", description = "班次ID", required = true)
+    public ResponseEntity<List<OperationLogEntry>> getOperationLogsByTrip(@PathVariable Long tripId)
     {
-        List<OperationLogEntry> logs = operationLogService.getOperationLogsByShift(shiftId);
+        List<OperationLogEntry> logs = operationLogService.getOperationLogsByTrip(tripId);
         return ResponseEntity.ok(logs);
     }
 
-    @GetMapping("/by-shift-and-stop")
+    @GetMapping("/by-trip-and-stop")
     @Operation(summary = "查询某个班次在某个站点的运营记录")
-    public ResponseEntity<List<OperationLogEntry>> getOperationLogsByShiftAndStop(
-            @RequestParam @Parameter(description = "班次ID", required = true) Long shiftId,
-            @RequestParam @Parameter(description = "站点ID", required = true) Long stopId)
+    public ResponseEntity<List<OperationLogEntry>> getOperationLogsByTripAndStop(
+            @RequestParam @Parameter(description = "班次ID", required = true) Long tripId,
+            @RequestParam @Parameter(description = "停靠点ID", required = true) Long stopId)
     {
-        List<OperationLogEntry> logs = operationLogService.getOperationLogsByShiftAndStop(shiftId, stopId);
+        List<OperationLogEntry> logs = operationLogService.getOperationLogsByTripAndStop(tripId, stopId);
         return ResponseEntity.ok(logs);
     }
 

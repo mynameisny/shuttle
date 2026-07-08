@@ -14,11 +14,12 @@ public class CreatePassengerPreferenceRequest
     private Long passengerId;
 
     @NotNull(message = "线路方向ID不能为空")
-    private Long routeDirectionId;
+    private Long routeId;
 
-    @NotNull(message = "站点ID不能为空")
+    @NotNull(message = "停靠点ID不能为空")
     private Long stopId;
 
+    @Builder.Default
     private Boolean isPrimary = false;
 
     private String description;

@@ -16,7 +16,7 @@ public class UpdateScheduleRequest
 {
     @NotNull(message = "运营日期不能为空")
     @FutureOrPresent(message = "只能编辑未来日期的排班")
-    private LocalDate operatingDate;
+    private LocalDate serviceDate;
 
     @NotNull(message = "发车时间不能为空")
     private LocalTime departureTime;

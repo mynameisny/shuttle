@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RideRepository extends JpaRepository<RideRecord, Long>, PagingAndSortingRepository<RideRecord, Long>, JpaSpecificationExecutor<RideRecord>
 {
-    boolean existsByScheduleId(Long scheduleId);
+    boolean existsByTripId(Long tripId);
 }
