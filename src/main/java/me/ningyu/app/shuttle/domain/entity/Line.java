@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * <pre>
- * 线路（对应 GTFS routes.txt）
+ * 线路（对应GTFS的routes.txt）
  * 表示一条业务线路，如：463路、企业班车A线、园区摆渡1号线
  *
  * Line 不关心具体走向，去程/返程由 Route 定义

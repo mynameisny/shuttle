@@ -5,7 +5,7 @@ import lombok.*;
 
 /**
  * <pre>
- * 组织（多租户）
+ * 组织（多租户，对应GTFS的agency.txt）
  * 用于支持多组织 SaaS 模式
  * 例如：某公交公司、某企业、某学校、某园区
  * </pre>
