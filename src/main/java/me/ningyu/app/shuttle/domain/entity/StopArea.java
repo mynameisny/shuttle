@@ -2,6 +2,7 @@ package me.ningyu.app.shuttle.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.ningyu.app.shuttle.enums.WheelchairAccessibility;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,21 @@ public class StopArea extends AbstractAuditable
 
     @Column(columnDefinition = "TEXT COMMENT '备注'")
     private String remark;
+
+    @Column(name = "zone_id", columnDefinition = "VARCHAR(50) COMMENT '区域编码，用于票价分区'")
+    private String zoneId;
+
+    @Column(columnDefinition = "VARCHAR(255) COMMENT '站点URL'")
+    private String url;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "wheelchair_boarding", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '无障碍乘车信息'")
+    @Builder.Default
+    private WheelchairAccessibility wheelchairBoarding = WheelchairAccessibility.NO_INFO;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "level_id", columnDefinition = "BIGINT COMMENT '所属楼层ID（可选）'")
+    private Level level;
 
     @OneToMany(mappedBy = "stopArea", cascade = CascadeType.ALL)
     @Builder.Default

@@ -3,6 +3,8 @@ package me.ningyu.app.shuttle.domain.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
+import me.ningyu.app.shuttle.enums.LocationType;
+import me.ningyu.app.shuttle.enums.WheelchairAccessibility;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -48,6 +50,29 @@ public class Stop extends AbstractAuditable
 
     @Column(columnDefinition = "TEXT COMMENT '备注'")
     private String remark;
+
+    @Column(name = "zone_id", columnDefinition = "VARCHAR(50) COMMENT '区域编码，用于票价分区'")
+    private String zoneId;
+
+    @Column(columnDefinition = "VARCHAR(255) COMMENT '站点URL'")
+    private String url;
+
+    @Column(columnDefinition = "VARCHAR(50) COMMENT '站点编码'")
+    private String code;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "location_type", columnDefinition = "VARCHAR(20) DEFAULT 'STOP' COMMENT '位置类型：STOP/STATION/ENTRANCE_EXIT等'")
+    @Builder.Default
+    private LocationType locationType = LocationType.STOP;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "wheelchair_boarding", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '无障碍乘车信息'")
+    @Builder.Default
+    private WheelchairAccessibility wheelchairBoarding = WheelchairAccessibility.NO_INFO;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "level_id", columnDefinition = "BIGINT COMMENT '所属楼层ID（可选）'")
+    private Level level;
 
     @OneToMany(mappedBy = "stop", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

@@ -1,0 +1,55 @@
+package me.ningyu.app.shuttle.domain.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDate;
+
+/**
+ * <pre>
+ * 数据源信息（对应 GTFS feed_info.txt）
+ * 描述 GTFS 数据本身的元信息
+ *
+ * 每个组织可有一条 FeedInfo，记录数据发布者、版本、有效期等
+ * </pre>
+ */
+@Entity(name = "feed_info")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FeedInfo extends AbstractAuditable
+{
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属组织ID'")
+    private Organization organization;
+
+    @Column(name = "feed_publisher_name", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '数据发布者名称'")
+    private String feedPublisherName;
+
+    @Column(name = "feed_publisher_url", nullable = false, columnDefinition = "VARCHAR(255) COMMENT '数据发布者URL'")
+    private String feedPublisherUrl;
+
+    @Column(name = "feed_lang", nullable = false, columnDefinition = "VARCHAR(10) DEFAULT 'zh' COMMENT '数据语言，如zh、en'")
+    @Builder.Default
+    private String feedLang = "zh";
+
+    @Column(name = "default_lang", columnDefinition = "VARCHAR(10) COMMENT '默认语言'")
+    private String defaultLang;
+
+    @Column(name = "feed_start_date", columnDefinition = "DATE COMMENT '数据开始日期'")
+    private LocalDate feedStartDate;
+
+    @Column(name = "feed_end_date", columnDefinition = "DATE COMMENT '数据结束日期'")
+    private LocalDate feedEndDate;
+
+    @Column(name = "feed_version", columnDefinition = "VARCHAR(50) COMMENT '数据版本号'")
+    private String feedVersion;
+
+    @Column(name = "feed_contact_email", columnDefinition = "VARCHAR(100) COMMENT '联系邮箱'")
+    private String feedContactEmail;
+
+    @Column(name = "feed_contact_url", columnDefinition = "VARCHAR(255) COMMENT '联系URL'")
+    private String feedContactUrl;
+}

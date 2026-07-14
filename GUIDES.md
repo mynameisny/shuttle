@@ -40,18 +40,122 @@ Organization（组织/租户）
 
 ### 与 GTFS 对照
 
+#### 实体级对照
+
 | 本设计 | GTFS 对应 | 说明 |
 |--------|-----------|------|
-| Organization | 无 | 多租户扩展 |
-| Line | routes.txt | 线路 |
+| Organization | agency.txt | 交通运营机构（多租户扩展） |
+| Line | routes.txt | 业务线路 |
 | Route | trips + shapes + direction 的抽象 | 线路方向/变体 |
-| StopArea | parent_station | 站点名称聚合 |
+| StopArea | stops.txt (parent_station) | 站点名称聚合 |
 | Stop | stops.txt | 实际停靠点 |
-| RouteStop | stop_times（静态停站顺序） | 路线上的停靠顺序 |
+| RouteStop | stop_times.txt | 路线上的停靠顺序 |
 | Trip | trips.txt | 一次具体运行 |
 | Vehicle | GTFS-Realtime Vehicle | 车辆 |
 | VehicleLocation | GTFS-Realtime VehiclePosition | 实时位置 |
 | Driver | 无 | 企业运营扩展 |
+| Passenger | 无 | 企业运营扩展 |
+| RideRecord | 无 | 企业运营扩展 |
+| OperationLogEntry | 无 | 企业运营扩展 |
+
+#### 字段级对照
+
+| GTFS 文件 | GTFS 字段 | 本设计实体 | 本设计字段 |
+|-----------|-----------|-----------|-----------|
+| agency.txt | agency_id | Organization | id |
+| agency.txt | agency_name | Organization | name |
+| agency.txt | agency_url | Organization | （待扩展） |
+| agency.txt | agency_timezone | Organization | （待扩展） |
+| agency.txt | agency_phone | Organization | （待扩展） |
+| routes.txt | route_id | Line | id |
+| routes.txt | agency_id | Line | organization |
+| routes.txt | route_short_name | Line | code |
+| routes.txt | route_long_name | Line | name |
+| routes.txt | route_color | Line | color |
+| routes.txt | route_desc | Line | description |
+| stops.txt | stop_id | Stop | id |
+| stops.txt | stop_name | Stop | name |
+| stops.txt | stop_lat | Stop | latitude |
+| stops.txt | stop_lon | Stop | longitude |
+| stops.txt | parent_station | Stop | stopArea |
+| stops.txt | platform_code | Stop | platform |
+| stop_times.txt | trip_id | RouteStop | route |
+| stop_times.txt | stop_id | RouteStop | stop |
+| stop_times.txt | stop_sequence | RouteStop | sequence |
+| trips.txt | trip_id | Trip | id |
+| trips.txt | route_id | Trip | route |
+| trips.txt | service_id | Trip | serviceDate |
+| trips.txt | direction_id | Route | direction |
+| trips.txt | shape_id | Route | shape |
+| GTFS-RT | vehicle.id | Vehicle | id |
+| GTFS-RT | vehicle.label | Vehicle | plateNo |
+| GTFS-RT | position.latitude | VehicleLocation | latitude |
+| GTFS-RT | position.longitude | VehicleLocation | longitude |
+| GTFS-RT | position.speed | VehicleLocation | speed |
+| GTFS-RT | position.bearing | VehicleLocation | heading |
+| GTFS-RT | timestamp | VehicleLocation | gpsTime |
+
+#### 已实现的 GTFS 扩展实体
+
+| GTFS 文件 | 本设计实体 | 说明 |
+|-----------|-----------|------|
+| calendar.txt | ServiceCalendar | 服务日历（工作日/节假日） |
+| calendar_dates.txt | CalendarDate | 特殊日期（临时加开/停运） |
+| shapes.txt | Shape | 线路形状点（精细轨迹） |
+| fare_attributes.txt | FareAttribute | 票价规则 |
+| fare_rules.txt | FareRule | 票价适用范围 |
+| frequencies.txt | Frequency | 发车频率 |
+| transfers.txt | Transfer | 换乘规则 |
+| pathways.txt | Pathway | 站内通道 |
+| levels.txt | Level | 站内楼层 |
+| feed_info.txt | FeedInfo | 数据源信息 |
+
+#### 现有实体的 GTFS 字段扩展
+
+**Organization（扩展 agency.txt 字段）：**
+- url - 组织URL
+- timezone - 时区
+- lang - 语言
+- phone - 联系电话
+- email - 联系邮箱
+
+**Line（扩展 routes.txt 字段）：**
+- routeType - 线路类型（TRAM/SUBWAY/RAIL/BUS/FERRY等）
+- textColor - 文字颜色
+- sortOrder - 排序编号
+- url - 线路URL
+
+**StopArea（扩展 stops.txt parent_station 字段）：**
+- zoneId - 区域编码（票价分区）
+- url - 站点URL
+- wheelchairBoarding - 无障碍乘车信息
+- level - 所属楼层
+
+**Stop（扩展 stops.txt 字段）：**
+- zoneId - 区域编码（票价分区）
+- url - 站点URL
+- code - 站点编码
+- locationType - 位置类型（STOP/STATION/ENTRANCE_EXIT等）
+- wheelchairBoarding - 无障碍乘车信息
+- level - 所属楼层
+
+**RouteStop（扩展 stop_times.txt 字段）：**
+- arrivalTime - 计划到达时间
+- departureTime - 计划出发时间
+- timepoint - 时间精度（APPROXIMATE/EXACT）
+- stopHeadsign - 站点头牌文字
+- pickupType - 上车类型
+- dropOffType - 下车类型
+- continuousPickup - 连续上车
+- continuousDropOff - 连续下车
+
+**Trip（扩展 trips.txt 字段）：**
+- serviceCalendar - 服务日历
+- tripHeadsign - 班车头牌文字
+- tripShortName - 班次简称
+- blockId - 车辆组ID（同一辆车连续执行多个班次）
+- wheelchairAccessible - 无障碍设施
+- bikesAllowed - 是否允许携带自行车
 
 ---
 

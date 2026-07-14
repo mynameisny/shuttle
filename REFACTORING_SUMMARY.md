@@ -156,17 +156,71 @@
 - `stop_area`
 - `vehicle_location`
 
+## GTFS 完全兼容扩展（2026-07-07）
+
+### 新增实体（10个）
+
+| 实体 | GTFS 文件 | 说明 |
+|------|-----------|------|
+| ServiceCalendar | calendar.txt | 服务日历（工作日/节假日） |
+| CalendarDate | calendar_dates.txt | 特殊日期（临时加开/停运） |
+| Shape | shapes.txt | 线路形状点（精细轨迹） |
+| FareAttribute | fare_attributes.txt | 票价规则 |
+| FareRule | fare_rules.txt | 票价适用范围 |
+| Frequency | frequencies.txt | 发车频率 |
+| Transfer | transfers.txt | 换乘规则 |
+| Pathway | pathways.txt | 站内通道 |
+| Level | levels.txt | 站内楼层 |
+| FeedInfo | feed_info.txt | 数据源信息 |
+
+### 新增枚举（11个）
+
+- RouteType - 线路类型（TRAM/SUBWAY/RAIL/BUS/FERRY等）
+- LocationType - 位置类型（STOP/STATION/ENTRANCE_EXIT等）
+- WheelchairAccessibility - 无障碍乘车信息
+- BikeAllowance - 是否允许携带自行车
+- PaymentMethod - 支付方式
+- TransferPermission - 允许换乘次数
+- ExceptionType - 异常类型（加开/停运）
+- PathwayMode - 通道类型（步道/楼梯/扶梯/电梯等）
+- ExactTimes - 是否精确时间
+- Timepoint - 时间精度
+- TransferType - 换乘类型
+
+### 现有实体扩展
+
+- Organization - 新增 url、timezone、lang、phone、email 字段
+- Line - 新增 routeType、textColor、sortOrder、url 字段
+- StopArea - 新增 zoneId、url、wheelchairBoarding、level 字段
+- Stop - 新增 zoneId、url、code、locationType、wheelchairBoarding、level 字段
+- RouteStop - 新增 arrivalTime、departureTime、timepoint、stopHeadsign、pickupType、dropOffType 等字段
+- Trip - 新增 serviceCalendar、tripHeadsign、tripShortName、blockId、wheelchairAccessible、bikesAllowed 字段
+
+### 新增 Repository（10个）
+
+- ServiceCalendarRepository
+- CalendarDateRepository
+- ShapeRepository
+- FareAttributeRepository
+- FareRuleRepository
+- FrequencyRepository
+- TransferRepository
+- PathwayRepository
+- LevelRepository
+- FeedInfoRepository
+
 ## 后续任务
 
 1. 实现 StopController（停靠点 CRUD API）
 2. 实现 OrganizationController（组织管理 API）
 3. 实现 StopAreaController（站点区域管理 API）
 4. 实现 VehicleLocationController（车辆位置 API）
-5. 集成 Kafka 消息队列（RideStartedEvent）
-6. 集成移动端 GPS 上报
-7. 实现 ServiceCalendar（服务日历）
-8. 实现 Fare（票价）
-9. 实现 Reservation（预约乘车）
+5. 实现 ServiceCalendarController（服务日历 API）
+6. 实现 FareController（票价管理 API）
+7. 实现 TransferController（换乘规则 API）
+8. 集成 Kafka 消息队列（RideStartedEvent）
+9. 集成移动端 GPS 上报
+10. 实现 Reservation（预约乘车）
 
 ---
 

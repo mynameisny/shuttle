@@ -23,4 +23,20 @@ public class Organization extends AbstractAuditable
 
     @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '组织编码'")
     private String code;
+
+    @Column(columnDefinition = "VARCHAR(255) COMMENT '组织URL'")
+    private String url;
+
+    @Column(columnDefinition = "VARCHAR(50) COMMENT '时区，如Asia/Shanghai'")
+    private String timezone;
+
+    @Column(columnDefinition = "VARCHAR(10) DEFAULT 'zh' COMMENT '语言，如zh、en'")
+    @Builder.Default
+    private String lang = "zh";
+
+    @Column(columnDefinition = "VARCHAR(50) COMMENT '联系电话'")
+    private String phone;
+
+    @Column(columnDefinition = "VARCHAR(100) COMMENT '联系邮箱'")
+    private String email;
 }

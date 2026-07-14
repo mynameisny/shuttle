@@ -3,6 +3,7 @@ package me.ningyu.app.shuttle.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import me.ningyu.app.shuttle.enums.LineStatus;
+import me.ningyu.app.shuttle.enums.RouteType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,20 @@ public class Line extends AbstractAuditable
 
     @Column(columnDefinition = "TEXT COMMENT '线路描述'")
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "route_type", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'BUS' COMMENT '线路类型：TRAM/SUBWAY/RAIL/BUS/FERRY等'")
+    @Builder.Default
+    private RouteType routeType = RouteType.BUS;
+
+    @Column(name = "text_color", columnDefinition = "VARCHAR(20) COMMENT '文字颜色，如FFFFFF'")
+    private String textColor;
+
+    @Column(name = "sort_order", columnDefinition = "INT COMMENT '排序编号'")
+    private Integer sortOrder;
+
+    @Column(columnDefinition = "VARCHAR(255) COMMENT '线路URL'")
+    private String url;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'ACTIVE' COMMENT '线路状态'")

@@ -2,7 +2,9 @@ package me.ningyu.app.shuttle.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.ningyu.app.shuttle.enums.BikeAllowance;
 import me.ningyu.app.shuttle.enums.TripStatus;
+import me.ningyu.app.shuttle.enums.WheelchairAccessibility;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -46,6 +48,29 @@ public class Trip extends AbstractAuditable
 
     @Column(name = "arrival_time", columnDefinition = "TIME COMMENT '预计到达时间'")
     private LocalTime arrivalTime;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_calendar_id", columnDefinition = "BIGINT COMMENT '服务日历ID（可选）'")
+    private ServiceCalendar serviceCalendar;
+
+    @Column(name = "trip_headsign", columnDefinition = "VARCHAR(100) COMMENT '班车头牌文字'")
+    private String tripHeadsign;
+
+    @Column(name = "trip_short_name", columnDefinition = "VARCHAR(50) COMMENT '班次简称'")
+    private String tripShortName;
+
+    @Column(name = "block_id", columnDefinition = "VARCHAR(50) COMMENT '车辆组ID，同一辆车连续执行多个班次'")
+    private String blockId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "wheelchair_accessible", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '无障碍设施'")
+    @Builder.Default
+    private WheelchairAccessibility wheelchairAccessible = WheelchairAccessibility.NO_INFO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "bikes_allowed", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '是否允许携带自行车'")
+    @Builder.Default
+    private BikeAllowance bikesAllowed = BikeAllowance.NO_INFO;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'SCHEDULED' COMMENT '班次状态'")

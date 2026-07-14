@@ -52,12 +52,12 @@ Organization（组织/租户）
 
 | 实体 | GTFS 对应 | 说明 |
 |------|-----------|------|
-| Organization | 无 | 多租户扩展 |
+| Organization | agency.txt | 交通运营机构（多租户扩展） |
 | Line | routes.txt | 业务线路（如"463路"） |
 | Route | trips + shapes + direction | 线路方向/变体（如"463去程"） |
-| StopArea | parent_station | 站点名称聚合（用户看到的站名） |
+| StopArea | stops.txt (parent_station) | 站点名称聚合（用户看到的站名） |
 | Stop | stops.txt | 实际停靠点（含GPS坐标） |
-| RouteStop | stop_times | 路线上的停靠顺序 |
+| RouteStop | stop_times.txt | 路线上的停靠顺序 |
 | Trip | trips.txt | 一次具体运行（日期+时间+车辆+司机） |
 | Vehicle | GTFS-Realtime Vehicle | 车辆 |
 | VehicleLocation | GTFS-Realtime VehiclePosition | 实时位置 |
@@ -69,6 +69,18 @@ Organization（组织/租户）
 2. **StopArea 与 Stop 分离**：StopArea 是用户看到的站名，Stop 是实际停车位置（含GPS）
 3. **Trip 独立建模**：某一天某一时间执行的一次 Route
 4. **RouteStop 关联 Stop**：而非 StopArea，确保去程/返程停靠不同位置
+
+**GTFS 扩展实体**
+- `ServiceCalendar` - 服务日历（对应 calendar.txt）
+- `CalendarDate` - 特殊日期（对应 calendar_dates.txt）
+- `Shape` - 线路形状点（对应 shapes.txt）
+- `FareAttribute` - 票价属性（对应 fare_attributes.txt）
+- `FareRule` - 票价规则（对应 fare_rules.txt）
+- `Frequency` - 发车频率（对应 frequencies.txt）
+- `Transfer` - 换乘规则（对应 transfers.txt）
+- `Pathway` - 站内通道（对应 pathways.txt）
+- `Level` - 站内楼层（对应 levels.txt）
+- `FeedInfo` - 数据源信息（对应 feed_info.txt）
 
 **辅助实体**
 - `Passenger` - 乘客（员工编号、类型、偏好）
