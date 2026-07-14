@@ -39,4 +39,7 @@ public class Organization extends AbstractAuditable
 
     @Column(columnDefinition = "VARCHAR(100) COMMENT '联系邮箱'")
     private String email;
+
+    @Column(name = "fare_url", columnDefinition = "VARCHAR(255) COMMENT '票价信息网址'")
+    private String fareUrl;
 }

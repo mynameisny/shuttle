@@ -44,17 +44,6 @@ public class OrganizationController
         return ResponseEntity.created(location).body(organization);
     }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "更新组织", description = "更新指定组织的信息")
-    @Parameters({
-            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "组织ID", schema = @Schema(type = "long"))
-    })
-    public ResponseEntity<Organization> update(@PathVariable Long id, @Valid @RequestBody UpdateOrganizationRequest request)
-    {
-        Organization organization = organizationService.updateOrganization(id, request);
-        return ResponseEntity.ok(organization);
-    }
-
     @DeleteMapping("/{id}")
     @Operation(summary = "删除组织", description = "删除指定组织")
     @Parameters({
@@ -65,15 +54,15 @@ public class OrganizationController
         organizationService.deleteOrganization(id);
         return ResponseEntity.noContent().build();
     }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "获取组织详情", description = "根据ID获取组织的详细信息")
+    
+    @PutMapping("/{id}")
+    @Operation(summary = "更新组织", description = "更新指定组织的信息")
     @Parameters({
             @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "组织ID", schema = @Schema(type = "long"))
     })
-    public ResponseEntity<Organization> getById(@PathVariable Long id)
+    public ResponseEntity<Organization> update(@PathVariable Long id, @Valid @RequestBody UpdateOrganizationRequest request)
     {
-        Organization organization = organizationService.getOrganizationById(id);
+        Organization organization = organizationService.updateOrganization(id, request);
         return ResponseEntity.ok(organization);
     }
 
@@ -93,5 +82,16 @@ public class OrganizationController
         }
         List<Organization> organizations = organizationService.getAllOrganizations();
         return ResponseEntity.ok(organizations);
+    }
+    
+    @GetMapping("/{id}")
+    @Operation(summary = "获取组织详情", description = "根据ID获取组织的详细信息")
+    @Parameters({
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "组织ID", schema = @Schema(type = "long"))
+    })
+    public ResponseEntity<Organization> getById(@PathVariable Long id)
+    {
+        Organization organization = organizationService.getOrganizationById(id);
+        return ResponseEntity.ok(organization);
     }
 }

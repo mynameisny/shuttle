@@ -64,9 +64,12 @@ Organization（组织/租户）
 |-----------|-----------|-----------|-----------|
 | agency.txt | agency_id | Organization | id |
 | agency.txt | agency_name | Organization | name |
-| agency.txt | agency_url | Organization | （待扩展） |
-| agency.txt | agency_timezone | Organization | （待扩展） |
-| agency.txt | agency_phone | Organization | （待扩展） |
+| agency.txt | agency_url | Organization | url |
+| agency.txt | agency_timezone | Organization | timezone |
+| agency.txt | agency_lang | Organization | lang |
+| agency.txt | agency_phone | Organization | phone |
+| agency.txt | agency_email | Organization | email |
+| agency.txt | agency_fare_url | Organization | fareUrl |
 | routes.txt | route_id | Line | id |
 | routes.txt | agency_id | Line | organization |
 | routes.txt | route_short_name | Line | code |
