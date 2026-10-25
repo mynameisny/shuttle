@@ -11,9 +11,12 @@ import java.time.LocalDate;
  * 日历特殊日期（对应 GTFS calendar_dates.txt）
  * 用于处理节假日、临时加开/停运等例外情况
  *
- * exception_type:
- * - ADDED(1): 该日期加开服务
- * - REMOVED(2): 该日期停运服务
+ * 参考：https://gtfs.org/documentation/schedule/reference/#calendar_datestxt
+ *
+ * GTFS 字段定义（Field Name / Type / Presence）：
+ * - service_id     (Foreign ID) [必填] 服务标识。
+ * - date           (Date)       [必填] 例外日期。
+ * - exception_type (Enum)       [必填] 例外类型（1=加开,2=停运）。
  * </pre>
  */
 @Entity(name = "calendar_date")

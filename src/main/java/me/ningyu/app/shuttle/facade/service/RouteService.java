@@ -1,16 +1,16 @@
 package me.ningyu.app.shuttle.facade.service;
 
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.ningyu.app.shuttle.domain.entity.Line;
+import me.ningyu.app.shuttle.domain.entity.Agency;
 import me.ningyu.app.shuttle.domain.entity.Route;
-import me.ningyu.app.shuttle.domain.repo.LineRepository;
+import me.ningyu.app.shuttle.domain.repo.AgencyRepository;
 import me.ningyu.app.shuttle.domain.repo.RouteRepository;
 import me.ningyu.app.shuttle.domain.repo.RouteStopRepository;
 import me.ningyu.app.shuttle.domain.repo.TripRepository;
 import me.ningyu.app.shuttle.model.route.CreateRouteRequest;
 import me.ningyu.app.shuttle.model.route.UpdateRouteRequest;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,39 +23,52 @@ import java.util.List;
 public class RouteService
 {
     private final RouteRepository routeRepository;
-    private final LineRepository lineRepository;
+    private final AgencyRepository agencyRepository;
     private final RouteStopRepository routeStopRepository;
     private final TripRepository tripRepository;
 
-    @NonNull
+    @Nonnull
     public Route createRoute(CreateRouteRequest request)
     {
-        Line line = lineRepository.findById(request.getLineId())
-                .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
+        Agency agency = agencyRepository.findById(request.getAgencyId())
+                .orElseThrow(() -> new IllegalArgumentException("机构不存在"));
 
         Route route = Route.builder()
-                .line(line)
-                .name(request.getName())
-                .direction(request.getDirection())
-                .shape(request.getShape())
+                .routeId(request.getRouteId())
+                .agency(agency)
+                .routeLongName(request.getRouteLongName())
+                .routeShortName(request.getRouteShortName())
+                .routeDesc(request.getRouteDesc())
+                .routeType(request.getRouteType())
+                .routeUrl(request.getRouteUrl())
+                .routeColor(request.getRouteColor())
+                .routeTextColor(request.getRouteTextColor())
+                .routeSortOrder(request.getRouteSortOrder())
+                .continuousPickup(request.getContinuousPickup())
+                .continuousDropOff(request.getContinuousDropOff())
+                .networkId(request.getNetworkId())
                 .build();
 
         return routeRepository.save(route);
     }
 
-    @NonNull
+    @Nonnull
     public Route updateRoute(Long id, UpdateRouteRequest request)
     {
         Route route = routeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("线路方向不存在"));
-
-        Line line = lineRepository.findById(request.getLineId())
                 .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
 
-        route.setLine(line);
-        route.setName(request.getName());
-        route.setDirection(request.getDirection());
-        route.setShape(request.getShape());
+        if (request.getRouteLongName() != null) route.setRouteLongName(request.getRouteLongName());
+        if (request.getRouteShortName() != null) route.setRouteShortName(request.getRouteShortName());
+        if (request.getRouteDesc() != null) route.setRouteDesc(request.getRouteDesc());
+        if (request.getRouteType() != null) route.setRouteType(request.getRouteType());
+        if (request.getRouteUrl() != null) route.setRouteUrl(request.getRouteUrl());
+        if (request.getRouteColor() != null) route.setRouteColor(request.getRouteColor());
+        if (request.getRouteTextColor() != null) route.setRouteTextColor(request.getRouteTextColor());
+        if (request.getRouteSortOrder() != null) route.setRouteSortOrder(request.getRouteSortOrder());
+        if (request.getContinuousPickup() != null) route.setContinuousPickup(request.getContinuousPickup());
+        if (request.getContinuousDropOff() != null) route.setContinuousDropOff(request.getContinuousDropOff());
+        if (request.getNetworkId() != null) route.setNetworkId(request.getNetworkId());
 
         return routeRepository.save(route);
     }
@@ -63,37 +76,36 @@ public class RouteService
     public void deleteRoute(Long id)
     {
         Route route = routeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("线路方向不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
 
         if (routeStopRepository.existsByRouteId(id))
         {
-            throw new IllegalStateException("该线路方向下存在站点，不能删除");
+            throw new IllegalStateException("该线路下存在站点，不能删除");
         }
-
         if (tripRepository.existsByRouteId(id))
         {
-            throw new IllegalStateException("该线路方向存在班次记录，不能删除");
+            throw new IllegalStateException("该线路下存在班次，不能删除");
         }
 
         routeRepository.delete(route);
     }
 
-    @NonNull
+    @Nonnull
     public Route getRouteById(Long id)
     {
         return routeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("线路方向不存在"));
+                .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
     }
 
-    @NonNull
+    @Nonnull
     public List<Route> getAllRoutes()
     {
         return routeRepository.findAll();
     }
 
-    @NonNull
-    public List<Route> getRoutesByLineId(Long lineId)
+    @Nonnull
+    public List<Route> getRoutesByAgencyId(Long agencyId)
     {
-        return routeRepository.findByLineId(lineId);
+        return routeRepository.findByAgencyId(agencyId);
     }
 }

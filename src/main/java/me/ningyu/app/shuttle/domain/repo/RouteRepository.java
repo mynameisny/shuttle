@@ -4,14 +4,15 @@ import me.ningyu.app.shuttle.domain.entity.Route;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
-@Repository
 public interface RouteRepository extends JpaRepository<Route, Long>, PagingAndSortingRepository<Route, Long>, JpaSpecificationExecutor<Route>
 {
-    List<Route> findByLineId(Long lineId);
+    Optional<Route> findByRouteId(String routeId);
 
-    boolean existsByLineId(Long lineId);
+    boolean existsByRouteId(String routeId);
+
+    List<Route> findByAgencyId(Long agencyId);
 }

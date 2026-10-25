@@ -21,4 +21,14 @@ public enum BikeAllowance
         this.code = code;
         this.name = name;
     }
+
+    public static BikeAllowance fromValue(Integer code)
+    {
+        if (code == null) return NO_INFO;
+        for (BikeAllowance v : values())
+        {
+            if (v.code == code) return v;
+        }
+        throw new IllegalArgumentException("无效的 bikes_allowed 值: " + code);
+    }
 }

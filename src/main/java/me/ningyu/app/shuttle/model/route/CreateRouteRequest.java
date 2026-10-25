@@ -3,7 +3,7 @@ package me.ningyu.app.shuttle.model.route;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import me.ningyu.app.shuttle.enums.Direction;
+import me.ningyu.app.shuttle.enums.RouteType;
 
 @Getter
 @Setter
@@ -12,16 +12,33 @@ import me.ningyu.app.shuttle.enums.Direction;
 @AllArgsConstructor
 public class CreateRouteRequest
 {
-    @NotNull(message = "线路ID不能为空")
-    private Long lineId;
+    @NotNull(message = "机构ID不能为空")
+    private Long agencyId;
 
-    @NotBlank(message = "方向名称不能为空")
-    private String name;
+    @NotBlank(message = "线路ID不能为空")
+    private String routeId;
 
-    @NotNull(message = "方向不能为空")
-    private Direction direction;
+    @NotBlank(message = "线路名称不能为空")
+    private String routeLongName;
 
-    private String shape;
+    private String routeShortName;
 
-    private String description;
+    private String routeDesc;
+
+    @NotNull(message = "线路类型不能为空")
+    private RouteType routeType;
+
+    private String routeUrl;
+
+    private String routeColor;
+
+    private String routeTextColor;
+
+    private Integer routeSortOrder;
+
+    private Integer continuousPickup;
+
+    private Integer continuousDropOff;
+
+    private String networkId;
 }

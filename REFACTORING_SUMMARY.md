@@ -86,8 +86,8 @@
 - `Route.java` - 重写为线路方向（原 RouteDirection 的角色）
 - `RouteStop.java` - 更新关联 Route 和 Stop
 - `Stop.java` - 重写为停靠点（含 GPS，原 PhysicalStop 的角色）
-- `Vehicle.java` - 新增 organization 关联，简化字段
-- `Driver.java` - 新增 organization 关联，合并 DrivingLicense
+- `Vehicle.java` - 新增 agency 关联，简化字段
+- `Driver.java` - 新增 agency 关联，合并 DrivingLicense
 - `StopPhoto.java` - 更新关联 Stop
 - `OperationLogEntry.java` - 更新关联 Trip 和 Stop
 - `RideRecord.java` - 更新关联 Trip
@@ -151,7 +151,7 @@
 - `Trip` → 表名 `shuttle_schedule`
 
 新增实体将在应用启动时自动创建表：
-- `organization`
+- `agency`
 - `line`
 - `stop_area`
 - `vehicle_location`

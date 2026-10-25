@@ -71,7 +71,7 @@ Organization（组织/租户）
 | agency.txt | agency_email | Organization | email |
 | agency.txt | agency_fare_url | Organization | fareUrl |
 | routes.txt | route_id | Line | id |
-| routes.txt | agency_id | Line | organization |
+| routes.txt | agency_id | Line | agency |
 | routes.txt | route_short_name | Line | code |
 | routes.txt | route_long_name | Line | name |
 | routes.txt | route_color | Line | color |
@@ -167,7 +167,7 @@ Organization（组织/租户）
 ### 1. 组织管理（Organization）
 
 **实体**：
-- `Organization`（组织）
+- `Agency`（组织）
     - 名称、编码
     - 支持多租户 SaaS 模式
 

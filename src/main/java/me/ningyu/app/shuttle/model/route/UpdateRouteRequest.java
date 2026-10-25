@@ -1,9 +1,7 @@
 package me.ningyu.app.shuttle.model.route;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import me.ningyu.app.shuttle.enums.Direction;
+import me.ningyu.app.shuttle.enums.RouteType;
 
 @Getter
 @Setter
@@ -12,16 +10,25 @@ import me.ningyu.app.shuttle.enums.Direction;
 @AllArgsConstructor
 public class UpdateRouteRequest
 {
-    @NotNull(message = "线路ID不能为空")
-    private Long lineId;
+    private String routeLongName;
 
-    @NotBlank(message = "方向名称不能为空")
-    private String name;
+    private String routeShortName;
 
-    @NotNull(message = "方向不能为空")
-    private Direction direction;
+    private String routeDesc;
 
-    private String shape;
+    private RouteType routeType;
 
-    private String description;
+    private String routeUrl;
+
+    private String routeColor;
+
+    private String routeTextColor;
+
+    private Integer routeSortOrder;
+
+    private Integer continuousPickup;
+
+    private Integer continuousDropOff;
+
+    private String networkId;
 }

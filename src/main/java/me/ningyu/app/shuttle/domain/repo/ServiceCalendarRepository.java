@@ -13,7 +13,7 @@ public interface ServiceCalendarRepository extends JpaRepository<ServiceCalendar
 {
     Optional<ServiceCalendar> findByCode(String code);
 
-    List<ServiceCalendar> findByOrganizationId(Long organizationId);
+    List<ServiceCalendar> findByAgencyId(Long agencyId);
 
     List<ServiceCalendar> findByStartDateLessThanEqualAndEndDateGreaterThanEqual(LocalDate date1, LocalDate date2);
 }

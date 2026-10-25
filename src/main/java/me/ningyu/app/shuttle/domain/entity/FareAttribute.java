@@ -9,8 +9,19 @@ import java.math.BigDecimal;
 
 /**
  * <pre>
- * 票价属性（对应 GTFS fare_attributes.txt）
+ * 票价属性（对应 GTFS fare_attributes.txt, Fares V1）
  * 定义票价规则，包括价格、货币、支付方式、换乘规则等
+ *
+ * 参考：https://gtfs.org/documentation/schedule/reference/#fare_attributestxt
+ *
+ * GTFS 字段定义（Field Name / Type / Presence）：
+ * - fare_id           (Unique ID)           [必填]     票价标识。
+ * - price             (Non-negative float)  [必填]     票价金额。
+ * - currency_type     (Currency code)       [必填]     货币类型（如 CNY、USD）。
+ * - payment_method    (Enum)                [必填]     支付方式（0=车上,1=站前）。
+ * - transfers         (Enum)                [必填]     允许换乘次数（0/1/2/空=无限）。
+ * - agency_id         (Foreign ID)          [条件必填] 所属机构。
+ * - transfer_duration (Non-negative integer)[可选]     换乘有效时长（秒）。
  * </pre>
  */
 @Entity(name = "fare_attribute")
@@ -22,8 +33,8 @@ import java.math.BigDecimal;
 public class FareAttribute extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属组织ID'")
-    private Organization organization;
+    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构ID'")
+    private Agency agency;
 
     @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '票价编码'")
     private String code;

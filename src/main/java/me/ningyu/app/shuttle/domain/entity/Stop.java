@@ -1,24 +1,52 @@
 package me.ningyu.app.shuttle.domain.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import me.ningyu.app.shuttle.enums.LocationType;
 import me.ningyu.app.shuttle.enums.WheelchairAccessibility;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <pre>
  * 停靠点（对应 GTFS stops.txt）
- * 表示车辆真正停车的位置，包含 GPS、所属站点、所在道路、所在方向
  *
- * 一个 StopArea 可包含多个 Stop
- * 例如：StopArea"地铁朱辛庄站" → Stop"东侧站台"(GPS A) + Stop"西侧站台"(GPS B)
+ * 参考：<a href="https://gtfs.org/documentation/schedule/reference/#stopstxt">stops.txt</a>
  *
- * RouteStop 永远关联 Stop，而不是 StopArea
+ * GTFS stops.txt 的 location_type 区分层级，同一张表内处理：
+ * - 0 STOP           → 普通站点/站台
+ * - 1 STATION        → 站厅（通过 parent_station 自引用）
+ * - 2 ENTRANCE_EXIT  → 出入口
+ * - 3 GENERIC_NODE   → 站内通用节点
+ * - 4 BOARDING_AREA  → 上车区
+ *
+ * GTFS 字段定义（Field Name / Type / Presence）：
+ * - stop_id            (Unique ID)   [必填]     位置唯一标识。
+ * - stop_code          (Text)        [可选]     面向乘客的站点短码。
+ * - stop_name          (Text)        [条件必填] 站点名称。
+ * - stop_lat           (Latitude)    [条件必填] 纬度。
+ * - stop_lon           (Longitude)   [条件必填] 经度。
+ * - zone_id            (ID)          [可选]     票价分区。
+ * - stop_url           (URL)         [可选]     站点网页URL。
+ * - location_type      (Enum)        [可选]     位置类型（0/1/2/3/4）。
+ * - parent_station     (Foreign ID)  [条件必填] 父级站厅，自引用实现层级。
+ * - wheelchair_boarding(Enum)        [可选]     无障碍乘车信息。
+ * - level_id           (Foreign ID)  [可选]     所属楼层。
+ * - platform_code      (Text)        [可选]     站台标识。
+ *
+ * Java 字段映射：
+ * - stop_id            → stopId
+ * - stop_code          → stopCode
+ * - stop_name          → stopName
+ * - stop_lat           → stopLat
+ * - stop_lon           → stopLon
+ * - zone_id            → zoneId
+ * - stop_url           → stopUrl
+ * - location_type      → locationType
+ * - parent_station     → parentStation
+ * - wheelchair_boarding → wheelchairBoarding
+ * - level_id           → level
+ * - platform_code      → platformCode
  * </pre>
  */
 @Entity(name = "stop")
@@ -29,58 +57,45 @@ import java.util.List;
 @AllArgsConstructor
 public class Stop extends AbstractAuditable
 {
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stop_area_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属站点区域ID'")
-    private StopArea stopArea;
+    @Column(name = "stop_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '位置唯一标识（对应GTFS stop_id）'")
+    private String stopId;
 
-    @Column(nullable = false, columnDefinition = "VARCHAR(100) COMMENT '停靠点名称，如东侧站台'")
-    private String name;
+    @Column(name = "stop_code", columnDefinition = "VARCHAR(50) COMMENT '面向乘客的站点短码（对应GTFS stop_code）'")
+    private String stopCode;
 
-    @Column(nullable = false, precision = 10, scale = 7, columnDefinition = "DECIMAL(10,7) COMMENT '经度'")
-    private BigDecimal longitude;
+    @Column(name = "stop_name", columnDefinition = "VARCHAR(100) COMMENT '站点名称（对应GTFS stop_name）'")
+    private String stopName;
 
-    @Column(nullable = false, precision = 10, scale = 7, columnDefinition = "DECIMAL(10,7) COMMENT '纬度'")
-    private BigDecimal latitude;
+    @Column(name = "stop_lat", precision = 10, scale = 7, columnDefinition = "DECIMAL(10,7) COMMENT '纬度（对应GTFS stop_lat）'")
+    private BigDecimal stopLat;
 
-    @Column(columnDefinition = "VARCHAR(50) COMMENT '站台编号'")
-    private String platform;
+    @Column(name = "stop_lon", precision = 10, scale = 7, columnDefinition = "DECIMAL(10,7) COMMENT '经度（对应GTFS stop_lon）'")
+    private BigDecimal stopLon;
 
-    @Column(columnDefinition = "DECIMAL(5,2) COMMENT '方位角(0-360度)'")
-    private BigDecimal bearing;
-
-    @Column(columnDefinition = "TEXT COMMENT '备注'")
-    private String remark;
-
-    @Column(name = "zone_id", columnDefinition = "VARCHAR(50) COMMENT '区域编码，用于票价分区'")
+    @Column(name = "zone_id", columnDefinition = "VARCHAR(50) COMMENT '票价分区（对应GTFS zone_id）'")
     private String zoneId;
 
-    @Column(columnDefinition = "VARCHAR(255) COMMENT '站点URL'")
-    private String url;
-
-    @Column(columnDefinition = "VARCHAR(50) COMMENT '站点编码'")
-    private String code;
+    @Column(name = "stop_url", columnDefinition = "VARCHAR(255) COMMENT '站点网页URL（对应GTFS stop_url）'")
+    private String stopUrl;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "location_type", columnDefinition = "VARCHAR(20) DEFAULT 'STOP' COMMENT '位置类型：STOP/STATION/ENTRANCE_EXIT等'")
+    @Column(name = "location_type", columnDefinition = "VARCHAR(20) DEFAULT 'STOP' COMMENT '位置类型（对应GTFS location_type）：STOP/STATION/ENTRANCE_EXIT等'")
     @Builder.Default
     private LocationType locationType = LocationType.STOP;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_station_id", columnDefinition = "BIGINT COMMENT '所属站厅ID（对应GTFS parent_station，自引用）'")
+    private Stop parentStation;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "wheelchair_boarding", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '无障碍乘车信息'")
+    @Column(name = "wheelchair_boarding", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '无障碍乘车信息（对应GTFS wheelchair_boarding）'")
     @Builder.Default
     private WheelchairAccessibility wheelchairBoarding = WheelchairAccessibility.NO_INFO;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "level_id", columnDefinition = "BIGINT COMMENT '所属楼层ID（可选）'")
+    @JoinColumn(name = "level_id", columnDefinition = "BIGINT COMMENT '所属楼层ID（对应GTFS level_id，可选）'")
     private Level level;
 
-    @OneToMany(mappedBy = "stop", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<StopPhoto> photos = new ArrayList<>();
-
-    public void addPhoto(StopPhoto photo)
-    {
-        photo.setStop(this);
-        this.photos.add(photo);
-    }
+    @Column(name = "platform_code", columnDefinition = "VARCHAR(50) COMMENT '站台标识（对应GTFS platform_code）'")
+    private String platformCode;
 }

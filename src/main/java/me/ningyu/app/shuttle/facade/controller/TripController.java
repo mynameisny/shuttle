@@ -10,13 +10,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.ningyu.app.shuttle.domain.entity.Trip;
 import me.ningyu.app.shuttle.facade.service.TripService;
-import me.ningyu.app.shuttle.model.schedule.CreateScheduleRequest;
-import me.ningyu.app.shuttle.model.schedule.UpdateScheduleRequest;
-import org.springframework.format.annotation.DateTimeFormat;
+import me.ningyu.app.shuttle.model.schedule.CreateTripRequest;
+import me.ningyu.app.shuttle.model.schedule.UpdateTripRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.time.LocalDate;
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -28,26 +28,30 @@ public class TripController
     private final TripService tripService;
 
     @PostMapping
-    @Operation(summary = "创建班次计划", description = "支持批量创建，仅限今天及未来")
-    public ResponseEntity<List<Trip>> create(@Valid @RequestBody CreateScheduleRequest request)
+    @Operation(summary = "创建班次", description = "创建一个新的班次（对应 GTFS trips.txt）")
+    public ResponseEntity<Trip> create(@Valid @RequestBody CreateTripRequest request)
     {
-        List<Trip> trips = tripService.createBulkTrips(request);
-        return ResponseEntity.ok(trips);
+        Trip trip = tripService.createTrip(request);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(trip.getId())
+                .toUri();
+        return ResponseEntity.created(location).body(trip);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "编辑班次", description = "适用于调班等场景，仅限修改今天及未来的班次")
+    @Operation(summary = "编辑班次", description = "更新已有班次")
     @Parameters({
             @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "班次ID", schema = @Schema(type = "long"))
     })
-    public ResponseEntity<Trip> update(@PathVariable Long id, @Valid @RequestBody UpdateScheduleRequest request)
+    public ResponseEntity<Trip> update(@PathVariable Long id, @Valid @RequestBody UpdateTripRequest request)
     {
         Trip updated = tripService.updateTrip(id, request);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "取消班次", description = "仅限取消今天及未来的班次，且无乘车记录")
+    @Operation(summary = "删除班次", description = "根据ID删除班次")
     @Parameters({
             @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "班次ID", schema = @Schema(type = "long"))
     })
@@ -68,15 +72,38 @@ public class TripController
         return ResponseEntity.ok(trip);
     }
 
-    @GetMapping("/by-date/{date}")
-    @Operation(summary = "根据日期查询班次", description = "获取指定日期的所有班次")
+    @GetMapping("/by-trip-id/{tripId}")
+    @Operation(summary = "根据tripId获取班次", description = "根据GTFS trip_id获取班次信息")
     @Parameters({
-            @Parameter(name = "date", in = ParameterIn.PATH, required = true, description = "日期（格式：yyyy-MM-dd）", schema = @Schema(type = "string"))
+            @Parameter(name = "tripId", in = ParameterIn.PATH, required = true, description = "班次唯一标识（trip_id）", schema = @Schema(type = "string"))
     })
-    public ResponseEntity<List<Trip>> getByDate(
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date)
+    public ResponseEntity<Trip> getByTripId(@PathVariable String tripId)
     {
-        List<Trip> trips = tripService.getTripsByDate(date);
+        Trip trip = tripService.getTripByTripId(tripId);
+        return ResponseEntity.ok(trip);
+    }
+
+    @GetMapping("/by-route/{routeId}")
+    @Operation(summary = "根据线路查询班次", description = "获取指定线路下的所有班次")
+    @Parameters({
+            @Parameter(name = "routeId", in = ParameterIn.PATH, required = true, description = "线路ID", schema = @Schema(type = "long"))
+    })
+    public ResponseEntity<List<Trip>> getByRoute(@PathVariable Long routeId)
+    {
+        List<Trip> trips = tripService.getTripsByRouteId(routeId);
+        return ResponseEntity.ok(trips);
+    }
+
+    @GetMapping
+    @Operation(summary = "获取班次列表", description = "获取所有班次列表，可按服务日历ID筛选")
+    public ResponseEntity<List<Trip>> getAll(@RequestParam(required = false) String serviceId)
+    {
+        if (serviceId != null && !serviceId.isBlank())
+        {
+            List<Trip> trips = tripService.getTripsByServiceId(serviceId);
+            return ResponseEntity.ok(trips);
+        }
+        List<Trip> trips = tripService.getAllTrips();
         return ResponseEntity.ok(trips);
     }
 }

@@ -5,14 +5,17 @@ import lombok.*;
 
 /**
  * <pre>
- * 票价规则（对应 GTFS fare_rules.txt）
+ * 票价规则（对应 GTFS fare_rules.txt, Fares V1）
  * 定义票价适用的线路和区域
  *
- * 一条票价规则可指定：
- * - 适用的线路（route）
- * - 起点区域（origin）
- * - 终点区域（destination）
- * - 途经区域（contains）
+ * 参考：https://gtfs.org/documentation/schedule/reference/#fare_rulestxt
+ *
+ * GTFS 字段定义（Field Name / Type / Presence）：
+ * - fare_id        (Foreign ID) [必填] 票价标识。
+ * - route_id       (Foreign ID) [可选] 适用线路。
+ * - origin_id      (Foreign ID) [可选] 起点区域（zone_id）。
+ * - destination_id (Foreign ID) [可选] 终点区域。
+ * - contains_id    (Foreign ID) [可选] 途经区域。
  * </pre>
  */
 @Entity(name = "fare_rule")
@@ -28,8 +31,8 @@ public class FareRule extends AbstractAuditable
     private FareAttribute fareAttribute;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "line_id", columnDefinition = "BIGINT COMMENT '适用线路ID（可选）'")
-    private Line line;
+    @JoinColumn(name = "route_id", columnDefinition = "BIGINT COMMENT '适用线路ID（对应GTFS route_id，可选）'")
+    private Route route;
 
     @Column(name = "origin_id", columnDefinition = "VARCHAR(50) COMMENT '起点区域编码（可选）'")
     private String originId;

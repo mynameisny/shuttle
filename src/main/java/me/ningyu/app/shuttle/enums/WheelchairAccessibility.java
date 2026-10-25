@@ -21,4 +21,14 @@ public enum WheelchairAccessibility
         this.code = code;
         this.name = name;
     }
+
+    public static WheelchairAccessibility fromValue(Integer code)
+    {
+        if (code == null) return NO_INFO;
+        for (WheelchairAccessibility v : values())
+        {
+            if (v.code == code) return v;
+        }
+        throw new IllegalArgumentException("无效的 wheelchair_accessible 值: " + code);
+    }
 }

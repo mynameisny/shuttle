@@ -10,7 +10,14 @@ import java.math.BigDecimal;
  * 线路形状点（对应 GTFS shapes.txt）
  * 描述线路的地理轨迹，由一系列有序坐标点组成
  *
- * 一个 Route 可关联多个 Shape 点，按 sequence 排序形成完整轨迹
+ * 参考：https://gtfs.org/documentation/schedule/reference/#shapestxt
+ *
+ * GTFS 字段定义（Field Name / Type / Presence）：
+ * - shape_id           (ID)                  [必填]     形状标识。
+ * - shape_pt_lat       (Latitude)            [必填]     形状点纬度。
+ * - shape_pt_lon       (Longitude)           [必填]     形状点经度。
+ * - shape_pt_sequence  (Non-negative integer)[必填]     形状点顺序（可非连续）。
+ * - shape_dist_traveled(Non-negative float)  [可选]     距起点的实际距离（与stop_times同类单位）。
  * </pre>
  */
 @Entity(name = "shape")

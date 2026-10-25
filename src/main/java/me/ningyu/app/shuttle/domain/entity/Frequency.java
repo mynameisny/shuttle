@@ -9,9 +9,16 @@ import java.time.LocalTime;
 /**
  * <pre>
  * 发车频率（对应 GTFS frequencies.txt）
- * 定义高频线路的发车间隔
+ * 表示按固定间隔发车的班次（基于频率的服务）或相同间隔的基于时刻表的压缩表示
  *
- * 例如：07:00-09:00 每10分钟一班
+ * 参考：https://gtfs.org/documentation/schedule/reference/#frequenciestxt
+ *
+ * GTFS 字段定义（Field Name / Type / Presence）：
+ * - trip_id      (Foreign ID)      [必填]     所属班次。
+ * - start_time   (Time)            [必填]     频率开始时间。
+ * - end_time     (Time)            [必填]     频率结束时间。
+ * - headway_secs (Positive integer)[必填]     发车间隔（秒）。
+ * - exact_times  (Enum)            [可选]     是否精确时刻（0=频率制,1=时刻制）。
  * </pre>
  */
 @Entity(name = "frequency")

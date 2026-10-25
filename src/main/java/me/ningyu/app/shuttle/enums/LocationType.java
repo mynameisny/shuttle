@@ -23,4 +23,14 @@ public enum LocationType
         this.code = code;
         this.name = name;
     }
+
+    public static LocationType fromValue(Integer code)
+    {
+        if (code == null) return STOP;
+        for (LocationType v : values())
+        {
+            if (v.code == code) return v;
+        }
+        throw new IllegalArgumentException("无效的 location_type 值: " + code);
+    }
 }

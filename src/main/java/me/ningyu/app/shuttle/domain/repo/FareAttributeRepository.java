@@ -12,5 +12,5 @@ public interface FareAttributeRepository extends JpaRepository<FareAttribute, Lo
 {
     Optional<FareAttribute> findByCode(String code);
 
-    List<FareAttribute> findByOrganizationId(Long organizationId);
+    List<FareAttribute> findByAgencyId(Long agencyId);
 }

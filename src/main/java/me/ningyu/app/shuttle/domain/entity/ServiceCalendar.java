@@ -8,10 +8,21 @@ import java.time.LocalDate;
 /**
  * <pre>
  * 服务日历（对应 GTFS calendar.txt）
- * 定义哪些日期提供某服务
+ * 定义每周哪些天提供服务，配合起止日期形成服务日期范围
  *
- * 例如：工作日服务、周末服务、节假日服务
- * 一个 ServiceCalendar 可被多个 Trip 引用
+ * 参考：https://gtfs.org/documentation/schedule/reference/#calendartxt
+ *
+ * GTFS 字段定义（Field Name / Type / Presence）：
+ * - service_id (Unique ID) [必填] 服务标识。
+ * - monday     (Enum)      [必填] 周一运营（1=是,0=否）。
+ * - tuesday    (Enum)      [必填] 周二运营。
+ * - wednesday  (Enum)      [必填] 周三运营。
+ * - thursday   (Enum)      [必填] 周四运营。
+ * - friday     (Enum)      [必填] 周五运营。
+ * - saturday   (Enum)      [必填] 周六运营。
+ * - sunday     (Enum)      [必填] 周日运营。
+ * - start_date (Date)      [必填] 服务开始日期（YYYYMMDD）。
+ * - end_date   (Date)      [必填] 服务结束日期（含当天）。
  * </pre>
  */
 @Entity(name = "service_calendar")
@@ -23,8 +34,8 @@ import java.time.LocalDate;
 public class ServiceCalendar extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属组织ID'")
-    private Organization organization;
+    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构ID'")
+    private Agency agency;
 
     @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '服务编码，如weekday、weekend、holiday'")
     private String code;

@@ -11,7 +11,7 @@ public interface FareRuleRepository extends JpaRepository<FareRule, Long>, Pagin
 {
     List<FareRule> findByFareAttributeId(Long fareAttributeId);
 
-    List<FareRule> findByLineId(Long lineId);
+    List<FareRule> findByRouteId(Long routeId);
 
     List<FareRule> findByOriginIdAndDestinationId(String originId, String destinationId);
 }

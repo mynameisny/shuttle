@@ -22,8 +22,8 @@ import java.time.LocalDate;
 public class FeedInfo extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属组织ID'")
-    private Organization organization;
+    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构ID'")
+    private Agency agency;
 
     @Column(name = "feed_publisher_name", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '数据发布者名称'")
     private String feedPublisherName;
