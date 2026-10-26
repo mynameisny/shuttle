@@ -1,6 +1,5 @@
 package me.ningyu.app.shuttle.domain.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import me.ningyu.app.shuttle.enums.RouteType;
@@ -96,11 +95,5 @@ public class Route extends AbstractAuditable
 
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    @JsonManagedReference
-    private List<RouteStop> stops = new ArrayList<>();
-
-    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    @JsonManagedReference
     private List<Trip> trips = new ArrayList<>();
 }

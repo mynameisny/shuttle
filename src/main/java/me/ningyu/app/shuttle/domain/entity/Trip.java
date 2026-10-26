@@ -5,6 +5,9 @@ import lombok.*;
 import me.ningyu.app.shuttle.enums.BikeAllowance;
 import me.ningyu.app.shuttle.enums.WheelchairAccessibility;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * <pre>
  * 班次（对应 GTFS trips.txt）
@@ -79,4 +82,8 @@ public class Trip extends AbstractAuditable
     @Column(name = "bikes_allowed", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '是否允许携带自行车（对应GTFS bikes_allowed）'")
     @Builder.Default
     private BikeAllowance bikesAllowed = BikeAllowance.NO_INFO;
+
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<StopTime> stopTimes = new ArrayList<>();
 }
