@@ -17,13 +17,15 @@ import java.time.LocalTime;
  * 参考：<a href="https://gtfs.org/documentation/schedule/reference/#stop_timestxt">stop_times.txt</a>
  *
  * 主键：(trip_id, stop_sequence)
- * trip_id / stop_id 为条件必填（location_group_id / location_id 未定义时）
+ * stop_id / location_group_id / location_id 三者互斥，至少定义其一（常规场景为 stop_id）
  *
  * GTFS 字段定义（Field Name / Type / Presence）：
  * - trip_id                     (Foreign ID)           [必填]     所属班次。
  * - arrival_time                (Time)                 [条件必填] 到站时间（首末站/timepoint=1 必填）。
  * - departure_time              (Time)                 [条件必填] 发车时间。
  * - stop_id                     (Foreign ID)           [条件必填] 停靠站点（location_group_id / location_id 未定义时）。
+ * - location_group_id           (Foreign ID)           [条件禁止] 位置组（按需服务，stop_id / location_id 已定义时禁止）。
+ * - location_id                 (Foreign ID)           [条件禁止] GeoJSON位置区域（按需服务，stop_id / location_group_id 已定义时禁止）。
  * - stop_sequence               (Non-negative integer) [必填]     站点顺序（可非连续，但须递增）。
  * - stop_headsign               (Text)                 [可选]     站点头牌文字，覆盖 trips.trip_headsign。
  * - start_pickup_drop_off_window(Time)                 [条件必填] 按需服务开始时间。
@@ -42,6 +44,8 @@ import java.time.LocalTime;
  * - arrival_time                → arrivalTime
  * - departure_time              → departureTime
  * - stop_id                     → stop
+ * - location_group_id           → locationGroup
+ * - location_id                 → locationId
  * - stop_sequence               → stopSequence
  * - stop_headsign               → stopHeadsign
  * - start_pickup_drop_off_window→ startPickupDropOffWindow
@@ -70,9 +74,28 @@ public class StopTime extends AbstractAuditable
     @JsonBackReference
     private Trip trip;
 
+    /**
+     * 停靠站点。
+     * GTFS 规范：与 location_group_id / location_id 互斥，三者至少定义其一，常规场景为 stop_id。
+     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stop_id", nullable = false, columnDefinition = "BIGINT COMMENT '停靠点ID（对应GTFS stop_id）'")
+    @JoinColumn(name = "stop_id", columnDefinition = "BIGINT COMMENT '停靠点ID（对应GTFS stop_id，与location_group_id/location_id互斥）'")
     private Stop stop;
+
+    /**
+     * 位置组（按需服务场景）。
+     * 与 stop_id / location_id 互斥。
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_group_id", columnDefinition = "BIGINT COMMENT '位置组ID（对应GTFS location_group_id，引用LocationGroup，与stop_id/location_id互斥）'")
+    private LocationGroup locationGroup;
+
+    /**
+     * GeoJSON 位置区域标识（按需服务场景，引用 locations.geojson 的 id）。
+     * 与 stop_id / location_group_id 互斥。
+     */
+    @Column(name = "location_id", columnDefinition = "VARCHAR(50) COMMENT 'GeoJSON位置区域ID（对应GTFS location_id，与stop_id/location_group_id互斥）'")
+    private String locationId;
 
     @Column(name = "arrival_time", columnDefinition = "TIME COMMENT '计划到达时间（对应GTFS arrival_time）'")
     private LocalTime arrivalTime;
