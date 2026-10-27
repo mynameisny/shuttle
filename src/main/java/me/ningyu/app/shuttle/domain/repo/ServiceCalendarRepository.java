@@ -11,6 +11,8 @@ import java.util.Optional;
 
 public interface ServiceCalendarRepository extends JpaRepository<ServiceCalendar, Long>, PagingAndSortingRepository<ServiceCalendar, Long>, JpaSpecificationExecutor<ServiceCalendar>
 {
+    Optional<ServiceCalendar> findByServiceId(String serviceId);
+
     Optional<ServiceCalendar> findByCode(String code);
 
     List<ServiceCalendar> findByAgencyId(Long agencyId);
