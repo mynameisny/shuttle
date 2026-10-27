@@ -8,7 +8,7 @@ import lombok.*;
  * 票价规则（对应 GTFS fare_rules.txt, Fares V1）
  * 定义票价适用的线路和区域
  *
- * 参考：https://gtfs.org/documentation/schedule/reference/#fare_rulestxt
+ * 参考：<a href="https://gtfs.org/documentation/schedule/reference/#fare_rulestxt">...</a>
  *
  * GTFS 字段定义（Field Name / Type / Presence）：
  * - fare_id        (Foreign ID) [必填] 票价标识。

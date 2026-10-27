@@ -1,8 +1,10 @@
 package me.ningyu.app.shuttle.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import me.ningyu.app.shuttle.enums.BikeAllowance;
+import me.ningyu.app.shuttle.enums.CarAllowance;
 import me.ningyu.app.shuttle.enums.WheelchairAccessibility;
 
 import java.util.ArrayList;
@@ -25,6 +27,9 @@ import java.util.List;
  * - shape_id              (Foreign ID)  [条件必填] 描述行驶路径的形状，连续上下车时必填。
  * - wheelchair_accessible (Enum)        [可选]     无障碍信息（0/1/2）。
  * - bikes_allowed         (Enum)        [可选]     是否允许携带自行车（0/1/2）。
+ * - cars_allowed          (Enum)        [可选]     是否允许搭载汽车（0/1/2）。
+ * - safe_duration_factor  (Float)       [可选]     按需行程估算时间的乘数，安全时间 = factor × 驾驶时间 + offset。
+ * - safe_duration_offset  (Float)       [可选]     按需行程估算时间的固定偏移量（秒）。
  *
  * Java 字段映射：
  * - route_id              → route
@@ -37,6 +42,9 @@ import java.util.List;
  * - shape_id              → shapeId
  * - wheelchair_accessible → wheelchairAccessible
  * - bikes_allowed         → bikesAllowed
+ * - cars_allowed          → carsAllowed
+ * - safe_duration_factor  → safeDurationFactor
+ * - safe_duration_offset  → safeDurationOffset
  * </pre>
  */
 @Entity(name = "trip")
@@ -83,7 +91,33 @@ public class Trip extends AbstractAuditable
     @Builder.Default
     private BikeAllowance bikesAllowed = BikeAllowance.NO_INFO;
 
+    /**
+     * 是否允许搭载汽车。
+     * 0 - 无信息
+     * 1 - 允许
+     * 2 - 禁止
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cars_allowed", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '是否允许搭载汽车（对应GTFS cars_allowed）'")
+    @Builder.Default
+    private CarAllowance carsAllowed = CarAllowance.NO_INFO;
+
+    /**
+     * 按需行程估算时间乘数。
+     * SafeTravelDuration = safeDurationFactor × DrivingDuration + safeDurationOffset
+     */
+    @Column(name = "safe_duration_factor", columnDefinition = "DOUBLE COMMENT '按需行程估算时间乘数（对应GTFS safe_duration_factor）'")
+    private Double safeDurationFactor;
+
+    /**
+     * 按需行程估算时间固定偏移量（秒）。
+     * SafeTravelDuration = safeDurationFactor × DrivingDuration + safeDurationOffset
+     */
+    @Column(name = "safe_duration_offset", columnDefinition = "DOUBLE COMMENT '按需行程估算时间偏移量（秒）（对应GTFS safe_duration_offset）'")
+    private Double safeDurationOffset;
+
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonManagedReference
     private List<StopTime> stopTimes = new ArrayList<>();
 }

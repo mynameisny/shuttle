@@ -7,6 +7,7 @@ import me.ningyu.app.shuttle.domain.entity.Agency;
 import me.ningyu.app.shuttle.domain.entity.Route;
 import me.ningyu.app.shuttle.domain.repo.AgencyRepository;
 import me.ningyu.app.shuttle.domain.repo.RouteRepository;
+import me.ningyu.app.shuttle.domain.repo.StopTimeRepository;
 import me.ningyu.app.shuttle.domain.repo.TripRepository;
 import me.ningyu.app.shuttle.model.route.CreateRouteRequest;
 import me.ningyu.app.shuttle.model.route.UpdateRouteRequest;
@@ -23,6 +24,7 @@ public class RouteService
 {
     private final RouteRepository routeRepository;
     private final AgencyRepository agencyRepository;
+    private final StopTimeRepository stopTimeRepository;
     private final TripRepository tripRepository;
 
     @Nonnull
@@ -76,6 +78,10 @@ public class RouteService
         Route route = routeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
 
+        if (stopTimeRepository.existsByTripRouteId(id))
+        {
+            throw new IllegalStateException("该线路下存在站点，不能删除");
+        }
         if (tripRepository.existsByRouteId(id))
         {
             throw new IllegalStateException("该线路下存在班次，不能删除");

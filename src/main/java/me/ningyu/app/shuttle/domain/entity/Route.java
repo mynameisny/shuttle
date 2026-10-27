@@ -1,5 +1,6 @@
 package me.ningyu.app.shuttle.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import me.ningyu.app.shuttle.enums.RouteType;
@@ -27,6 +28,7 @@ import java.util.List;
  * - continuous_pickup   (Enum)                [条件禁止] 连续上车规则（0=允许,1=不允许,2=电话预约,3=司机协调）。
  * - continuous_drop_off (Enum)                [条件禁止] 连续下车规则（同上）。
  * - network_id          (ID)                  [条件禁止] 线路网络分组ID，与route_networks.txt互斥。
+ * - cemv_support        (Enum)                [可选]     是否支持非接触式EMV支付（0=无信息,1=支持,2=不支持）。
  *
  * Java 字段映射：
  * - route_id            → routeId
@@ -42,6 +44,7 @@ import java.util.List;
  * - continuous_pickup   → continuousPickup
  * - continuous_drop_off → continuousDropOff
  * - network_id          → networkId
+ * - cemv_support        → cemvSupport
  * </pre>
  */
 @Entity(name = "route")
@@ -93,7 +96,17 @@ public class Route extends AbstractAuditable
     @Column(name = "network_id", columnDefinition = "VARCHAR(50) COMMENT '网络 ID（对应 GTFS network_id，用于组织多条线路成一个网络）'")
     private String networkId;
 
+    /**
+     * 是否支持非接触式 EMV 支付。
+     * 0 - 无信息（默认）
+     * 1 - 支持
+     * 2 - 不支持
+     */
+    @Column(name = "cemv_support", columnDefinition = "TINYINT COMMENT 'EMV支付支持（对应 GTFS cemv_support）'")
+    private Integer cemvSupport;
+
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonManagedReference
     private List<Trip> trips = new ArrayList<>();
 }
