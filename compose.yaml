@@ -1,10 +1,19 @@
 services:
   mysql:
-    image: 'mysql:latest'
+    image: 'mysql:8'
+    container_name: shuttle-mysql
     environment:
-      - 'MYSQL_DATABASE=mydatabase'
-      - 'MYSQL_PASSWORD=secret'
-      - 'MYSQL_ROOT_PASSWORD=verysecret'
-      - 'MYSQL_USER=myuser'
+      - 'MYSQL_DATABASE=ucmp_shuttle'
+      - 'MYSQL_USER=ucmp_dev'
+      - 'MYSQL_PASSWORD=xeeNADMYQpqZ8F9Wh3Zn'
+      - 'MYSQL_ROOT_PASSWORD=root'
+    command:
+      - '--character-set-server=utf8mb4'
+      - '--collation-server=utf8mb4_unicode_ci'
     ports:
-      - '3306'
+      - '3306:3306'
+    volumes:
+      - 'shuttle-mysql-data:/var/lib/mysql'
+
+volumes:
+  shuttle-mysql-data:
