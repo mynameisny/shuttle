@@ -57,23 +57,23 @@ import java.util.List;
 public class Route extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构ID（对应GTFS agency_id）'")
+    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构ID'")
     private Agency agency;
     
-    @Column(name = "route_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '线路唯一标识（对应GTFS route_id），如 463'")
+    @Column(name = "route_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '线路唯一标识，如 463'")
     private String routeId;
 
-    @Column(name = "route_short_name", columnDefinition = "VARCHAR(255) COMMENT '线路简名（对应 GTFS route_short_name），如 463'")
+    @Column(name = "route_short_name", columnDefinition = "VARCHAR(255) COMMENT '线路简名，如 463'")
     private String routeShortName;
 
-    @Column(name = "route_long_name", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '线路名称（对应 GTFS route_long_name），如 463路'")
+    @Column(name = "route_long_name", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '线路名称，如 463路'")
     private String routeLongName;
 
-    @Column(name = "route_desc", columnDefinition = "TEXT COMMENT '线路描述（对应 GTFS route_desc）'")
+    @Column(name = "route_desc", columnDefinition = "TEXT COMMENT '线路描述'")
     private String routeDesc;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "route_type", nullable = false, columnDefinition = "VARCHAR(20) COMMENT '线路类型（对应 GTFS route_type）'")
+    @Column(name = "route_type", nullable = false, columnDefinition = "VARCHAR(20) COMMENT '线路类型'")
     private RouteType routeType;
 
     @Column(name = "route_url", columnDefinition = "VARCHAR(255) COMMENT '线路 URL（对应 GTFS route_url）'")

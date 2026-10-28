@@ -18,9 +18,7 @@ public enum RouteType
     AERIAL_LIFT(6, "索道"),
     FUNICULAR(7, "缆索铁路"),
     TROLLEYBUS(11, "无轨电车"),
-    MONORAIL(12, "单轨"),
-    SHUTTLE(100, "班车"),
-    COMMUTER(200, "通勤车");
+    MONORAIL(12, "单轨");
 
     private final int code;
     private final String name;

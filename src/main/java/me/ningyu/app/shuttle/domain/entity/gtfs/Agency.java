@@ -74,6 +74,6 @@ public class Agency extends AbstractAuditable
      * 2 - 不支持
      * 注：若同时提供 routes.cemv_support，则线路级取值优先于本字段。
      */
-    @Column(name = "cemv_support", columnDefinition = "TINYINT COMMENT 'EMV支付支持（对应GTFS cemv_support）'")
+    @Column(name = "cemv_support", columnDefinition = "TINYINT COMMENT 'EMV支付支持'")
     private Integer cemvSupport;
 }
