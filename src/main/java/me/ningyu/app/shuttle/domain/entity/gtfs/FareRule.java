@@ -28,7 +28,7 @@ import lombok.*;
 public class FareRule extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fare_attribute_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属票价'")
+    @JoinColumn(name = "fare_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属票价'")
     private FareAttribute fareAttribute;
 
     @ManyToOne(fetch = FetchType.LAZY)
