@@ -34,7 +34,7 @@ import java.math.BigDecimal;
 public class FareAttribute extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '票价适用的机构'")
+    @JoinColumn(name = "agency_id", referencedColumnName = "agency_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '票价适用的机构'")
     private Agency agency;
 
     @Column(name = "fare_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '票价标识'")

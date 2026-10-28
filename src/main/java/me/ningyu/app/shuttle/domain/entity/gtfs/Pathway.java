@@ -27,11 +27,11 @@ public class Pathway extends AbstractAuditable
     private String pathwayId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_stop_id", nullable = false, columnDefinition = "BIGINT COMMENT '通道起点位置'")
+    @JoinColumn(name = "from_stop_id", referencedColumnName = "stop_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '通道起点位置'")
     private Stop fromStop;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_stop_id", nullable = false, columnDefinition = "BIGINT COMMENT '通道终点位置'")
+    @JoinColumn(name = "to_stop_id", referencedColumnName = "stop_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '通道终点位置'")
     private Stop toStop;
 
     @Enumerated(EnumType.STRING)

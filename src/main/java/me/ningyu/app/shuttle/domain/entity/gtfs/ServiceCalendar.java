@@ -50,7 +50,7 @@ public class ServiceCalendar extends AbstractAuditable
     private String serviceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构（业务扩展）'")
+    @JoinColumn(name = "agency_id", referencedColumnName = "agency_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属机构（业务扩展）'")
     private Agency agency;
 
     @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '服务编码，如weekday、weekend、holiday'")

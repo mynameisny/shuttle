@@ -33,7 +33,7 @@ public class Shape extends AbstractAuditable
     private String shapeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "route_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属线路（业务扩展）'")
+    @JoinColumn(name = "route_id", referencedColumnName = "route_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属线路（业务扩展）'")
     private Route route;
 
     @Column(name = "shape_pt_lat", nullable = false, precision = 10, scale = 7, columnDefinition = "DECIMAL(10,7) COMMENT '形状点纬度'")

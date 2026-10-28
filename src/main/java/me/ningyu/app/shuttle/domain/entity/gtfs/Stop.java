@@ -94,7 +94,7 @@ public class Stop extends AbstractAuditable
     private LocationType locationType = LocationType.STOP;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_station_id", columnDefinition = "BIGINT COMMENT '父级车站，定义位置层级'")
+    @JoinColumn(name = "parent_station", referencedColumnName = "stop_id", columnDefinition = "VARCHAR(50) COMMENT '父级车站，定义位置层级'")
     private Stop parentStation;
 
     @Enumerated(EnumType.STRING)
@@ -103,7 +103,7 @@ public class Stop extends AbstractAuditable
     private WheelchairAccessibility wheelchairBoarding = WheelchairAccessibility.NO_INFO;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "level_id", columnDefinition = "BIGINT COMMENT '所属楼层'")
+    @JoinColumn(name = "level_id", referencedColumnName = "level_id", columnDefinition = "VARCHAR(50) COMMENT '所属楼层'")
     private Level level;
 
     @Column(name = "platform_code", columnDefinition = "VARCHAR(50) COMMENT '站台标识（仅标识符如 G 或 3，不含站台/轨道字样）'")

@@ -33,12 +33,12 @@ import lombok.*;
 public class LocationGroupStop extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_group_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属位置组'")
+    @JoinColumn(name = "location_group_id", referencedColumnName = "location_group_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属位置组'")
     @JsonBackReference
     private LocationGroup locationGroup;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stop_id", columnDefinition = "BIGINT COMMENT '分配的站点（与location_id二选一）'")
+    @JoinColumn(name = "stop_id", referencedColumnName = "stop_id", columnDefinition = "VARCHAR(50) COMMENT '分配的站点（与location_id二选一）'")
     private Stop stop;
 
     /**

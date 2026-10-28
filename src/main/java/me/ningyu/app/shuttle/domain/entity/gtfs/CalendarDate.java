@@ -29,7 +29,7 @@ import java.time.LocalDate;
 public class CalendarDate extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属服务'")
+    @JoinColumn(name = "service_id", referencedColumnName = "service_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属服务'")
     private ServiceCalendar serviceCalendar;
 
     @Column(nullable = false, columnDefinition = "DATE COMMENT '例外日期'")

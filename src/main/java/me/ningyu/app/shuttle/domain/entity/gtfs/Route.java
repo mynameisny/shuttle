@@ -57,7 +57,7 @@ import java.util.List;
 public class Route extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '线路所属机构'")
+    @JoinColumn(name = "agency_id", referencedColumnName = "agency_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '线路所属机构'")
     private Agency agency;
     
     @Column(name = "route_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '线路唯一标识，如 463'")

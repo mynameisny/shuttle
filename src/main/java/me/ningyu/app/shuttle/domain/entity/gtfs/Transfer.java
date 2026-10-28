@@ -26,27 +26,27 @@ import me.ningyu.app.shuttle.enums.TransferType;
 public class Transfer extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_stop_id", nullable = false, columnDefinition = "BIGINT COMMENT '换乘起点站'")
+    @JoinColumn(name = "from_stop_id", referencedColumnName = "stop_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '换乘起点站'")
     private Stop fromStop;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_stop_id", nullable = false, columnDefinition = "BIGINT COMMENT '换乘终点站'")
+    @JoinColumn(name = "to_stop_id", referencedColumnName = "stop_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '换乘终点站'")
     private Stop toStop;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_route_id", columnDefinition = "BIGINT COMMENT '限定换乘的起点线路'")
+    @JoinColumn(name = "from_route_id", referencedColumnName = "route_id", columnDefinition = "VARCHAR(50) COMMENT '限定换乘的起点线路'")
     private Route fromRoute;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_route_id", columnDefinition = "BIGINT COMMENT '限定换乘的终点线路'")
+    @JoinColumn(name = "to_route_id", referencedColumnName = "route_id", columnDefinition = "VARCHAR(50) COMMENT '限定换乘的终点线路'")
     private Route toRoute;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_trip_id", columnDefinition = "BIGINT COMMENT '限定换乘的起点行程'")
+    @JoinColumn(name = "from_trip_id", referencedColumnName = "trip_id", columnDefinition = "VARCHAR(50) COMMENT '限定换乘的起点行程'")
     private Trip fromTrip;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_trip_id", columnDefinition = "BIGINT COMMENT '限定换乘的终点行程'")
+    @JoinColumn(name = "to_trip_id", referencedColumnName = "trip_id", columnDefinition = "VARCHAR(50) COMMENT '限定换乘的终点行程'")
     private Trip toTrip;
 
     @Enumerated(EnumType.STRING)

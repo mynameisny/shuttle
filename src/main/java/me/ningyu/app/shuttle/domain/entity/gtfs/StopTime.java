@@ -71,7 +71,7 @@ import java.time.LocalTime;
 public class StopTime extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trip_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属行程'")
+    @JoinColumn(name = "trip_id", referencedColumnName = "trip_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属行程'")
     @JsonBackReference
     private Trip trip;
 
@@ -80,7 +80,7 @@ public class StopTime extends AbstractAuditable
      * GTFS 规范：与 location_group_id / location_id 互斥，三者至少定义其一，常规场景为 stop_id。
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stop_id", columnDefinition = "BIGINT COMMENT '停靠站点（与location_group_id/location_id互斥）'")
+    @JoinColumn(name = "stop_id", referencedColumnName = "stop_id", columnDefinition = "VARCHAR(50) COMMENT '停靠站点（与location_group_id/location_id互斥）'")
     private Stop stop;
 
     /**
@@ -88,7 +88,7 @@ public class StopTime extends AbstractAuditable
      * 与 stop_id / location_id 互斥。
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_group_id", columnDefinition = "BIGINT COMMENT '位置组（与stop_id/location_id互斥）'")
+    @JoinColumn(name = "location_group_id", referencedColumnName = "location_group_id", columnDefinition = "VARCHAR(50) COMMENT '位置组（与stop_id/location_id互斥）'")
     private LocationGroup locationGroup;
 
     /**
