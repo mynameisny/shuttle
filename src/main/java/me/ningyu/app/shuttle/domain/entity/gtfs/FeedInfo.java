@@ -23,34 +23,34 @@ import java.time.LocalDate;
 public class FeedInfo extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构ID'")
+    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构（业务扩展）'")
     private Agency agency;
 
-    @Column(name = "feed_publisher_name", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '数据发布者名称'")
+    @Column(name = "feed_publisher_name", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '数据发布者全称'")
     private String feedPublisherName;
 
-    @Column(name = "feed_publisher_url", nullable = false, columnDefinition = "VARCHAR(255) COMMENT '数据发布者URL'")
+    @Column(name = "feed_publisher_url", nullable = false, columnDefinition = "VARCHAR(255) COMMENT '数据发布者网址'")
     private String feedPublisherUrl;
 
-    @Column(name = "feed_lang", nullable = false, columnDefinition = "VARCHAR(10) DEFAULT 'zh' COMMENT '数据语言，如zh、en'")
+    @Column(name = "feed_lang", nullable = false, columnDefinition = "VARCHAR(10) DEFAULT 'zh' COMMENT '数据集默认语言，如 zh'")
     @Builder.Default
     private String feedLang = "zh";
 
-    @Column(name = "default_lang", columnDefinition = "VARCHAR(10) COMMENT '默认语言'")
+    @Column(name = "default_lang", columnDefinition = "VARCHAR(10) COMMENT '多语言数据集的默认语言'")
     private String defaultLang;
 
-    @Column(name = "feed_start_date", columnDefinition = "DATE COMMENT '数据开始日期'")
+    @Column(name = "feed_start_date", columnDefinition = "DATE COMMENT '数据集开始生效日期'")
     private LocalDate feedStartDate;
 
-    @Column(name = "feed_end_date", columnDefinition = "DATE COMMENT '数据结束日期'")
+    @Column(name = "feed_end_date", columnDefinition = "DATE COMMENT '数据集结束生效日期'")
     private LocalDate feedEndDate;
 
     @Column(name = "feed_version", columnDefinition = "VARCHAR(50) COMMENT '数据版本号'")
     private String feedVersion;
 
-    @Column(name = "feed_contact_email", columnDefinition = "VARCHAR(100) COMMENT '联系邮箱'")
+    @Column(name = "feed_contact_email", columnDefinition = "VARCHAR(100) COMMENT '数据反馈邮箱'")
     private String feedContactEmail;
 
-    @Column(name = "feed_contact_url", columnDefinition = "VARCHAR(255) COMMENT '联系URL'")
+    @Column(name = "feed_contact_url", columnDefinition = "VARCHAR(255) COMMENT '数据反馈网址'")
     private String feedContactUrl;
 }

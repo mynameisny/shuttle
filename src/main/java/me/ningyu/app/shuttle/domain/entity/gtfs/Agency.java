@@ -44,27 +44,27 @@ public class Agency extends AbstractAuditable
     @Column(name = "agency_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '机构唯一标识'")
     private String agencyId;
 
-    @Column(name = "agency_name", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '机构名称'")
+    @Column(name = "agency_name", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '机构全称'")
     private String agencyName;
 
     @Column(name = "agency_url", nullable = false, columnDefinition = "VARCHAR(255) COMMENT '机构网址'")
     private String agencyUrl;
 
-    @Column(name = "agency_timezone", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '时区，如 Asia/Shanghai'")
+    @Column(name = "agency_timezone", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '机构所在时区，如 Asia/Shanghai'")
     @Builder.Default
     private String agencyTimezone = "Asia/Shanghai";
 
-    @Column(name = "agency_lang", columnDefinition = "VARCHAR(10) DEFAULT 'zh' COMMENT '语言，如 zh、en'")
+    @Column(name = "agency_lang", columnDefinition = "VARCHAR(10) DEFAULT 'zh' COMMENT '机构主要语言，如 zh'")
     @Builder.Default
     private String agencyLang = "zh";
 
-    @Column(name = "agency_phone", columnDefinition = "VARCHAR(50) COMMENT '联系电话'")
+    @Column(name = "agency_phone", columnDefinition = "VARCHAR(50) COMMENT '语音联系电话'")
     private String agencyPhone;
 
-    @Column(name = "agency_email", columnDefinition = "VARCHAR(100) COMMENT '联系邮箱'")
+    @Column(name = "agency_email", columnDefinition = "VARCHAR(100) COMMENT '客服邮箱'")
     private String agencyEmail;
 
-    @Column(name = "agency_fare_url", columnDefinition = "VARCHAR(255) COMMENT '票价网址'")
+    @Column(name = "agency_fare_url", columnDefinition = "VARCHAR(255) COMMENT '票价购买或查询页面网址'")
     private String agencyFareUrl;
 
     /**
@@ -74,6 +74,6 @@ public class Agency extends AbstractAuditable
      * 2 - 不支持
      * 注：若同时提供 routes.cemv_support，则线路级取值优先于本字段。
      */
-    @Column(name = "cemv_support", columnDefinition = "TINYINT COMMENT 'EMV支付支持'")
+    @Column(name = "cemv_support", columnDefinition = "TINYINT COMMENT 'EMV支付支持（0=无信息,1=支持,2=不支持）'")
     private Integer cemvSupport;
 }

@@ -30,9 +30,9 @@ import lombok.*;
 @AllArgsConstructor
 public class LocationGroup extends AbstractAuditable
 {
-    @Column(name = "location_group_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '位置组唯一标识（对应GTFS location_group_id）'")
+    @Column(name = "location_group_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '位置组标识，须在所有位置标识中全局唯一'")
     private String locationGroupId;
 
-    @Column(name = "location_group_name", columnDefinition = "VARCHAR(100) COMMENT '位置组名称（对应GTFS location_group_name）'")
+    @Column(name = "location_group_name", columnDefinition = "VARCHAR(100) COMMENT '位置组名称，面向乘客展示'")
     private String locationGroupName;
 }

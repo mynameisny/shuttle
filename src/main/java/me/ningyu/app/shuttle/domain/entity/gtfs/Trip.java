@@ -57,38 +57,38 @@ import java.util.List;
 public class Trip extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "route_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属线路ID（对应GTFS route_id）'")
+    @JoinColumn(name = "route_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属线路'")
     private Route route;
 
-    @Column(name = "trip_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '班次唯一标识（对应GTFS trip_id），如 463_0700_out'")
+    @Column(name = "trip_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '行程标识，如 463_0700_out'")
     private String tripId;
 
-    @Column(name = "service_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '服务日历ID（对应GTFS service_id），引用 ServiceCalendar.serviceId'")
+    @Column(name = "service_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '服务日历标识，引用 ServiceCalendar.serviceId'")
     private String serviceId;
 
-    @Column(name = "direction_id", columnDefinition = "INT DEFAULT 0 COMMENT '方向ID（对应GTFS direction_id，0=正向，1=反向）'")
+    @Column(name = "direction_id", columnDefinition = "INT DEFAULT 0 COMMENT '方向ID（0=正向，1=反向）'")
     @Builder.Default
     private Integer directionId = 0;
 
-    @Column(name = "trip_headsign", columnDefinition = "VARCHAR(100) COMMENT '班车头牌文字（对应GTFS trip_headsign）'")
+    @Column(name = "trip_headsign", columnDefinition = "VARCHAR(100) COMMENT '车头方向牌文字，向乘客标识行程目的地'")
     private String tripHeadsign;
 
-    @Column(name = "trip_short_name", columnDefinition = "VARCHAR(50) COMMENT '班次简称（对应GTFS trip_short_name）'")
+    @Column(name = "trip_short_name", columnDefinition = "VARCHAR(50) COMMENT '行程简称，如火车车次号'")
     private String tripShortName;
 
-    @Column(name = "block_id", columnDefinition = "VARCHAR(50) COMMENT '车辆组ID（对应GTFS block_id），同一车辆连续执行多个班次'")
+    @Column(name = "block_id", columnDefinition = "VARCHAR(50) COMMENT '车辆组标识，同一车辆连续执行的多个行程'")
     private String blockId;
 
-    @Column(name = "shape_id", columnDefinition = "VARCHAR(50) COMMENT '形状ID（对应GTFS shape_id），引用 Shape.shapeId'")
+    @Column(name = "shape_id", columnDefinition = "VARCHAR(50) COMMENT '行驶路径形状标识'")
     private String shapeId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "wheelchair_accessible", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '无障碍设施（对应GTFS wheelchair_accessible）'")
+    @Column(name = "wheelchair_accessible", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '轮椅无障碍信息（NO_INFO/ACCESSIBLE/NOT_ACCESSIBLE）'")
     @Builder.Default
     private WheelchairAccessibility wheelchairAccessible = WheelchairAccessibility.NO_INFO;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "bikes_allowed", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '是否允许携带自行车（对应GTFS bikes_allowed）'")
+    @Column(name = "bikes_allowed", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '自行车规定（NO_INFO/ALLOWED/NOT_ALLOWED）'")
     @Builder.Default
     private BikeAllowance bikesAllowed = BikeAllowance.NO_INFO;
 
@@ -99,7 +99,7 @@ public class Trip extends AbstractAuditable
      * 2 - 禁止
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "cars_allowed", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '是否允许搭载汽车（对应GTFS cars_allowed）'")
+    @Column(name = "cars_allowed", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '汽车搭载规定（NO_INFO/ALLOWED/NOT_ALLOWED）'")
     @Builder.Default
     private CarAllowance carsAllowed = CarAllowance.NO_INFO;
 
@@ -107,14 +107,14 @@ public class Trip extends AbstractAuditable
      * 按需行程估算时间乘数。
      * SafeTravelDuration = safeDurationFactor × DrivingDuration + safeDurationOffset
      */
-    @Column(name = "safe_duration_factor", columnDefinition = "DOUBLE COMMENT '按需行程估算时间乘数（对应GTFS safe_duration_factor）'")
+    @Column(name = "safe_duration_factor", columnDefinition = "DOUBLE COMMENT '按需行程时间估算乘数'")
     private Double safeDurationFactor;
 
     /**
      * 按需行程估算时间固定偏移量（秒）。
      * SafeTravelDuration = safeDurationFactor × DrivingDuration + safeDurationOffset
      */
-    @Column(name = "safe_duration_offset", columnDefinition = "DOUBLE COMMENT '按需行程估算时间偏移量（秒）（对应GTFS safe_duration_offset）'")
+    @Column(name = "safe_duration_offset", columnDefinition = "DOUBLE COMMENT '按需行程时间估算固定偏移量（秒）'")
     private Double safeDurationOffset;
 
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)

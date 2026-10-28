@@ -46,11 +46,11 @@ public class ServiceCalendar extends AbstractAuditable
     /**
      * GTFS service_id：服务唯一标识，被 trips.service_id 引用。
      */
-    @Column(name = "service_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '服务唯一标识（对应GTFS service_id），如 weekday'")
+    @Column(name = "service_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '服务标识，确定服务可用日期集合'")
     private String serviceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构ID'")
+    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构（业务扩展）'")
     private Agency agency;
 
     @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '服务编码，如weekday、weekend、holiday'")
@@ -90,6 +90,6 @@ public class ServiceCalendar extends AbstractAuditable
     @Column(name = "start_date", nullable = false, columnDefinition = "DATE COMMENT '服务开始日期'")
     private LocalDate startDate;
 
-    @Column(name = "end_date", nullable = false, columnDefinition = "DATE COMMENT '服务结束日期'")
+    @Column(name = "end_date", nullable = false, columnDefinition = "DATE COMMENT '服务结束日期（含当天）'")
     private LocalDate endDate;
 }

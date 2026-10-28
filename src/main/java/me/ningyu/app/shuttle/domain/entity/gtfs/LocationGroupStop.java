@@ -33,18 +33,18 @@ import lombok.*;
 public class LocationGroupStop extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_group_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属位置组ID（对应GTFS location_group_id）'")
+    @JoinColumn(name = "location_group_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属位置组'")
     @JsonBackReference
     private LocationGroup locationGroup;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stop_id", columnDefinition = "BIGINT COMMENT '站点ID（对应GTFS stop_id，与location_id二选一）'")
+    @JoinColumn(name = "stop_id", columnDefinition = "BIGINT COMMENT '分配的站点（与location_id二选一）'")
     private Stop stop;
 
     /**
      * GeoJSON 位置区域标识（引用 locations.geojson 的 id）。
      * 与 stop_id 互斥。
      */
-    @Column(name = "location_id", columnDefinition = "VARCHAR(50) COMMENT 'GeoJSON位置区域ID（对应GTFS location_id，与stop_id互斥）'")
+    @Column(name = "location_id", columnDefinition = "VARCHAR(50) COMMENT '分配的GeoJSON位置区域（与stop_id互斥）'")
     private String locationId;
 }

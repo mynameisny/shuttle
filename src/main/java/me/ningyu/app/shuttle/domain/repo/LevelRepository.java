@@ -9,5 +9,5 @@ import java.util.Optional;
 
 public interface LevelRepository extends JpaRepository<Level, Long>, PagingAndSortingRepository<Level, Long>, JpaSpecificationExecutor<Level>
 {
-    Optional<Level> findByCode(String code);
+    Optional<Level> findByLevelId(String levelId);
 }

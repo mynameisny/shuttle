@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface PathwayRepository extends JpaRepository<Pathway, Long>, PagingAndSortingRepository<Pathway, Long>, JpaSpecificationExecutor<Pathway>
 {
-    Optional<Pathway> findByCode(String code);
+    Optional<Pathway> findByPathwayId(String pathwayId);
 
     List<Pathway> findByFromStopId(Long fromStopId);
 

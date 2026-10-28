@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface FareAttributeRepository extends JpaRepository<FareAttribute, Long>, PagingAndSortingRepository<FareAttribute, Long>, JpaSpecificationExecutor<FareAttribute>
 {
-    Optional<FareAttribute> findByCode(String code);
+    Optional<FareAttribute> findByFareId(String fareId);
 
     List<FareAttribute> findByAgencyId(Long agencyId);
 }

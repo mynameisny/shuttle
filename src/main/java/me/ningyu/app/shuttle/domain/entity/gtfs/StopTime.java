@@ -71,7 +71,7 @@ import java.time.LocalTime;
 public class StopTime extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trip_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属班次ID（对应GTFS trip_id）'")
+    @JoinColumn(name = "trip_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属行程'")
     @JsonBackReference
     private Trip trip;
 
@@ -80,7 +80,7 @@ public class StopTime extends AbstractAuditable
      * GTFS 规范：与 location_group_id / location_id 互斥，三者至少定义其一，常规场景为 stop_id。
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stop_id", columnDefinition = "BIGINT COMMENT '停靠点ID（对应GTFS stop_id，与location_group_id/location_id互斥）'")
+    @JoinColumn(name = "stop_id", columnDefinition = "BIGINT COMMENT '停靠站点（与location_group_id/location_id互斥）'")
     private Stop stop;
 
     /**
@@ -88,72 +88,72 @@ public class StopTime extends AbstractAuditable
      * 与 stop_id / location_id 互斥。
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_group_id", columnDefinition = "BIGINT COMMENT '位置组ID（对应GTFS location_group_id，引用LocationGroup，与stop_id/location_id互斥）'")
+    @JoinColumn(name = "location_group_id", columnDefinition = "BIGINT COMMENT '位置组（与stop_id/location_id互斥）'")
     private LocationGroup locationGroup;
 
     /**
      * GeoJSON 位置区域标识（按需服务场景，引用 locations.geojson 的 id）。
      * 与 stop_id / location_group_id 互斥。
      */
-    @Column(name = "location_id", columnDefinition = "VARCHAR(50) COMMENT 'GeoJSON位置区域ID（对应GTFS location_id，与stop_id/location_group_id互斥）'")
+    @Column(name = "location_id", columnDefinition = "VARCHAR(50) COMMENT 'GeoJSON位置区域ID（与stop_id/location_group_id互斥）'")
     private String locationId;
 
-    @Column(name = "arrival_time", columnDefinition = "TIME COMMENT '计划到达时间（对应GTFS arrival_time）'")
+    @Column(name = "arrival_time", columnDefinition = "TIME COMMENT '到站时间（服务日午夜后可大于24:00:00）'")
     private LocalTime arrivalTime;
 
-    @Column(name = "departure_time", columnDefinition = "TIME COMMENT '计划出发时间（对应GTFS departure_time）'")
+    @Column(name = "departure_time", columnDefinition = "TIME COMMENT '离站时间'")
     private LocalTime departureTime;
 
-    @Column(name = "stop_sequence", nullable = false, columnDefinition = "INT COMMENT '站点顺序（对应GTFS stop_sequence）'")
+    @Column(name = "stop_sequence", nullable = false, columnDefinition = "INT COMMENT '行程中的站点顺序（递增，可不连续）'")
     private Integer stopSequence;
 
-    @Column(name = "stop_headsign", columnDefinition = "VARCHAR(100) COMMENT '站点头牌文字（对应GTFS stop_headsign）'")
+    @Column(name = "stop_headsign", columnDefinition = "VARCHAR(100) COMMENT '站点头牌文字，覆盖 trips.trip_headsign'")
     private String stopHeadsign;
 
     /**
      * 按需服务开始时间。
      * 定义后与 arrival_time / departure_time 互斥。
      */
-    @Column(name = "start_pickup_drop_off_window", columnDefinition = "TIME COMMENT '按需服务开始时间（对应GTFS start_pickup_drop_off_window）'")
+    @Column(name = "start_pickup_drop_off_window", columnDefinition = "TIME COMMENT '按需服务上/下车时间窗开始'")
     private LocalTime startPickupDropOffWindow;
 
     /**
      * 按需服务结束时间。
      */
-    @Column(name = "end_pickup_drop_off_window", columnDefinition = "TIME COMMENT '按需服务结束时间（对应GTFS end_pickup_drop_off_window）'")
+    @Column(name = "end_pickup_drop_off_window", columnDefinition = "TIME COMMENT '按需服务上/下车时间窗结束'")
     private LocalTime endPickupDropOffWindow;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "pickup_type", columnDefinition = "VARCHAR(20) DEFAULT 'SCHEDULED' COMMENT '上车方式（对应GTFS pickup_type）'")
+    @Column(name = "pickup_type", columnDefinition = "VARCHAR(20) DEFAULT 'SCHEDULED' COMMENT '上车方式（SCHEDULED/NONE/PHONE_AGENCY/COORDINATE_WITH_DRIVER）'")
     @Builder.Default
     private PickupDropOffType pickupType = PickupDropOffType.SCHEDULED;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "drop_off_type", columnDefinition = "VARCHAR(20) DEFAULT 'SCHEDULED' COMMENT '下车方式（对应GTFS drop_off_type）'")
+    @Column(name = "drop_off_type", columnDefinition = "VARCHAR(20) DEFAULT 'SCHEDULED' COMMENT '下车方式（SCHEDULED/NONE/PHONE_AGENCY/COORDINATE_WITH_DRIVER）'")
     @Builder.Default
     private PickupDropOffType dropOffType = PickupDropOffType.SCHEDULED;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "continuous_pickup", columnDefinition = "VARCHAR(20) DEFAULT 'NOT_ALLOWED' COMMENT '连续上车（对应GTFS continuous_pickup）'")
+    @Column(name = "continuous_pickup", columnDefinition = "VARCHAR(20) DEFAULT 'NOT_ALLOWED' COMMENT '连续上车规则，覆盖 routes 中的定义'")
     @Builder.Default
     private ContinuousDropType continuousPickup = ContinuousDropType.NOT_ALLOWED;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "continuous_drop_off", columnDefinition = "VARCHAR(20) DEFAULT 'NOT_ALLOWED' COMMENT '连续下车（对应GTFS continuous_drop_off）'")
+    @Column(name = "continuous_drop_off", columnDefinition = "VARCHAR(20) DEFAULT 'NOT_ALLOWED' COMMENT '连续下车规则，覆盖 routes 中的定义'")
     @Builder.Default
     private ContinuousDropType continuousDropOff = ContinuousDropType.NOT_ALLOWED;
 
-    @Column(name = "shape_dist_traveled", precision = 10, scale = 2, columnDefinition = "DECIMAL(10,2) COMMENT '沿shape行驶距离（对应GTFS shape_dist_traveled）'")
+    @Column(name = "shape_dist_traveled", precision = 10, scale = 2, columnDefinition = "DECIMAL(10,2) COMMENT '沿形状从起点到该站的实际行驶距离'")
     private BigDecimal shapeDistTraveled;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "timepoint", columnDefinition = "VARCHAR(20) DEFAULT 'EXACT' COMMENT '时间精度（对应GTFS timepoint）：APPROXIMATE=近似，EXACT=精确'")
+    @Column(name = "timepoint", columnDefinition = "VARCHAR(20) DEFAULT 'EXACT' COMMENT '时间精度：APPROXIMATE=近似，EXACT=精确'")
     @Builder.Default
     private Timepoint timepoint = Timepoint.EXACT;
 
-    @Column(name = "pickup_booking_rule_id", columnDefinition = "VARCHAR(50) COMMENT '上车预订规则ID（对应GTFS pickup_booking_rule_id）'")
+    @Column(name = "pickup_booking_rule_id", columnDefinition = "VARCHAR(50) COMMENT '上车预订规则标识'")
     private String pickupBookingRuleId;
 
-    @Column(name = "drop_off_booking_rule_id", columnDefinition = "VARCHAR(50) COMMENT '下车预订规则ID（对应GTFS drop_off_booking_rule_id）'")
+    @Column(name = "drop_off_booking_rule_id", columnDefinition = "VARCHAR(50) COMMENT '下车预订规则标识'")
     private String dropOffBookingRuleId;
 }

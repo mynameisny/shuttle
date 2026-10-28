@@ -67,62 +67,62 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class Stop extends AbstractAuditable
 {
-    @Column(name = "stop_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '位置唯一标识（对应GTFS stop_id）'")
+    @Column(name = "stop_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '位置唯一标识，可在多条线路间复用'")
     private String stopId;
 
-    @Column(name = "stop_code", columnDefinition = "VARCHAR(50) COMMENT '面向乘客的站点短码（对应GTFS stop_code）'")
+    @Column(name = "stop_code", columnDefinition = "VARCHAR(50) COMMENT '面向乘客的站点短码，常用于电话查询系统或站牌'")
     private String stopCode;
 
-    @Column(name = "stop_name", columnDefinition = "VARCHAR(100) COMMENT '站点名称（对应GTFS stop_name）'")
+    @Column(name = "stop_name", columnDefinition = "VARCHAR(100) COMMENT '站点名称，与机构面向乘客的名称一致'")
     private String stopName;
 
-    @Column(name = "stop_lat", precision = 10, scale = 7, columnDefinition = "DECIMAL(10,7) COMMENT '纬度（对应GTFS stop_lat）'")
+    @Column(name = "stop_lat", precision = 10, scale = 7, columnDefinition = "DECIMAL(10,7) COMMENT '站点纬度'")
     private BigDecimal stopLat;
 
-    @Column(name = "stop_lon", precision = 10, scale = 7, columnDefinition = "DECIMAL(10,7) COMMENT '经度（对应GTFS stop_lon）'")
+    @Column(name = "stop_lon", precision = 10, scale = 7, columnDefinition = "DECIMAL(10,7) COMMENT '站点经度'")
     private BigDecimal stopLon;
 
-    @Column(name = "zone_id", columnDefinition = "VARCHAR(50) COMMENT '票价分区（对应GTFS zone_id）'")
+    @Column(name = "zone_id", columnDefinition = "VARCHAR(50) COMMENT '票价区域标识'")
     private String zoneId;
 
-    @Column(name = "stop_url", columnDefinition = "VARCHAR(255) COMMENT '站点网页URL（对应GTFS stop_url）'")
+    @Column(name = "stop_url", columnDefinition = "VARCHAR(255) COMMENT '站点相关网页地址'")
     private String stopUrl;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "location_type", columnDefinition = "VARCHAR(20) DEFAULT 'STOP' COMMENT '位置类型（对应GTFS location_type）：STOP/STATION/ENTRANCE_EXIT等'")
+    @Column(name = "location_type", columnDefinition = "VARCHAR(20) DEFAULT 'STOP' COMMENT '位置类型：STOP/STATION/ENTRANCE_EXIT/GENERIC_NODE/BOARDING_AREA'")
     @Builder.Default
     private LocationType locationType = LocationType.STOP;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_station_id", columnDefinition = "BIGINT COMMENT '所属站厅ID（对应GTFS parent_station，自引用）'")
+    @JoinColumn(name = "parent_station_id", columnDefinition = "BIGINT COMMENT '父级车站，定义位置层级'")
     private Stop parentStation;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "wheelchair_boarding", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '无障碍乘车信息（对应GTFS wheelchair_boarding）'")
+    @Column(name = "wheelchair_boarding", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFO' COMMENT '轮椅登车信息（NO_INFO/ACCESSIBLE/NOT_ACCESSIBLE）'")
     @Builder.Default
     private WheelchairAccessibility wheelchairBoarding = WheelchairAccessibility.NO_INFO;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "level_id", columnDefinition = "BIGINT COMMENT '所属楼层ID（对应GTFS level_id，可选）'")
+    @JoinColumn(name = "level_id", columnDefinition = "BIGINT COMMENT '所属楼层'")
     private Level level;
 
-    @Column(name = "platform_code", columnDefinition = "VARCHAR(50) COMMENT '站台标识（对应GTFS platform_code）'")
+    @Column(name = "platform_code", columnDefinition = "VARCHAR(50) COMMENT '站台标识（仅标识符如 G 或 3，不含站台/轨道字样）'")
     private String platformCode;
 
     /**
      * stop_name 的文本转语音版本，用于无障碍访问。
      */
-    @Column(name = "tts_stop_name", columnDefinition = "VARCHAR(100) COMMENT '文本转语音站点名称（对应GTFS tts_stop_name）'")
+    @Column(name = "tts_stop_name", columnDefinition = "VARCHAR(100) COMMENT 'stop_name 的文本转语音版本'")
     private String ttsStopName;
 
-    @Column(name = "stop_desc", columnDefinition = "TEXT COMMENT '站点描述（对应GTFS stop_desc）'")
+    @Column(name = "stop_desc", columnDefinition = "TEXT COMMENT '站点描述，应补充而非重复名称'")
     private String stopDesc;
 
     /**
      * 站点时区（IANA 时区标识，如 Asia/Shanghai）。
      * 子站点继承父车站时区，不继承此字段。
      */
-    @Column(name = "stop_timezone", columnDefinition = "VARCHAR(50) COMMENT '站点时区（对应GTFS stop_timezone，IANA格式如Asia/Shanghai）'")
+    @Column(name = "stop_timezone", columnDefinition = "VARCHAR(50) COMMENT '站点时区，IANA格式如 Asia/Shanghai'")
     private String stopTimezone;
 
     /**
@@ -131,6 +131,6 @@ public class Stop extends AbstractAuditable
      * 1 - 可直接从街道网络进入
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "stop_access", columnDefinition = "VARCHAR(20) COMMENT '站点进入方式（对应GTFS stop_access）'")
+    @Column(name = "stop_access", columnDefinition = "VARCHAR(20) COMMENT '站点进入方式（VIA_ENTRANCE=需经入口，DIRECT_ACCESS=可直接进入）'")
     private StopAccess stopAccess;
 }

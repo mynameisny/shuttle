@@ -34,11 +34,11 @@ import java.math.BigDecimal;
 public class FareAttribute extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构ID'")
+    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '票价适用的机构'")
     private Agency agency;
 
-    @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '票价编码'")
-    private String code;
+    @Column(name = "fare_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '票价标识'")
+    private String fareId;
 
     @Column(nullable = false, precision = 10, scale = 2, columnDefinition = "DECIMAL(10,2) COMMENT '票价金额'")
     private BigDecimal price;
@@ -48,7 +48,7 @@ public class FareAttribute extends AbstractAuditable
     private String currencyType = "CNY";
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false, columnDefinition = "VARCHAR(20) COMMENT '支付方式：ON_BOARD=车上，BEFORE_BOARDING=站前'")
+    @Column(name = "payment_method", nullable = false, columnDefinition = "VARCHAR(20) COMMENT '支付方式：ON_BOARD=车上支付，BEFORE_BOARDING=出发前支付'")
     private PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)

@@ -29,13 +29,13 @@ import java.time.LocalDate;
 public class CalendarDate extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_calendar_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属服务日历ID'")
+    @JoinColumn(name = "service_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属服务'")
     private ServiceCalendar serviceCalendar;
 
-    @Column(nullable = false, columnDefinition = "DATE COMMENT '特殊日期'")
+    @Column(nullable = false, columnDefinition = "DATE COMMENT '例外日期'")
     private LocalDate date;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "exception_type", nullable = false, columnDefinition = "VARCHAR(20) COMMENT '异常类型：ADDED=加开，REMOVED=停运'")
+    @Column(name = "exception_type", nullable = false, columnDefinition = "VARCHAR(20) COMMENT '例外类型：ADDED=当日加开服务，REMOVED=当日停运服务'")
     private ExceptionType exceptionType;
 }

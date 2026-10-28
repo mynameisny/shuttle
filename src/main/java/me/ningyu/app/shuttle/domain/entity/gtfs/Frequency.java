@@ -31,13 +31,13 @@ import java.time.LocalTime;
 public class Frequency extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trip_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属班次ID'")
+    @JoinColumn(name = "trip_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属行程'")
     private Trip trip;
 
-    @Column(name = "start_time", nullable = false, columnDefinition = "TIME COMMENT '频率开始时间'")
+    @Column(name = "start_time", nullable = false, columnDefinition = "TIME COMMENT '频率生效开始时间'")
     private LocalTime startTime;
 
-    @Column(name = "end_time", nullable = false, columnDefinition = "TIME COMMENT '频率结束时间'")
+    @Column(name = "end_time", nullable = false, columnDefinition = "TIME COMMENT '频率生效结束时间'")
     private LocalTime endTime;
 
     @Column(name = "headway_secs", nullable = false, columnDefinition = "INT COMMENT '发车间隔(秒)'")

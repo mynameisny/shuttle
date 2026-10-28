@@ -57,44 +57,44 @@ import java.util.List;
 public class Route extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属机构ID'")
+    @JoinColumn(name = "agency_id", nullable = false, columnDefinition = "BIGINT COMMENT '线路所属机构'")
     private Agency agency;
     
     @Column(name = "route_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '线路唯一标识，如 463'")
     private String routeId;
 
-    @Column(name = "route_short_name", columnDefinition = "VARCHAR(255) COMMENT '线路简名，如 463'")
+    @Column(name = "route_short_name", columnDefinition = "VARCHAR(255) COMMENT '线路简称，如 32、100X、Green'")
     private String routeShortName;
 
-    @Column(name = "route_long_name", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '线路名称，如 463路'")
+    @Column(name = "route_long_name", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '线路全称，更描述性，常含目的地信息'")
     private String routeLongName;
 
-    @Column(name = "route_desc", columnDefinition = "TEXT COMMENT '线路描述'")
+    @Column(name = "route_desc", columnDefinition = "TEXT COMMENT '线路描述，应提供有用信息，不应与名称重复'")
     private String routeDesc;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "route_type", nullable = false, columnDefinition = "VARCHAR(20) COMMENT '线路类型'")
+    @Column(name = "route_type", nullable = false, columnDefinition = "VARCHAR(20) COMMENT '交通类型：TRAM/SUBWAY/RAIL/BUS/FERRY等'")
     private RouteType routeType;
 
-    @Column(name = "route_url", columnDefinition = "VARCHAR(255) COMMENT '线路 URL（对应 GTFS route_url）'")
+    @Column(name = "route_url", columnDefinition = "VARCHAR(255) COMMENT '线路相关网页地址'")
     private String routeUrl;
 
-    @Column(name = "route_color", columnDefinition = "CHAR(6) COMMENT '线路颜色（对应 GTFS route_color）'")
+    @Column(name = "route_color", columnDefinition = "CHAR(6) COMMENT '线路背景颜色（6位16进制，默认FFFFFF）'")
     private String routeColor;
 
-    @Column(name = "route_text_color", columnDefinition = "CHAR(6) COMMENT '文字颜色（对应 GTFS route_text_color）'")
+    @Column(name = "route_text_color", columnDefinition = "CHAR(6) COMMENT '线路文字颜色（6位16进制，默认000000）'")
     private String routeTextColor;
 
-    @Column(name = "route_sort_order", columnDefinition = "INT COMMENT '排序（对应 GTFS route_sort_order）'")
+    @Column(name = "route_sort_order", columnDefinition = "INT COMMENT '展示排序，值越小越靠前'")
     private Integer routeSortOrder;
 
-    @Column(name = "continuous_pickup", columnDefinition = "INT COMMENT '连续上车（对应 GTFS continuous_pickup）'")
+    @Column(name = "continuous_pickup", columnDefinition = "INT COMMENT '连续上车规则（0=允许,1=不允许,2=电话预约,3=与司机协商）'")
     private Integer continuousPickup;
 
-    @Column(name = "continuous_drop_off", columnDefinition = "INT COMMENT '连续下车（对应 GTFS continuous_drop_off）'")
+    @Column(name = "continuous_drop_off", columnDefinition = "INT COMMENT '连续下车规则（0=允许,1=不允许,2=电话预约,3=与司机协商）'")
     private Integer continuousDropOff;
 
-    @Column(name = "network_id", columnDefinition = "VARCHAR(50) COMMENT '网络 ID（对应 GTFS network_id，用于组织多条线路成一个网络）'")
+    @Column(name = "network_id", columnDefinition = "VARCHAR(50) COMMENT '线路分组标识，将多条线路组织成网络'")
     private String networkId;
 
     /**
@@ -103,7 +103,7 @@ public class Route extends AbstractAuditable
      * 1 - 支持
      * 2 - 不支持
      */
-    @Column(name = "cemv_support", columnDefinition = "TINYINT COMMENT 'EMV支付支持（对应 GTFS cemv_support）'")
+    @Column(name = "cemv_support", columnDefinition = "TINYINT COMMENT 'EMV支付支持（0=无信息,1=支持,2=不支持）'")
     private Integer cemvSupport;
 
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
