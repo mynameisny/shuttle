@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import me.ningyu.app.shuttle.domain.entity.Trip;
+import me.ningyu.app.shuttle.domain.entity.gtfs.Trip;
 import me.ningyu.app.shuttle.facade.service.TripService;
 import me.ningyu.app.shuttle.model.schedule.CreateTripRequest;
 import me.ningyu.app.shuttle.model.schedule.UpdateTripRequest;

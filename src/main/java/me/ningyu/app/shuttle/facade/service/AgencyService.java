@@ -3,7 +3,7 @@ package me.ningyu.app.shuttle.facade.service;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.ningyu.app.shuttle.domain.entity.Agency;
+import me.ningyu.app.shuttle.domain.entity.gtfs.Agency;
 import me.ningyu.app.shuttle.domain.repo.AgencyRepository;
 import me.ningyu.app.shuttle.model.agency.CreateAgencyRequest;
 import me.ningyu.app.shuttle.model.agency.UpdateAgencyRequest;

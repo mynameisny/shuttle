@@ -1,6 +1,6 @@
 package me.ningyu.app.shuttle.domain.repo;
 
-import me.ningyu.app.shuttle.domain.entity.CalendarDate;
+import me.ningyu.app.shuttle.domain.entity.gtfs.CalendarDate;
 import me.ningyu.app.shuttle.enums.ExceptionType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

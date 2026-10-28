@@ -1,7 +1,7 @@
 package me.ningyu.app.shuttle.config;
 
 import lombok.RequiredArgsConstructor;
-import me.ningyu.app.shuttle.domain.entity.Agency;
+import me.ningyu.app.shuttle.domain.entity.gtfs.Agency;
 import me.ningyu.app.shuttle.domain.repo.AgencyRepository;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.CommandLineRunner;

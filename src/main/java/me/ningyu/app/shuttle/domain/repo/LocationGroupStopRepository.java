@@ -1,7 +1,7 @@
 package me.ningyu.app.shuttle.domain.repo;
 
-import me.ningyu.app.shuttle.domain.entity.LocationGroup;
-import me.ningyu.app.shuttle.domain.entity.LocationGroupStop;
+import me.ningyu.app.shuttle.domain.entity.gtfs.LocationGroup;
+import me.ningyu.app.shuttle.domain.entity.gtfs.LocationGroupStop;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;

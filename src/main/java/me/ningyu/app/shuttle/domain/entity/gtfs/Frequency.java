@@ -1,5 +1,6 @@
-package me.ningyu.app.shuttle.domain.entity;
+package me.ningyu.app.shuttle.domain.entity.gtfs;
 
+import me.ningyu.app.shuttle.domain.entity.AbstractAuditable;
 import jakarta.persistence.*;
 import lombok.*;
 import me.ningyu.app.shuttle.enums.ExactTimes;

@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.ningyu.app.shuttle.domain.entity.Agency;
+import me.ningyu.app.shuttle.domain.entity.gtfs.Agency;
 import me.ningyu.app.shuttle.facade.service.AgencyService;
 import me.ningyu.app.shuttle.model.agency.CreateAgencyRequest;
 import me.ningyu.app.shuttle.model.agency.UpdateAgencyRequest;

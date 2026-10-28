@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.ningyu.app.shuttle.domain.entity.Route;
+import me.ningyu.app.shuttle.domain.entity.gtfs.Route;
 import me.ningyu.app.shuttle.facade.service.RouteService;
 import me.ningyu.app.shuttle.model.route.CreateRouteRequest;
 import me.ningyu.app.shuttle.model.route.UpdateRouteRequest;
