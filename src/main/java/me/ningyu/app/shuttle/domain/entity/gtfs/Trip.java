@@ -60,7 +60,7 @@ public class Trip extends AbstractAuditable
     @JoinColumn(name = "route_id", referencedColumnName = "route_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属线路'")
     private Route route;
 
-    @Column(name = "trip_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '行程标识，如 463_0700_out'")
+    @Column(name = "trip_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '行程标识，如 463_0700_outbound'")
     private String tripId;
 
     @Column(name = "service_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '服务日历标识，指定这趟班次使用哪套运营日历，引用 Calendar.serviceId'")
