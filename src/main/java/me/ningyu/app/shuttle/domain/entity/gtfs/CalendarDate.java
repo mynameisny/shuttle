@@ -12,7 +12,7 @@ import java.time.LocalDate;
  * 日历特殊日期（对应 GTFS calendar_dates.txt）
  * 用于处理节假日、临时加开/停运等例外情况
  *
- * 参考：https://gtfs.org/documentation/schedule/reference/#calendar_datestxt
+ * 参考：<a href="https://gtfs.org/documentation/schedule/reference/#calendar_datestxt">calendar_dates.txt</a>
  *
  * GTFS 字段定义（Field Name / Type / Presence）：
  * - service_id     (Foreign ID) [必填] 服务标识。
@@ -30,7 +30,7 @@ public class CalendarDate extends AbstractAuditable
 {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", referencedColumnName = "service_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属服务'")
-    private ServiceCalendar serviceCalendar;
+    private Calendar serviceCalendar;
 
     @Column(nullable = false, columnDefinition = "DATE COMMENT '例外日期'")
     private LocalDate date;

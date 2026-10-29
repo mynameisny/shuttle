@@ -35,13 +35,13 @@ import java.time.LocalDate;
  * - agency / code / name：所属机构、服务编码、服务名称，用于业务展示与查询。
  * </pre>
  */
-@Entity(name = "service_calendar")
+@Entity(name = "calendar")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ServiceCalendar extends AbstractAuditable
+public class Calendar extends AbstractAuditable
 {
     /**
      * GTFS service_id：服务唯一标识，被 trips.service_id 引用。
