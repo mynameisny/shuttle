@@ -63,7 +63,7 @@ public class Trip extends AbstractAuditable
     @Column(name = "trip_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '行程标识，如 463_0700_out'")
     private String tripId;
 
-    @Column(name = "service_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '服务日历标识，引用 Calendar.serviceId'")
+    @Column(name = "service_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '服务日历标识，指定这趟班次使用哪套运营日历，引用 Calendar.serviceId'")
     private String serviceId;
 
     @Column(name = "direction_id", columnDefinition = "INT DEFAULT 0 COMMENT '方向ID（0=正向，1=反向）'")

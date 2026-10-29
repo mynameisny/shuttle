@@ -53,7 +53,7 @@ public class Calendar extends AbstractAuditable
     @JoinColumn(name = "agency_id", referencedColumnName = "agency_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属机构（业务扩展）'")
     private Agency agency;
 
-    @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '服务编码，如weekday、weekend、holiday'")
+    @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '服务编码，如 WEEKDAY、WEEKEND、HOLIDAY'")
     private String code;
 
     @Column(nullable = false, columnDefinition = "VARCHAR(100) COMMENT '服务名称，如工作日服务、周末服务'")
