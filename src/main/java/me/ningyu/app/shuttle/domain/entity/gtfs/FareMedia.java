@@ -30,13 +30,13 @@ public class FareMedia extends AbstractAuditable
     private String fareMediaId;
     @Column(name = "fare_media_name", columnDefinition = "VARCHAR(100) COMMENT '票价媒介名称'")
     private String fareMediaName;
-        /**
+    /**
      * 票价媒介类型。
-* NONE - 无媒介（现金等）
-* PAPER_TICKET - 实体纸质车票
-* TRANSIT_CARD - 实体交通卡
-* CEMV - 非接触式EMV卡
-* MOBILE_APP - 移动应用
+     * NONE - 无媒介（现金等）
+     * PAPER_TICKET - 实体纸质车票
+     * TRANSIT_CARD - 实体交通卡
+     * CEMV - 非接触式EMV卡
+     * MOBILE_APP - 移动应用
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "fare_media_type", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'NONE' COMMENT '票价媒介类型：NONE/PAPER_TICKET/TRANSIT_CARD/CEMV/MOBILE_APP'")

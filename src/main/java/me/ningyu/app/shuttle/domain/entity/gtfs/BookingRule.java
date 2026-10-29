@@ -46,11 +46,11 @@ public class BookingRule extends AbstractAuditable
 {
     @Column(name = "booking_rule_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '预订规则标识'")
     private String bookingRuleId;
-        /**
+    /**
      * 预订方式。
-* REALTIME - 实时预订
-* SAME_DAY - 当日预订
-* ADVANCE - 提前预约
+     * REALTIME - 实时预订
+     * SAME_DAY - 当日预订
+     * ADVANCE - 提前预约
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "booking_type", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'REALTIME' COMMENT '预订方式：REALTIME=实时，SAME_DAY=当日，ADVANCE=提前预约'")

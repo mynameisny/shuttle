@@ -39,12 +39,12 @@ public class FareTransferRule extends AbstractAuditable
     private Integer transferCount;
     @Column(name = "duration_limit", columnDefinition = "INT COMMENT '换乘有效时长（秒）'")
     private Integer durationLimit;
-        /**
+    /**
      * 换乘时限计时锚点。
-* FROM_DEPARTURE - 换乘前区段的出发时刻
-* FROM_ARRIVAL - 换乘前区段的到达时刻（默认）
-* TO_DEPARTURE - 换乘后区段的出发时刻
-* TO_ARRIVAL - 换乘后区段的到达时刻
+     * FROM_DEPARTURE - 换乘前区段的出发时刻
+     * FROM_ARRIVAL - 换乘前区段的到达时刻（默认）
+     * TO_DEPARTURE - 换乘后区段的出发时刻
+     * TO_ARRIVAL - 换乘后区段的到达时刻
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "duration_limit_type", nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'FROM_ARRIVAL' COMMENT '时限计时锚点'")
