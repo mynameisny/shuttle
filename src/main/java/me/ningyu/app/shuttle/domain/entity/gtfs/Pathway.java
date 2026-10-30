@@ -42,7 +42,7 @@ public class Pathway extends AbstractAuditable
     @Builder.Default
     private Boolean isBidirectional = false;
 
-    @Column(columnDefinition = "DECIMAL(10,2) COMMENT '通道长度(米)'")
+    @Column(name = "length", columnDefinition = "DECIMAL(10,2) COMMENT '通道长度(米)'")
     private BigDecimal length;
 
     @Column(name = "traversal_time", columnDefinition = "INT COMMENT '通过通道所需时间(秒)'")

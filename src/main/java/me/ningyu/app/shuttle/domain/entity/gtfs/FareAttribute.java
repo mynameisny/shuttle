@@ -40,7 +40,7 @@ public class FareAttribute extends AbstractAuditable
     @Column(name = "fare_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '票价标识'")
     private String fareId;
 
-    @Column(nullable = false, precision = 10, scale = 2, columnDefinition = "DECIMAL(10,2) COMMENT '票价金额'")
+    @Column(name = "price", nullable = false, precision = 10, scale = 2, columnDefinition = "DECIMAL(10,2) COMMENT '票价金额'")
     private BigDecimal price;
 
     @Column(name = "currency_type", nullable = false, columnDefinition = "VARCHAR(10) DEFAULT 'CNY' COMMENT '货币类型，如CNY、USD'")

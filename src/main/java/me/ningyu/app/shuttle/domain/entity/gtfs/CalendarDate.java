@@ -32,7 +32,7 @@ public class CalendarDate extends AbstractAuditable
     @JoinColumn(name = "service_id", referencedColumnName = "service_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属服务'")
     private Calendar serviceCalendar;
 
-    @Column(nullable = false, columnDefinition = "DATE COMMENT '例外日期'")
+    @Column(name = "date", nullable = false, columnDefinition = "DATE COMMENT '例外日期'")
     private LocalDate date;
 
     @Enumerated(EnumType.STRING)
