@@ -31,11 +31,9 @@ import java.time.LocalDate;
  * - start_date → startDate
  * - end_date → endDate
  *
- * 项目扩展字段（非 GTFS 规范）：
- * - name：服务名称，用于业务展示与查询。
- *
  * 机构归属：GTFS 将机构挂在 routes.agency_id 上，日历的机构维度沿
  * trip.service_id → route.agency_id 推导，故不设 agency_id 冗余列。
+ * 展示名等非规范属性不放本包，见 extension 包。
  * </pre>
  */
 @Entity(name = "calendar")
@@ -51,9 +49,6 @@ public class Calendar extends AbstractAuditable
      */
     @Column(name = "service_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '服务标识，确定服务可用日期集合'")
     private String serviceId;
-
-    @Column(nullable = false, columnDefinition = "VARCHAR(100) COMMENT '服务名称，如工作日服务、周末服务'")
-    private String name;
 
     @Column(name = "monday", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0 COMMENT '周一是否运营'")
     @Builder.Default
