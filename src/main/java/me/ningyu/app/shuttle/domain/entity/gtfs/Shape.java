@@ -32,10 +32,6 @@ public class Shape extends AbstractAuditable
     @Column(name = "shape_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '形状标识，同一形状的各点共享'")
     private String shapeId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "route_id", referencedColumnName = "route_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属线路（业务扩展）'")
-    private Route route;
-
     @Column(name = "shape_pt_lat", nullable = false, precision = 10, scale = 7, columnDefinition = "DECIMAL(10,7) COMMENT '形状点纬度'")
     private BigDecimal shapePtLat;
 

@@ -9,7 +9,5 @@ import java.util.List;
 
 public interface ShapeRepository extends JpaRepository<Shape, Long>, PagingAndSortingRepository<Shape, Long>, JpaSpecificationExecutor<Shape>
 {
-    List<Shape> findByRouteIdOrderByShapePtSequenceAsc(Long routeId);
-
-    List<Shape> findByRouteId(Long routeId);
+    List<Shape> findByShapeIdOrderByShapePtSequenceAsc(String shapeId);
 }

@@ -9,5 +9,5 @@ import java.util.Optional;
 
 public interface FeedInfoRepository extends JpaRepository<FeedInfo, Long>, PagingAndSortingRepository<FeedInfo, Long>, JpaSpecificationExecutor<FeedInfo>
 {
-    Optional<FeedInfo> findByAgencyId(Long agencyId);
+    Optional<FeedInfo> findByFeedVersion(String feedVersion);
 }

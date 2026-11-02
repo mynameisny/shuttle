@@ -11,7 +11,8 @@ import java.time.LocalDate;
  * 数据源信息（对应 GTFS feed_info.txt）
  * 描述 GTFS 数据本身的元信息
  *
- * 每个组织可有一条 FeedInfo，记录数据发布者、版本、有效期等
+ * 一个数据集一条记录；发布者、语言、版本、有效期等信息由本表字段承载，
+ * GTFS 官方无 agency_id 字段，无需关联机构
  * </pre>
  */
 @Entity(name = "feed_info")
@@ -22,10 +23,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class FeedInfo extends AbstractAuditable
 {
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agency_id", referencedColumnName = "agency_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属机构（业务扩展）'")
-    private Agency agency;
-
     @Column(name = "feed_publisher_name", nullable = false, columnDefinition = "VARCHAR(100) COMMENT '数据发布者全称'")
     private String feedPublisherName;
 
