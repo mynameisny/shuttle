@@ -13,9 +13,5 @@ public interface CalendarRepository extends JpaRepository<Calendar, Long>, Pagin
 {
     Optional<Calendar> findByServiceId(String serviceId);
 
-    Optional<Calendar> findByCode(String code);
-
-    List<Calendar> findByAgencyId(Long agencyId);
-
     List<Calendar> findByStartDateLessThanEqualAndEndDateGreaterThanEqual(LocalDate date1, LocalDate date2);
 }
