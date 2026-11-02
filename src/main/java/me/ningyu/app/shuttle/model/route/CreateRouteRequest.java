@@ -3,6 +3,7 @@ package me.ningyu.app.shuttle.model.route;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import me.ningyu.app.shuttle.enums.ContinuousDropType;
 import me.ningyu.app.shuttle.enums.RouteType;
 
 @Getter
@@ -36,9 +37,9 @@ public class CreateRouteRequest
 
     private Integer routeSortOrder;
 
-    private Integer continuousPickup;
+    private ContinuousDropType continuousPickup;
 
-    private Integer continuousDropOff;
+    private ContinuousDropType continuousDropOff;
 
     private String networkId;
 }

@@ -1,6 +1,7 @@
 package me.ningyu.app.shuttle.model.route;
 
 import lombok.*;
+import me.ningyu.app.shuttle.enums.ContinuousDropType;
 import me.ningyu.app.shuttle.enums.RouteType;
 
 @Getter
@@ -26,9 +27,9 @@ public class UpdateRouteRequest
 
     private Integer routeSortOrder;
 
-    private Integer continuousPickup;
+    private ContinuousDropType continuousPickup;
 
-    private Integer continuousDropOff;
+    private ContinuousDropType continuousDropOff;
 
     private String networkId;
 }

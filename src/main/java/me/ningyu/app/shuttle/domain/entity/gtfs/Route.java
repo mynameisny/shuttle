@@ -4,6 +4,8 @@ import me.ningyu.app.shuttle.domain.entity.AbstractAuditable;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import me.ningyu.app.shuttle.enums.CemvSupport;
+import me.ningyu.app.shuttle.enums.ContinuousDropType;
 import me.ningyu.app.shuttle.enums.RouteType;
 
 import java.util.ArrayList;
@@ -88,23 +90,26 @@ public class Route extends AbstractAuditable
     @Column(name = "route_sort_order", columnDefinition = "INT COMMENT '展示排序，值越小越靠前'")
     private Integer routeSortOrder;
 
-    @Column(name = "continuous_pickup", columnDefinition = "INT COMMENT '连续上车规则（0=允许,1=不允许,2=电话预约,3=与司机协商）'")
-    private Integer continuousPickup;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "continuous_pickup", columnDefinition = "VARCHAR(20) DEFAULT 'NOT_ALLOWED' COMMENT '连续上车规则（ALLOWED/NOT_ALLOWED/PHONE_AGENCY/COORDINATE_WITH_DRIVER），可被 stop_times 覆盖'")
+    @Builder.Default
+    private ContinuousDropType continuousPickup = ContinuousDropType.NOT_ALLOWED;
 
-    @Column(name = "continuous_drop_off", columnDefinition = "INT COMMENT '连续下车规则（0=允许,1=不允许,2=电话预约,3=与司机协商）'")
-    private Integer continuousDropOff;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "continuous_drop_off", columnDefinition = "VARCHAR(20) DEFAULT 'NOT_ALLOWED' COMMENT '连续下车规则（取值同 continuous_pickup），可被 stop_times 覆盖'")
+    @Builder.Default
+    private ContinuousDropType continuousDropOff = ContinuousDropType.NOT_ALLOWED;
 
     @Column(name = "network_id", columnDefinition = "VARCHAR(50) COMMENT '线路分组标识，将多条线路组织成网络'")
     private String networkId;
 
     /**
-     * 是否支持非接触式 EMV 支付。
-     * 0 - 无信息（默认）
-     * 1 - 支持
-     * 2 - 不支持
+     * 是否支持非接触式 EMV 支付（GTFS cemv_support）。
      */
-    @Column(name = "cemv_support", columnDefinition = "TINYINT COMMENT 'EMV支付支持（0=无信息,1=支持,2=不支持）'")
-    private Integer cemvSupport;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cemv_support", columnDefinition = "VARCHAR(20) DEFAULT 'NO_INFORMATION' COMMENT 'EMV支付支持（NO_INFORMATION/SUPPORTED/NOT_SUPPORTED）'")
+    @Builder.Default
+    private CemvSupport cemvSupport = CemvSupport.NO_INFORMATION;
 
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
