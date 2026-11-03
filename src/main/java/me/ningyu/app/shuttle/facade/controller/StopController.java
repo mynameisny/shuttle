@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Stop;
 import me.ningyu.app.shuttle.facade.service.StopService;
 import me.ningyu.app.shuttle.model.stop.CreateStopRequest;
+import me.ningyu.app.shuttle.model.stop.UpdateStopRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -37,6 +38,15 @@ public class StopController
                 .buildAndExpand(stop.getId())
                 .toUri();
         return ResponseEntity.created(location).body(stop);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "更新停靠点", description = "更新站点名称与坐标（stop_id 不可修改）；坐标修正会同步影响所有引用该站点的班次")
+    public ResponseEntity<Stop> update(
+            @Parameter(description = "站点数据库主键") @PathVariable Long id,
+            @Valid @RequestBody UpdateStopRequest request)
+    {
+        return ResponseEntity.ok(stopService.updateStop(id, request));
     }
 
     @GetMapping

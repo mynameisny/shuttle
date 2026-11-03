@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Stop;
 import me.ningyu.app.shuttle.domain.repo.StopRepository;
 import me.ningyu.app.shuttle.model.stop.CreateStopRequest;
+import me.ningyu.app.shuttle.model.stop.UpdateStopRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +43,22 @@ public class StopService
                 .stopLat(request.getLat())
                 .stopLon(request.getLng())
                 .build();
+        return stopRepository.save(stop);
+    }
+
+    /**
+     * 更新停靠点名称与坐标（管理端站点维护页）。
+     * stop_id 不允许修改（GTFS 主标识符，被 stop_times 引用）；
+     * 坐标修正会同步影响所有引用该站点的班次。
+     */
+    @Nonnull
+    public Stop updateStop(Long id, UpdateStopRequest request)
+    {
+        Stop stop = stopRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("站点不存在: id=" + id));
+        stop.setStopName(request.getStopName().trim());
+        stop.setStopLat(request.getLat());
+        stop.setStopLon(request.getLng());
         return stopRepository.save(stop);
     }
 

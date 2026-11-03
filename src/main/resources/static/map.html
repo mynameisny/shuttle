@@ -17,10 +17,16 @@
             display: flex; flex-direction: column; overflow: hidden;
         }
         #panel header {
-            padding: 14px 16px; background: #1a73e8; color: #fff;
+            position: relative; padding: 14px 16px; background: #1a73e8; color: #fff;
         }
         #panel header h1 { font-size: 16px; font-weight: 600; }
         #panel header p { font-size: 12px; opacity: .85; margin-top: 2px; }
+        .nav-link {
+            position: absolute; top: 16px; right: 14px; color: #fff; opacity: .92;
+            font-size: 12px; text-decoration: none; padding: 3px 8px; border: 1px solid rgba(255,255,255,.55);
+            border-radius: 5px;
+        }
+        .nav-link:hover { background: rgba(255,255,255,.15); }
         #panel .body { flex: 1; overflow-y: auto; padding: 12px 16px 24px; }
 
         .field { margin-bottom: 10px; }
@@ -81,6 +87,7 @@
         <header>
             <h1>班车线路描图</h1>
             <p>地图手工选点（站点）· 描线（几何形状）</p>
+            <a class="nav-link" href="stops.html">站点维护 →</a>
         </header>
         <div class="body">
             <div class="field">
@@ -123,6 +130,7 @@
 <div id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/map-common.js"></script>
 <script>
     const API = {
         routes: '/api/routes',
@@ -130,29 +138,7 @@
         tripShape: pk => '/api/shapes/by-trip/' + pk,
         stops: '/api/stops'
     };
-    // WGS-84 数据 + 无偏移底图（勿换高德/百度 GCJ-02 底图）
-    // 2026-09-23 起 CARTO 底图要求免费 API key：无 key 请求返回 "API KEY REQUIRED" 水印瓦片
-    // （HTTP 200 正常图，不触发 tileerror，前端无法识别过滤）。如需恢复简洁/细节底图：
-    // 到 https://carto.com/basemaps/apikey 申请免费 key（邮箱直达，非商用 5M 请求/月），
-    // 将 YOUR_CARTO_KEY 替换为实际 key 后取消下方注释即可。
-    // const cartoKey = 'YOUR_CARTO_KEY';
-    // const cartoLayers = {
-    //     '简洁底图': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=' + cartoKey, {
-    //         maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-    //     }),
-    //     '细节底图': L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=' + cartoKey, {
-    //         maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-    //     })
-    // };
-    // 默认 OSM 标准底图：无 key 要求，内部低流量使用符合 OSM 瓦片政策（代价：natural=peak 山峰 ▲ 图标仍在）
-    const map = L.map('map', { doubleClickZoom: false }).setView([40.10, 116.30], 12);
-    const basemaps = {
-        'OSM 标准': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
-        })
-    };
-    basemaps['OSM 标准'].addTo(map);
-    L.control.layers(basemaps, null, { position: 'bottomright' }).addTo(map);
+    const { map } = createMap('map');
 
     const state = {
         tripPk: null, shapeId: null,
@@ -161,29 +147,6 @@
         vertexMarkers: [],// 顶点圆点
         stopLayer: L.layerGroup().addTo(map)
     };
-
-    const $ = id => document.getElementById(id);
-
-    function toast(msg, isErr) {
-        const t = $('toast');
-        t.textContent = msg;
-        t.className = 'show' + (isErr ? ' err' : '');
-        clearTimeout(t._timer);
-        t._timer = setTimeout(() => t.className = '', 2600);
-    }
-
-    async function api(url, options) {
-        const resp = await fetch(url, options);
-        if (!resp.ok) {
-            let detail = 'HTTP ' + resp.status;
-            try { const body = await resp.json(); if (body && body.message) detail = body.message; } catch (e) { /* ignore */ }
-            throw new Error(detail);
-        }
-        // 204 No Content 等空响应体直接返回 null（如 DELETE 形状）
-        if (resp.status === 204) return null;
-        const text = await resp.text();
-        return text ? JSON.parse(text) : null;
-    }
 
     // ---------- haversine（与后端同公式，单位米） ----------
     function haversine(a, b) {

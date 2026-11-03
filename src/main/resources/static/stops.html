@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>站点维护 - Shuttle 管理端</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+        #app { display: flex; height: 100%; }
+
+        /* ---------- 左侧面板 ---------- */
+        #panel {
+            width: 340px; min-width: 340px; height: 100%;
+            background: #f7f8fa; border-right: 1px solid #e0e3e8;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        #panel header { position: relative; padding: 14px 16px; background: #1a73e8; color: #fff; }
+        #panel header h1 { font-size: 16px; font-weight: 600; }
+        #panel header p { font-size: 12px; opacity: .85; margin-top: 2px; }
+        .nav-link {
+            position: absolute; top: 16px; right: 14px; color: #fff; opacity: .92;
+            font-size: 12px; text-decoration: none; padding: 3px 8px; border: 1px solid rgba(255,255,255,.55);
+            border-radius: 5px;
+        }
+        .nav-link:hover { background: rgba(255,255,255,.15); }
+        #panel .body { flex: 1; overflow-y: auto; padding: 12px 16px 24px; }
+
+        .field { margin-bottom: 10px; }
+        .field label { display: block; font-size: 12px; color: #5f6368; margin-bottom: 4px; }
+        .field input {
+            width: 100%; padding: 7px 8px; font-size: 13px;
+            border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
+        }
+        .field input:focus { outline: 2px solid #aecbfa; border-color: #1a73e8; }
+        .field-row { display: flex; gap: 8px; }
+        .field-row .field { flex: 1; }
+        .group-title {
+            font-size: 12px; font-weight: 600; color: #1a73e8;
+            margin: 14px 0 6px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .group-title .badge { font-weight: 400; color: #5f6368; }
+        .list { border: 1px solid #e0e3e8; border-radius: 6px; background: #fff; max-height: 240px; overflow-y: auto; }
+        .list .item {
+            display: flex; justify-content: space-between; align-items: center; gap: 6px;
+            padding: 5px 8px; font-size: 12px; border-bottom: 1px solid #f0f2f5; cursor: pointer;
+        }
+        .list .item:last-child { border-bottom: none; }
+        .list .item:hover { background: #f0f4f9; }
+        .list .item.sel { background: #e8f0fe; }
+        .list .item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .list .item .coord { color: #9aa0a6; font-size: 11px; white-space: nowrap; }
+        .list .empty { padding: 10px; font-size: 12px; color: #9aa0a6; text-align: center; }
+
+        .empty-box {
+            padding: 12px; font-size: 12px; color: #9aa0a6; text-align: center;
+            border: 1px dashed #d0d5dd; border-radius: 6px; background: #fff;
+        }
+        #editArea { border: 1px solid #e0e3e8; border-radius: 6px; background: #fff; padding: 10px; }
+        .meta-line { font-size: 12px; color: #5f6368; margin-bottom: 8px; }
+        .meta-line span { color: #1a73e8; font-weight: 500; }
+        .tip { font-size: 11px; color: #5f6368; line-height: 1.6; margin: 6px 0 2px; }
+
+        .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        button {
+            padding: 7px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #d0d5dd;
+            background: #fff; cursor: pointer; color: #333;
+        }
+        button:hover { background: #f0f4f9; }
+        button.primary { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+        button.primary:hover { background: #1765cc; }
+        button:disabled { opacity: .5; cursor: not-allowed; }
+
+        #hint { font-size: 12px; color: #5f6368; line-height: 1.7; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #d0d5dd; }
+
+        /* ---------- 地图 ---------- */
+        #map { flex: 1; height: 100%; }
+        .sel-stop-icon { background: transparent; border: none; }
+        .sel-dot {
+            width: 16px; height: 16px; border-radius: 50%; background: #1a73e8;
+            border: 3px solid #fff; box-shadow: 0 0 0 1px #1a73e8, 0 1px 4px rgba(0,0,0,.4);
+            box-sizing: border-box; cursor: move;
+        }
+
+        /* ---------- Toast ---------- */
+        #toast {
+            position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+            background: #202124; color: #fff; font-size: 13px;
+            padding: 9px 18px; border-radius: 8px; opacity: 0; pointer-events: none;
+            transition: opacity .25s; z-index: 9999; max-width: 70%;
+        }
+        #toast.show { opacity: .95; }
+        #toast.err { background: #b3261e; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div id="panel">
+        <header>
+            <h1>站点维护</h1>
+            <p>全站点台账 · 搜索 · 坐标校正</p>
+            <a class="nav-link" href="map.html">线路描图 →</a>
+        </header>
+        <div class="body">
+            <div class="field">
+                <label>搜索站点</label>
+                <input type="text" id="searchInput" placeholder="输入站点名称关键字…" autocomplete="off">
+            </div>
+
+            <div class="group-title">站点列表 <span class="badge" id="stopCount">0</span></div>
+            <div class="list" id="stopList"><div class="empty">加载中…</div></div>
+
+            <div class="group-title">编辑站点</div>
+            <div id="editEmpty" class="empty-box">从列表或地图选择一个站点开始编辑</div>
+            <div id="editArea" style="display:none">
+                <div class="meta-line">站点ID：<span id="editMeta"></span></div>
+                <div class="field">
+                    <label>站点名称</label>
+                    <input type="text" id="editName" maxlength="100">
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label>纬度</label>
+                        <input type="number" id="editLat" step="0.0000001" min="-90" max="90">
+                    </div>
+                    <div class="field">
+                        <label>经度</label>
+                        <input type="number" id="editLng" step="0.0000001" min="-180" max="180">
+                    </div>
+                </div>
+                <div class="tip">拖动地图上的蓝色圆点调整位置，坐标自动回填；也可直接输入经纬度。</div>
+                <div class="btn-row">
+                    <button id="btnSave" class="primary">保存修改</button>
+                    <button id="btnCancel">取消选择</button>
+                </div>
+            </div>
+
+            <div id="hint">
+                使用说明：<br>
+                1. 站点为全局资源：修改坐标会影响所有引用它的班次，请谨慎操作。<br>
+                2. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置。<br>
+                3. 保存后立即生效；坐标校正请以 GPS 实测为准。<br>
+                4. 新建站点请到「线路描图」页勾选"新建站点模式"。
+            </div>
+        </div>
+    </div>
+    <div id="map"></div>
+</div>
+<div id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/map-common.js"></script>
+<script>
+    const API = {
+        stops: '/api/stops',
+        stop: id => '/api/stops/' + id
+    };
+
+    const { map } = createMap('map');
+
+    const state = {
+        stops: [],        // 当前筛选后的站点集合（Stop JSON：id/stopId/stopName/stopLat/stopLon）
+        selectedId: null, // 选中站点数据库主键
+        normalLayer: L.layerGroup().addTo(map), // 普通站点橙色圆点
+        selMarker: null   // 选中站点的可拖拽蓝色圆点
+    };
+
+    // ---------- 数据加载 ----------
+    let searchTimer = null;
+    $('searchInput').addEventListener('input', e => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => loadStops(e.target.value.trim()), 300);
+    });
+
+    async function loadStops(keyword) {
+        const url = keyword ? API.stops + '?keyword=' + encodeURIComponent(keyword) : API.stops;
+        try {
+            state.stops = await api(url) || [];
+            renderList();
+            renderMarkers();
+            fitToStops();
+        } catch (err) { toast('加载站点失败：' + err.message, true); }
+    }
+
+    function findSelected() {
+        return state.stops.find(s => s.id === state.selectedId) || null;
+    }
+
+    // ---------- 渲染 ----------
+    function renderList() {
+        $('stopCount').textContent = state.stops.length;
+        $('stopList').innerHTML = state.stops.length
+            ? state.stops.map(s =>
+                '<div class="item' + (s.id === state.selectedId ? ' sel' : '') + '" data-id="' + s.id + '">' +
+                '<span class="name" title="' + esc(s.stopName || '') + '">' + esc(s.stopName || '(未命名)') + '</span>' +
+                '<span class="coord">' + parseFloat(s.stopLat).toFixed(5) + ',' + parseFloat(s.stopLon).toFixed(5) + '</span></div>'
+            ).join('')
+            : '<div class="empty">无匹配站点（新建请到线路描图页）</div>';
+        $('stopList').querySelectorAll('.item').forEach(el =>
+            el.addEventListener('click', () => selectStop(parseInt(el.dataset.id)))
+        );
+    }
+
+    function renderMarkers() {
+        state.normalLayer.clearLayers();
+        state.stops.forEach(s => {
+            if (s.id === state.selectedId) return; // 选中站点由可拖拽蓝点呈现
+            const m = L.circleMarker([parseFloat(s.stopLat), parseFloat(s.stopLon)], {
+                radius: 6, color: '#fff', weight: 2, fillColor: '#e8710a', fillOpacity: 1
+            }).bindTooltip(s.stopName || s.stopId, { direction: 'top' });
+            m.on('click', () => selectStop(s.id));
+            state.normalLayer.addLayer(m);
+        });
+        refreshSelMarker();
+    }
+
+    function refreshSelMarker() {
+        const stop = findSelected();
+        if (state.selMarker) { map.removeLayer(state.selMarker); state.selMarker = null; }
+        if (!stop) return;
+        state.selMarker = L.marker([parseFloat(stop.stopLat), parseFloat(stop.stopLon)], {
+            draggable: true, autoPan: true,
+            icon: L.divIcon({ className: 'sel-stop-icon', html: '<div class="sel-dot"></div>', iconSize: [16, 16], iconAnchor: [8, 8] })
+        }).bindTooltip(stop.stopName || stop.stopId, { direction: 'top' }).addTo(map);
+        state.selMarker.on('dragend', e => {
+            const ll = e.target.getLatLng();
+            $('editLat').value = ll.lat.toFixed(7);
+            $('editLng').value = ll.lng.toFixed(7);
+            toast('位置已拖动，点击「保存修改」生效');
+        });
+    }
+
+    function fitToStops() {
+        const pts = state.stops.map(s => [parseFloat(s.stopLat), parseFloat(s.stopLon)]);
+        if (pts.length === 1) map.setView(pts[0], 14);
+        else if (pts.length > 1) map.fitBounds(L.latLngBounds(pts).pad(0.25));
+    }
+
+    // ---------- 选中与编辑 ----------
+    function selectStop(id) {
+        state.selectedId = id;
+        const stop = findSelected();
+        if (!stop) return;
+        $('editEmpty').style.display = 'none';
+        $('editArea').style.display = '';
+        $('editMeta').textContent = stop.stopId;
+        $('editName').value = stop.stopName || '';
+        $('editLat').value = parseFloat(stop.stopLat).toFixed(7);
+        $('editLng').value = parseFloat(stop.stopLon).toFixed(7);
+        renderList();     // 刷新列表高亮
+        renderMarkers();  // 橙点换蓝点
+        map.panTo([parseFloat(stop.stopLat), parseFloat(stop.stopLon)]);
+    }
+
+    function deselect() {
+        state.selectedId = null;
+        $('editEmpty').style.display = '';
+        $('editArea').style.display = 'none';
+        renderList();
+        renderMarkers();
+    }
+
+    $('btnCancel').addEventListener('click', deselect);
+
+    $('btnSave').addEventListener('click', async () => {
+        const stop = findSelected();
+        if (!stop) return;
+        const name = $('editName').value.trim();
+        const lat = $('editLat').value, lng = $('editLng').value;
+        if (!name) { toast('站点名称不能为空', true); return; }
+        const latN = parseFloat(lat), lngN = parseFloat(lng);
+        if (!isFinite(latN) || latN < -90 || latN > 90) { toast('纬度范围 [-90, 90]', true); return; }
+        if (!isFinite(lngN) || lngN < -180 || lngN > 180) { toast('经度范围 [-180, 180]', true); return; }
+        try {
+            // 坐标以字符串传输，保住 toFixed(7) 精度交给后端 BigDecimal 解析
+            const updated = await api(API.stop(stop.id), {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stopName: name, lat: lat, lng: lng })
+            });
+            const i = state.stops.findIndex(s => s.id === stop.id);
+            if (i >= 0) state.stops[i] = updated;
+            renderList();
+            refreshSelMarker();
+            map.panTo([parseFloat(updated.stopLat), parseFloat(updated.stopLon)]);
+            toast('已保存：' + updated.stopName);
+        } catch (err) { toast('保存失败：' + err.message, true); }
+    });
+
+    // ---------- 工具 ----------
+    function esc(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ---------- 初始化 ----------
+    loadStops();
+</script>
+</body>
+</html>
