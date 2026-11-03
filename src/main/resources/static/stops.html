@@ -33,7 +33,22 @@
             width: 100%; padding: 7px 8px; font-size: 13px;
             border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
         }
-        .field input:focus { outline: 2px solid #aecbfa; border-color: #1a73e8; }
+        .field select {
+            width: 100%; padding: 7px 8px; font-size: 13px;
+            border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
+        }
+        .field input:focus, .field select:focus { outline: 2px solid #aecbfa; border-color: #1a73e8; }
+        .field input:disabled { background: #f1f3f4; color: #9aa0a6; }
+        .ref-tag {
+            display: inline-block; font-size: 10px; color: #1a73e8; background: #e8f0fe;
+            border-radius: 4px; padding: 1px 4px; margin-right: 2px; vertical-align: 1px; white-space: nowrap;
+        }
+        .ref-tag.orphan { color: #9aa0a6; background: #f1f3f4; }
+        .dir-head {
+            padding: 6px 8px; font-size: 11px; font-weight: 600; color: #174ea6;
+            background: #f0f4f9; border-bottom: 1px solid #e0e3e8; position: sticky; top: 0; z-index: 1;
+        }
+        .seq { display: inline-block; min-width: 16px; color: #9aa0a6; font-size: 10px; }
         .field-row { display: flex; gap: 8px; }
         .field-row .field { flex: 1; }
         .group-title {
@@ -104,6 +119,11 @@
         </header>
         <div class="body">
             <div class="field">
+                <label>按线路筛选</label>
+                <select id="routeFilter"><option value="">全部站点</option></select>
+            </div>
+
+            <div class="field">
                 <label>搜索站点</label>
                 <input type="text" id="searchInput" placeholder="输入站点名称关键字…" autocomplete="off">
             </div>
@@ -141,10 +161,11 @@
             <div id="hint">
                 使用说明：<br>
                 1. 站点为全局资源：修改坐标会影响所有引用它的班次，请谨慎操作。<br>
-                2. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置。<br>
-                3. 编辑区下方显示引用该站点的班次（修改坐标的影响面），点击引用项跳转描线页查看。<br>
-                4. 保存后立即生效；坐标校正请以 GPS 实测为准。<br>
-                5. 新建站点请到「线路描图」页勾选"新建站点模式"。
+                2. 列表项角标显示引用该站的线路与方向（同名去程/返程站台靠此区分），"未使用"表示无任何班次引用。<br>
+                3. 顶部可按线路筛选，列表按去程/返程分组显示（正向查询）；搜索框在筛选模式下停用。<br>
+                4. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；保存后立即生效。<br>
+                5. 编辑区下方显示引用该站点的班次明细，点击可跳转描线页查看。<br>
+                6. 新建站点请到「线路描图」页勾选"新建站点模式"。
             </div>
         </div>
     </div>
@@ -158,13 +179,20 @@
     const API = {
         stops: '/api/stops',
         stop: id => '/api/stops/' + id,
-        stopUsage: id => '/api/stops/' + id + '/usage'
+        stopUsage: id => '/api/stops/' + id + '/usage',
+        usageSummary: '/api/stops/usage-summary',
+        routes: '/api/routes',
+        routeStops: pk => '/api/routes/' + pk + '/stops'
     };
 
     const { map } = createMap('map');
 
     const state = {
-        stops: [],        // 当前筛选后的站点集合（Stop JSON：id/stopId/stopName/stopLat/stopLon）
+        allStops: [],     // 全量站点（编辑查找的权威数据，不受搜索影响）
+        stops: [],        // 全量模式当前展示集（受搜索影响）
+        usageMap: {},     // stopPk -> [{routePk, routeShortName, directionId}]（列表消歧角标）
+        routeFilter: null,// 当前筛选线路 pk（null=全量模式）
+        routeStops: null, // 线路筛选模式数据（GET /api/routes/{pk}/stops）
         selectedId: null, // 选中站点数据库主键
         normalLayer: L.layerGroup().addTo(map), // 普通站点橙色圆点
         selMarker: null   // 选中站点的可拖拽蓝色圆点
@@ -177,30 +205,116 @@
         searchTimer = setTimeout(() => loadStops(e.target.value.trim()), 300);
     });
 
+    $('routeFilter').addEventListener('change', e => {
+        state.routeFilter = e.target.value ? parseInt(e.target.value) : null;
+        $('searchInput').disabled = state.routeFilter !== null;
+        if (state.routeFilter !== null) $('searchInput').value = '';
+        applyRouteFilter();
+    });
+
     async function loadStops(keyword) {
         const url = keyword ? API.stops + '?keyword=' + encodeURIComponent(keyword) : API.stops;
         try {
             state.stops = await api(url) || [];
+            if (!keyword) state.allStops = state.stops.slice(); // 无搜索=全量，同步权威数据
             renderList();
             renderMarkers();
             fitToStops();
         } catch (err) { toast('加载站点失败：' + err.message, true); }
     }
 
+    // 线路筛选下拉
+    async function loadRouteOptions() {
+        try {
+            const routes = await api(API.routes) || [];
+            $('routeFilter').innerHTML = '<option value="">全部站点</option>' + routes.map(r =>
+                '<option value="' + r.id + '">' + (r.routeShortName ? '[' + r.routeShortName + '] ' : '') + (r.routeLongName || r.routeId) + '</option>'
+            ).join('');
+        } catch (err) { /* 筛选下拉加载失败不阻塞台账主功能 */ }
+    }
+
+    // 批量引用摘要（列表消歧角标）
+    async function loadUsageSummary() {
+        try {
+            const summary = await api(API.usageSummary) || [];
+            state.usageMap = {};
+            summary.forEach(s => { state.usageMap[s.stopPk] = s.refs || []; });
+            if (state.routeFilter === null) renderList(); // 全量模式重渲染加角标
+        } catch (err) { /* 消歧失败不阻塞主功能 */ }
+    }
+
+    async function applyRouteFilter() {
+        deselect();
+        if (state.routeFilter === null) {
+            state.routeStops = null;
+            await loadStops($('searchInput').value.trim());
+        } else {
+            try {
+                state.routeStops = await api(API.routeStops(state.routeFilter));
+                renderList();
+                renderMarkers();
+                fitToStops();
+            } catch (err) { toast('加载线路站点失败：' + err.message, true); }
+        }
+    }
+
     function findSelected() {
-        return state.stops.find(s => s.id === state.selectedId) || null;
+        return state.allStops.find(s => s.id === state.selectedId)
+            || state.stops.find(s => s.id === state.selectedId) || null;
     }
 
     // ---------- 渲染 ----------
+    // 当前展示的站点统一列表：全量模式取 state.stops，线路模式取各方向站点并集
+    function currentStopList() {
+        if (state.routeFilter !== null && state.routeStops) {
+            const seen = new Set(), out = [];
+            (state.routeStops.directions || []).forEach(d => (d.stops || []).forEach(s => {
+                if (!seen.has(s.stopPk)) { seen.add(s.stopPk); out.push(s); }
+            }));
+            return out;
+        }
+        return state.stops.map(s => ({ stopPk: s.id, lat: s.stopLat, lng: s.stopLon, stopName: s.stopName, stopId: s.stopId }));
+    }
+
+    function refTags(stopPk) {
+        const refs = state.usageMap[stopPk];
+        if (!refs || !refs.length) return '<span class="ref-tag orphan">未使用</span>';
+        return refs.map(r =>
+            '<span class="ref-tag">' + esc(r.routeShortName || '?') + '·' + (r.directionId === 1 ? '返' : '去') + '</span>'
+        ).join('');
+    }
+
     function renderList() {
+        if (state.routeFilter !== null && state.routeStops) { renderRouteList(); return; }
         $('stopCount').textContent = state.stops.length;
         $('stopList').innerHTML = state.stops.length
             ? state.stops.map(s =>
                 '<div class="item' + (s.id === state.selectedId ? ' sel' : '') + '" data-id="' + s.id + '">' +
-                '<span class="name" title="' + esc(s.stopName || '') + '">' + esc(s.stopName || '(未命名)') + '</span>' +
+                '<span class="name" title="' + esc(s.stopName || '') + '">' + esc(s.stopName || '(未命名)') + ' ' + refTags(s.id) + '</span>' +
                 '<span class="coord">' + parseFloat(s.stopLat).toFixed(5) + ',' + parseFloat(s.stopLon).toFixed(5) + '</span></div>'
             ).join('')
             : '<div class="empty">无匹配站点（新建请到线路描图页）</div>';
+        bindListClicks();
+    }
+
+    // 线路筛选模式：按方向分组的分组视图
+    function renderRouteList() {
+        const v = state.routeStops;
+        const total = (v.directions || []).reduce((n, d) => n + (d.stops || []).length, 0);
+        $('stopCount').textContent = total;
+        $('stopList').innerHTML = (v.directions || []).map(d =>
+            '<div class="dir-head">' + (d.directionId === 1 ? '返程站台' : '去程站台')
+            + ' · ' + (d.tripCount || 0) + ' 个班次 · ' + (d.stops || []).length + ' 站</div>'
+            + ((d.stops || []).length ? d.stops.map(s =>
+                '<div class="item" data-id="' + s.stopPk + '">' +
+                '<span class="name" title="' + esc(s.stopName || '') + '"><span class="seq">' + s.stopSequence + '</span> ' + esc(s.stopName || '(未命名)') + '</span>' +
+                '<span class="coord">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span></div>'
+            ).join('') : '<div class="empty">该方向暂无停站</div>')
+        ).join('') || '<div class="empty">该线路暂无停站数据</div>';
+        bindListClicks();
+    }
+
+    function bindListClicks() {
         $('stopList').querySelectorAll('.item').forEach(el =>
             el.addEventListener('click', () => selectStop(parseInt(el.dataset.id)))
         );
@@ -208,12 +322,12 @@
 
     function renderMarkers() {
         state.normalLayer.clearLayers();
-        state.stops.forEach(s => {
-            if (s.id === state.selectedId) return; // 选中站点由可拖拽蓝点呈现
-            const m = L.circleMarker([parseFloat(s.stopLat), parseFloat(s.stopLon)], {
+        currentStopList().forEach(s => {
+            if (s.stopPk === state.selectedId) return; // 选中站点由可拖拽蓝点呈现
+            const m = L.circleMarker([parseFloat(s.lat), parseFloat(s.lng)], {
                 radius: 6, color: '#fff', weight: 2, fillColor: '#e8710a', fillOpacity: 1
             }).bindTooltip(s.stopName || s.stopId, { direction: 'top' });
-            m.on('click', () => selectStop(s.id));
+            m.on('click', () => selectStop(s.stopPk));
             state.normalLayer.addLayer(m);
         });
         refreshSelMarker();
@@ -236,7 +350,7 @@
     }
 
     function fitToStops() {
-        const pts = state.stops.map(s => [parseFloat(s.stopLat), parseFloat(s.stopLon)]);
+        const pts = currentStopList().map(s => [parseFloat(s.lat), parseFloat(s.lng)]);
         if (pts.length === 1) map.setView(pts[0], 14);
         else if (pts.length > 1) map.fitBounds(L.latLngBounds(pts).pad(0.25));
     }
@@ -285,8 +399,11 @@
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ stopName: name, lat: lat, lng: lng })
             });
-            const i = state.stops.findIndex(s => s.id === stop.id);
-            if (i >= 0) state.stops[i] = updated;
+            // 就地更新权威数据与展示集，再刷新列表与蓝点
+            const i = state.allStops.findIndex(s => s.id === stop.id);
+            if (i >= 0) state.allStops[i] = updated;
+            const j = state.stops.findIndex(s => s.id === stop.id);
+            if (j >= 0) state.stops[j] = updated;
             renderList();
             refreshSelMarker();
             map.panTo([parseFloat(updated.stopLat), parseFloat(updated.stopLon)]);
@@ -328,6 +445,8 @@
     }
 
     // ---------- 初始化 ----------
+    loadRouteOptions();
+    loadUsageSummary();
     loadStops();
 </script>
 </body>

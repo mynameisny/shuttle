@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Route;
 import me.ningyu.app.shuttle.facade.service.RouteService;
 import me.ningyu.app.shuttle.model.route.CreateRouteRequest;
+import me.ningyu.app.shuttle.model.route.RouteStopsView;
 import me.ningyu.app.shuttle.model.route.UpdateRouteRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -74,6 +75,15 @@ public class RouteController
     {
         Route route = routeService.getRouteById(id);
         return ResponseEntity.ok(route);
+    }
+
+    @GetMapping("/{id}/stops")
+    @Operation(summary = "获取线路站点", description = "正向查询：按方向分组返回该线路全部班次涉及的站点（去重并集、按站序排列），同名去程/返程站台靠方向上下文消歧")
+    public ResponseEntity<RouteStopsView> getStops(
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "线路ID", schema = @Schema(type = "long"))
+            @PathVariable Long id)
+    {
+        return ResponseEntity.ok(routeService.getRouteStops(id));
     }
 
     @GetMapping

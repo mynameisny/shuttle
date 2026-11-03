@@ -29,4 +29,27 @@ public interface StopTimeRepository extends JpaRepository<StopTime, Long>, Pagin
 
     @Query("SELECT st FROM stop_time st WHERE st.stop.id = :stopId ORDER BY st.stopSequence ASC")
     List<StopTime> findByStopId(@Param("stopId") Long stopId);
+
+    @Query("SELECT st FROM stop_time st JOIN FETCH st.stop JOIN FETCH st.trip WHERE st.trip.route.id = :routeId ORDER BY st.stopSequence ASC")
+    List<StopTime> findByRouteIdFetchStopAndTrip(@Param("routeId") Long routeId);
+
+    /**
+     * 全表停站引用投影（stopPk/routePk/线路简称/方向），用于站点引用摘要批量消歧。
+     * 内连接：无线路或无站点的停站记录自然排除。
+     */
+    @Query("SELECT st.stop.id AS stopPk, r.id AS routePk, r.routeShortName AS routeShortName, t.directionId AS directionId " +
+            "FROM stop_time st JOIN st.trip t JOIN t.route r " +
+            "ORDER BY r.routeShortName ASC, t.directionId ASC, st.stopSequence ASC")
+    List<StopRefProjection> findAllStopRefs();
+
+    interface StopRefProjection
+    {
+        Long getStopPk();
+
+        Long getRoutePk();
+
+        String getRouteShortName();
+
+        Integer getDirectionId();
+    }
 }

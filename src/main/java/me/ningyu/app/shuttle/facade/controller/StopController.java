@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Stop;
 import me.ningyu.app.shuttle.facade.service.StopService;
 import me.ningyu.app.shuttle.model.stop.CreateStopRequest;
+import me.ningyu.app.shuttle.model.stop.StopUsageSummaryView;
 import me.ningyu.app.shuttle.model.stop.StopUsageView;
 import me.ningyu.app.shuttle.model.stop.UpdateStopRequest;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,13 @@ public class StopController
             @Valid @RequestBody UpdateStopRequest request)
     {
         return ResponseEntity.ok(stopService.updateStop(id, request));
+    }
+
+    @GetMapping("/usage-summary")
+    @Operation(summary = "站点引用摘要", description = "批量返回各站点被线路/方向引用的摘要（同线路同方向去重）；无引用站点不出现在结果中，用于列表消歧与孤儿站识别")
+    public ResponseEntity<List<StopUsageSummaryView>> usageSummary()
+    {
+        return ResponseEntity.ok(stopService.getUsageSummary());
     }
 
     @GetMapping("/{id}/usage")

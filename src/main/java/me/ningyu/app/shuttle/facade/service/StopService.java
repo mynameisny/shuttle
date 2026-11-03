@@ -7,14 +7,17 @@ import me.ningyu.app.shuttle.domain.entity.gtfs.Stop;
 import me.ningyu.app.shuttle.domain.repo.StopRepository;
 import me.ningyu.app.shuttle.domain.repo.StopTimeRepository;
 import me.ningyu.app.shuttle.model.stop.CreateStopRequest;
+import me.ningyu.app.shuttle.model.stop.StopUsageSummaryView;
 import me.ningyu.app.shuttle.model.stop.StopUsageView;
 import me.ningyu.app.shuttle.model.stop.UpdateStopRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -96,6 +99,33 @@ public class StopService
                         .comparing((StopUsageView v) -> v.getRouteShortName() == null ? "" : v.getRouteShortName())
                         .thenComparing(v -> v.getDirectionId() == null ? Integer.MAX_VALUE : v.getDirectionId())
                         .thenComparing(v -> v.getStopSequence() == null ? Integer.MAX_VALUE : v.getStopSequence()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 批量站点引用摘要：一次投影查询全部停站，按站点分组、线路+方向去重。
+     * 用于站点台账列表项标注 [线路·方向] 角标（同名站消歧）与孤儿站点识别；
+     * 无引用的站点不出现在结果中。
+     */
+    @Nonnull
+    public List<StopUsageSummaryView> getUsageSummary()
+    {
+        Map<Long, Map<String, StopUsageSummaryView.Ref>> byStop = new LinkedHashMap<>();
+        for (StopTimeRepository.StopRefProjection p : stopTimeRepository.findAllStopRefs())
+        {
+            byStop.computeIfAbsent(p.getStopPk(), k -> new LinkedHashMap<>())
+                    .putIfAbsent(p.getRoutePk() + "_" + p.getDirectionId(),
+                            StopUsageSummaryView.Ref.builder()
+                                    .routePk(p.getRoutePk())
+                                    .routeShortName(p.getRouteShortName())
+                                    .directionId(p.getDirectionId())
+                                    .build());
+        }
+        return byStop.entrySet().stream()
+                .map(e -> StopUsageSummaryView.builder()
+                        .stopPk(e.getKey())
+                        .refs(List.copyOf(e.getValue().values()))
+                        .build())
                 .collect(Collectors.toList());
     }
 
