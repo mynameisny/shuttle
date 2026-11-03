@@ -134,14 +134,17 @@
                     <button id="btnSave" class="primary">保存修改</button>
                     <button id="btnCancel">取消选择</button>
                 </div>
+                <div class="group-title" style="margin-top:12px">被班次引用 <span class="badge" id="usageCount">0</span></div>
+                <div class="list" id="usageList" style="max-height:150px"><div class="empty">未选择站点</div></div>
             </div>
 
             <div id="hint">
                 使用说明：<br>
                 1. 站点为全局资源：修改坐标会影响所有引用它的班次，请谨慎操作。<br>
                 2. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置。<br>
-                3. 保存后立即生效；坐标校正请以 GPS 实测为准。<br>
-                4. 新建站点请到「线路描图」页勾选"新建站点模式"。
+                3. 编辑区下方显示引用该站点的班次（修改坐标的影响面），点击引用项跳转描线页查看。<br>
+                4. 保存后立即生效；坐标校正请以 GPS 实测为准。<br>
+                5. 新建站点请到「线路描图」页勾选"新建站点模式"。
             </div>
         </div>
     </div>
@@ -154,7 +157,8 @@
 <script>
     const API = {
         stops: '/api/stops',
-        stop: id => '/api/stops/' + id
+        stop: id => '/api/stops/' + id,
+        stopUsage: id => '/api/stops/' + id + '/usage'
     };
 
     const { map } = createMap('map');
@@ -251,12 +255,15 @@
         renderList();     // 刷新列表高亮
         renderMarkers();  // 橙点换蓝点
         map.panTo([parseFloat(stop.stopLat), parseFloat(stop.stopLon)]);
+        loadUsage(id);    // 引用面板（影响面）
     }
 
     function deselect() {
         state.selectedId = null;
         $('editEmpty').style.display = '';
         $('editArea').style.display = 'none';
+        $('usageCount').textContent = 0;
+        $('usageList').innerHTML = '<div class="empty">未选择站点</div>';
         renderList();
         renderMarkers();
     }
@@ -286,6 +293,34 @@
             toast('已保存：' + updated.stopName);
         } catch (err) { toast('保存失败：' + err.message, true); }
     });
+
+    // ---------- 引用面板（影响面） ----------
+    async function loadUsage(id) {
+        $('usageCount').textContent = '…';
+        $('usageList').innerHTML = '<div class="empty">加载中…</div>';
+        try {
+            const usage = await api(API.stopUsage(id)) || [];
+            $('usageCount').textContent = usage.length;
+            $('usageList').innerHTML = usage.length
+                ? usage.map(u =>
+                    '<div class="item" data-trip="' + u.tripPk + '">' +
+                    '<span class="name" title="' + esc(u.routeLongName || '') + '">' +
+                    (u.routeShortName ? '<b>[' + esc(u.routeShortName) + ']</b> ' : '') +
+                    esc(u.tripId || '(未命名班次)') + '</span>' +
+                    '<span class="coord">' + (u.directionId === 1 ? '回程' : '去程') + ' · 第' + (u.stopSequence ?? '?') + '站</span></div>'
+                ).join('')
+                : '<div class="empty">暂无班次引用此站点</div>';
+            // 点击引用项 → 跳转描线页自动选中该班次
+            $('usageList').querySelectorAll('.item').forEach(el =>
+                el.addEventListener('click', () => {
+                    window.location.href = 'map.html?tripPk=' + el.dataset.trip;
+                })
+            );
+        } catch (err) {
+            $('usageCount').textContent = '?';
+            $('usageList').innerHTML = '<div class="empty">引用信息加载失败：' + esc(err.message) + '</div>';
+        }
+    }
 
     // ---------- 工具 ----------
     function esc(s) {

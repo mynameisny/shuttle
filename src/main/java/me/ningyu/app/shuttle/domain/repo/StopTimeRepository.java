@@ -26,4 +26,7 @@ public interface StopTimeRepository extends JpaRepository<StopTime, Long>, Pagin
 
     @Query("SELECT CASE WHEN COUNT(st) > 0 THEN true ELSE false END FROM stop_time st WHERE st.trip.route.id = :routeId")
     boolean existsByTripRouteId(@Param("routeId") Long routeId);
+
+    @Query("SELECT st FROM stop_time st WHERE st.stop.id = :stopId ORDER BY st.stopSequence ASC")
+    List<StopTime> findByStopId(@Param("stopId") Long stopId);
 }

@@ -5,14 +5,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Stop;
 import me.ningyu.app.shuttle.domain.repo.StopRepository;
+import me.ningyu.app.shuttle.domain.repo.StopTimeRepository;
 import me.ningyu.app.shuttle.model.stop.CreateStopRequest;
+import me.ningyu.app.shuttle.model.stop.StopUsageView;
 import me.ningyu.app.shuttle.model.stop.UpdateStopRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -21,6 +25,7 @@ import java.util.UUID;
 public class StopService
 {
     private final StopRepository stopRepository;
+    private final StopTimeRepository stopTimeRepository;
 
     /**
      * 创建停靠点（管理端地图页手工选点）。
@@ -73,6 +78,25 @@ public class StopService
             return stopRepository.findByStopNameContaining(keyword.trim());
         }
         return stopRepository.findAll();
+    }
+
+    /**
+     * 反查引用某站点的班次及其所属线路（基于 stop_times）。
+     * 按线路简称 + 方向 + 站序排序；用于站点维护页展示修改坐标的影响面，
+     * 也是站点删除保护的基础查询。
+     */
+    @Nonnull
+    public List<StopUsageView> getStopUsage(Long id)
+    {
+        stopRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("站点不存在: id=" + id));
+        return stopTimeRepository.findByStopId(id).stream()
+                .map(StopUsageView::of)
+                .sorted(Comparator
+                        .comparing((StopUsageView v) -> v.getRouteShortName() == null ? "" : v.getRouteShortName())
+                        .thenComparing(v -> v.getDirectionId() == null ? Integer.MAX_VALUE : v.getDirectionId())
+                        .thenComparing(v -> v.getStopSequence() == null ? Integer.MAX_VALUE : v.getStopSequence()))
+                .collect(Collectors.toList());
     }
 
     private String generateStopId()

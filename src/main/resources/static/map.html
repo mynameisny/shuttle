@@ -355,9 +355,23 @@
     });
 
     // ---------- 初始化 ----------
-    loadRoutes().catch(() => {
+    loadRoutes().then(() => autoSelectFromUrl()).catch(() => {
         $('routeSelect').innerHTML = '<option value="">加载失败（后端未启动？）</option>';
     });
+
+    // 站点维护页引用面板跳转 ?tripPk=xxx：自动选中对应线路与班次
+    async function autoSelectFromUrl() {
+        const tripPk = new URLSearchParams(location.search).get('tripPk');
+        if (!tripPk) return;
+        try {
+            const view = await api(API.tripShape(tripPk));
+            if (!view || !view.routePk) return;
+            $('routeSelect').value = view.routePk;
+            await loadTrips(view.routePk);
+            $('tripSelect').value = tripPk;
+            await loadTripShape(tripPk);
+        } catch (err) { toast('自动定位班次失败：' + err.message, true); }
+    }
 </script>
 </body>
 </html>

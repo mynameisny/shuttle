@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Stop;
 import me.ningyu.app.shuttle.facade.service.StopService;
 import me.ningyu.app.shuttle.model.stop.CreateStopRequest;
+import me.ningyu.app.shuttle.model.stop.StopUsageView;
 import me.ningyu.app.shuttle.model.stop.UpdateStopRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,6 +48,14 @@ public class StopController
             @Valid @RequestBody UpdateStopRequest request)
     {
         return ResponseEntity.ok(stopService.updateStop(id, request));
+    }
+
+    @GetMapping("/{id}/usage")
+    @Operation(summary = "查询站点引用", description = "反查引用该站点的班次及其所属线路（基于stop_times），按线路+方向+站序排序，用于展示修改站点的影响面")
+    public ResponseEntity<List<StopUsageView>> usage(
+            @Parameter(description = "站点数据库主键") @PathVariable Long id)
+    {
+        return ResponseEntity.ok(stopService.getStopUsage(id));
     }
 
     @GetMapping
