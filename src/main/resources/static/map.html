@@ -131,31 +131,28 @@
         stops: '/api/stops'
     };
     // WGS-84 数据 + 无偏移底图（勿换高德/百度 GCJ-02 底图）
-    // 默认 Carto Positron：干净无山峰三角形等干扰符号；右下角可切换 OSM 标准图 / Voyager 细节图
+    // 2026-09-23 起 CARTO 底图要求免费 API key：无 key 请求返回 "API KEY REQUIRED" 水印瓦片
+    // （HTTP 200 正常图，不触发 tileerror，前端无法识别过滤）。如需恢复简洁/细节底图：
+    // 到 https://carto.com/basemaps/apikey 申请免费 key（邮箱直达，非商用 5M 请求/月），
+    // 将 YOUR_CARTO_KEY 替换为实际 key 后取消下方注释即可。
+    // const cartoKey = 'YOUR_CARTO_KEY';
+    // const cartoLayers = {
+    //     '简洁底图': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=' + cartoKey, {
+    //         maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+    //     }),
+    //     '细节底图': L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=' + cartoKey, {
+    //         maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+    //     })
+    // };
+    // 默认 OSM 标准底图：无 key 要求，内部低流量使用符合 OSM 瓦片政策（代价：natural=peak 山峰 ▲ 图标仍在）
     const map = L.map('map', { doubleClickZoom: false }).setView([40.10, 116.30], 12);
     const basemaps = {
-        '简洁底图': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-        }),
-        '细节底图': L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-        }),
         'OSM 标准': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
         })
     };
-    basemaps['简洁底图'].addTo(map);
+    basemaps['OSM 标准'].addTo(map);
     L.control.layers(basemaps, null, { position: 'bottomright' }).addTo(map);
-
-    // 简洁底图加载失败（网络不可达）时自动降级为 OSM 标准底图
-    let tileErrCount = 0, basemapFallback = false;
-    basemaps['简洁底图'].on('tileerror', () => {
-        if (basemapFallback || ++tileErrCount < 5) return;
-        basemapFallback = true;
-        map.removeLayer(basemaps['简洁底图']);
-        basemaps['OSM 标准'].addTo(map);
-        toast('简洁底图加载失败，已切换为 OSM 标准底图（右下角可手动切换）', true);
-    });
 
     const state = {
         tripPk: null, shapeId: null,
