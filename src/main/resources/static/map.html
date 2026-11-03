@@ -130,11 +130,32 @@
         tripShape: pk => '/api/shapes/by-trip/' + pk,
         stops: '/api/stops'
     };
-    // WGS-84 数据 + OSM 底图：无 GCJ-02 偏移问题（勿换高德/百度底图）
+    // WGS-84 数据 + 无偏移底图（勿换高德/百度 GCJ-02 底图）
+    // 默认 Carto Positron：干净无山峰三角形等干扰符号；右下角可切换 OSM 标准图 / Voyager 细节图
     const map = L.map('map', { doubleClickZoom: false }).setView([40.10, 116.30], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    const basemaps = {
+        '简洁底图': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }),
+        '细节底图': L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }),
+        'OSM 标准': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+        })
+    };
+    basemaps['简洁底图'].addTo(map);
+    L.control.layers(basemaps, null, { position: 'bottomright' }).addTo(map);
+
+    // 简洁底图加载失败（网络不可达）时自动降级为 OSM 标准底图
+    let tileErrCount = 0, basemapFallback = false;
+    basemaps['简洁底图'].on('tileerror', () => {
+        if (basemapFallback || ++tileErrCount < 5) return;
+        basemapFallback = true;
+        map.removeLayer(basemaps['简洁底图']);
+        basemaps['OSM 标准'].addTo(map);
+        toast('简洁底图加载失败，已切换为 OSM 标准底图（右下角可手动切换）', true);
+    });
 
     const state = {
         tripPk: null, shapeId: null,
