@@ -112,7 +112,7 @@
             <div id="hint">
                 使用说明：<br>
                 1. 选择线路与班次；已有形状将自动载入为顶点。<br>
-                2. 直接点击地图按行驶顺序描线；单击地图顶点圆点可删除该点。<br>
+                2. 直接点击地图按行驶顺序描线；单击地图顶点圆点可删除该点；<b>清空</b>会删除数据库中的形状并解除班次绑定。<br>
                 3. 勾选"新建站点模式"后点击地图创建站点（输入站名）。<br>
                 4. 保存后形状写入 GTFS shape 表并绑定班次，里程自动累计。
             </div>
@@ -320,9 +320,24 @@
     }
 
     $('btnUndo').addEventListener('click', () => { if (state.editPoints.length) { state.editPoints.pop(); redraw(); } });
-    $('btnClear').addEventListener('click', () => {
-        if (!state.editPoints.length) return;
-        if (confirm('确定清空全部 ' + state.editPoints.length + ' 个顶点？')) { state.editPoints = []; redraw(); }
+    $('btnClear').addEventListener('click', async () => {
+        if (!state.editPoints.length && !state.shapeId) return;
+        const msg = state.shapeId
+            ? '确定清空？数据库中形状「' + state.shapeId + '」将被删除，班次解除绑定，此操作不可恢复。'
+            : '确定清空编辑区？';
+        if (!confirm(msg)) return;
+        const hadShape = !!state.shapeId;
+        if (hadShape && state.tripPk) {
+            try {
+                await api(API.tripShape(state.tripPk), { method: 'DELETE' });
+            } catch (err) { toast('删除形状失败：' + err.message, true); return; }
+        }
+        state.editPoints = [];
+        // 重新加载班次：形状显示"未绑定"、点列清空、停站列表保留
+        await loadTrips($('routeSelect').value);
+        $('tripSelect').value = state.tripPk || '';
+        if (state.tripPk) await loadTripShape(state.tripPk);
+        toast(hadShape ? '已删除形状并解绑班次' : '已清空编辑区');
     });
     $('btnSave').addEventListener('click', async () => {
         if (!state.tripPk) return;
@@ -338,9 +353,10 @@
             state.shapeId = view.shapeId;
             toast('已保存：' + view.shapeId + '（' + view.points.length + ' 点，'
                 + ((view.points.length ? parseFloat(view.points[view.points.length - 1].distTraveled) : 0) / 1000).toFixed(2) + ' km）');
-            // 刷新班次下拉中的形状标识显示
+            // 刷新班次下拉与信息区（形状标识、里程）
             await loadTrips($('routeSelect').value);
             $('tripSelect').value = state.tripPk;
+            await loadTripShape(state.tripPk);
         } catch (err) { toast('保存失败：' + err.message, true); }
     });
 

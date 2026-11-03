@@ -112,6 +112,25 @@ public class ShapeService
     }
 
     /**
+     * 删除班次绑定的形状：删除该形状全部点列，并解除 trip.shape_id 绑定（幂等）。
+     */
+    public void removeTripShape(Long tripPk)
+    {
+        Trip trip = tripRepository.findById(tripPk)
+                .orElseThrow(() -> new IllegalArgumentException("班次不存在: " + tripPk));
+        if (trip.getShapeId() == null || trip.getShapeId().isBlank())
+        {
+            return;
+        }
+        // 先解绑再删点（与 saveTripShape 顺序一致，避免 clearAutomatically 清缓存后实体脱管）
+        String shapeId = trip.getShapeId();
+        trip.setShapeId(null);
+        tripRepository.save(trip);
+        shapeRepository.deleteByShapeId(shapeId);
+        log.info("班次 {} 删除形状 {}（解绑）", trip.getTripId(), shapeId);
+    }
+
+    /**
      * 形状标识决策：请求指定 > 复用班次既有（编辑语义） > 自动生成。
      * 自动生成规则：{route_gtfs_id}_{outbound|inbound}_m{4位随机hex}。
      */

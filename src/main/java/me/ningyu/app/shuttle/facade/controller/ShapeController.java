@@ -49,6 +49,17 @@ public class ShapeController
         return ResponseEntity.ok(shapeService.saveTripShape(tripPk, request));
     }
 
+    @DeleteMapping("/by-trip/{tripPk}")
+    @Operation(summary = "删除班次形状", description = "删除班次绑定的形状全部点列，并解除 trip.shape_id 绑定（幂等，管理端地图页清空操作）")
+    @Parameters({
+            @Parameter(name = "tripPk", in = ParameterIn.PATH, required = true, description = "班次主键ID", schema = @Schema(type = "long"))
+    })
+    public ResponseEntity<Void> deleteByTrip(@PathVariable Long tripPk)
+    {
+        shapeService.removeTripShape(tripPk);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{shapeId}")
     @Operation(summary = "按形状ID查询点列", description = "获取指定形状的全部坐标点（按顺序）")
     @Parameters({
