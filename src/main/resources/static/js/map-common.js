@@ -3,6 +3,13 @@
 
 const $ = id => document.getElementById(id);
 
+// XSS 转义：站名等用户输入拼 HTML 前必须经过 esc()（toast 用 textContent 无需转义）
+function esc(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 // REST 封装：非 2xx 抛错（优先取 body.message）；204/空响应体返回 null（如 DELETE 形状）
 async function api(url, options) {
     const resp = await fetch(url, options);

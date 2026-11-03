@@ -102,6 +102,7 @@
 
             <div class="group-title">站点（班次停站） <span class="badge" id="stopCount">0</span></div>
             <div class="list" id="stopList"><div class="empty">选择班次后显示</div></div>
+            <div id="coverageInfo" style="font-size:12px;margin-top:5px;color:#9aa0a6;"></div>
 
             <div class="group-title">形状顶点（按顺序） <span class="badge" id="pointCount">0</span></div>
             <div class="list" id="pointList"><div class="empty">点击地图追加顶点</div></div>
@@ -120,8 +121,10 @@
                 使用说明：<br>
                 1. 选择线路与班次；已有形状将自动载入为顶点。<br>
                 2. 直接点击地图按行驶顺序描线；单击地图顶点圆点可删除该点；<b>清空</b>会删除数据库中的形状并解除班次绑定。<br>
-                3. 勾选"新建站点模式"后点击地图创建站点（输入站名）。<br>
-                4. 保存后形状写入 GTFS shape 表并绑定班次，里程自动累计。
+                3. <b>点击站点圆点</b>（或距站点 20 米内点击地图）可将站点精确接入画线，顶点列表以绿色站名标记。<br>
+                4. 保存时要求形状经过该班次全部停站（30 米容差）：已覆盖站点显示绿色，未覆盖为橙色；不足时保存将被拒绝。<br>
+                5. 勾选"新建站点模式"后点击地图创建站点（输入站名）。<br>
+                6. 保存后形状写入 GTFS shape 表并绑定班次，里程自动累计。
             </div>
         </div>
     </div>
@@ -140,9 +143,16 @@
     };
     const { map } = createMap('map');
 
+    // 覆盖校验容差（米）——与后端 ShapeService.SHAPE_STOP_TOLERANCE_METERS 保持一致
+    const TOLERANCE_METERS = 30;
+    // 点击地图描线时吸附站点的半径（米）
+    const SNAP_METERS = 20;
+
     const state = {
         tripPk: null, shapeId: null,
-        editPoints: [],   // [{lat, lng}] 编辑中的形状顶点
+        editPoints: [],   // [{lat, lng, stopName?}] 编辑中的形状顶点（stopName 非空表示吸附自站点）
+        stops: [],        // 当前班次停站 [{stopPk, stopId, stopName, lat, lng}]（覆盖校验集合，与后端 stop_times 一致）
+        stopMarkers: {},  // stopPk -> circleMarker（覆盖状态着色）
         shapeLayer: null, // 既有/编辑中折线
         vertexMarkers: [],// 顶点圆点
         stopLayer: L.layerGroup().addTo(map)
@@ -159,6 +169,63 @@
         let d = 0;
         for (let i = 1; i < state.editPoints.length; i++) d += haversine(state.editPoints[i - 1], state.editPoints[i]);
         return d;
+    }
+
+    // ---------- 站点覆盖 / 吸附 ----------
+    function stopCoverage() {
+        const covered = new Set();
+        for (const s of state.stops) {
+            for (const p of state.editPoints) {
+                if (haversine(s, p) <= TOLERANCE_METERS) { covered.add(s.stopPk); break; }
+            }
+        }
+        const missing = state.stops.filter(s => !covered.has(s.stopPk));
+        return { covered, missing };
+    }
+
+    function updateCoverage() {
+        const { covered, missing } = stopCoverage();
+        // 站点 marker 着色：已覆盖=绿，未覆盖=橙
+        for (const s of state.stops) {
+            const m = state.stopMarkers[s.stopPk];
+            if (m) m.setStyle({ fillColor: covered.has(s.stopPk) ? '#2e8b57' : '#e8710a' });
+        }
+        // 覆盖进度与未覆盖明细
+        const el = $('coverageInfo');
+        if (!state.stops.length) {
+            el.innerHTML = '<span style="color:#9aa0a6">该班次无停站，无需覆盖校验</span>';
+            return;
+        }
+        el.style.color = missing.length ? '#b3261e' : '#188038';
+        el.innerHTML = '站点覆盖：<b>' + covered.size + '/' + state.stops.length + '</b>'
+            + (missing.length
+                ? '　未经过：' + missing.map(s => esc(s.stopName || s.stopId)).join('、') + '（容差 ' + TOLERANCE_METERS + ' 米）'
+                : '　全部停站已被形状经过');
+    }
+
+    // 点击位置附近最近站点（maxMeters 内），无则返回 null
+    function nearestStop(latlng, maxMeters) {
+        let best = null, bestD = maxMeters;
+        for (const s of state.stops) {
+            const d = haversine({ lat: latlng.lat, lng: latlng.lng }, s);
+            if (d < bestD) { bestD = d; best = s; }
+        }
+        return best;
+    }
+
+    // 追加画线顶点；吸附站点时以站点精确坐标落点并在列表中标记站名
+    function addVertex(lat, lng, stopName, snapped) {
+        state.editPoints.push({ lat: +lat.toFixed(7), lng: +lng.toFixed(7), stopName: stopName || null });
+        redraw();
+        if (snapped) toast('已接入站点：' + stopName);
+    }
+
+    // 既有形状载入后，反推各顶点是否落在站点上（列表展示用）
+    function markSnappedStops() {
+        for (const p of state.editPoints) {
+            const near = nearestStop(p, TOLERANCE_METERS);
+            if (near) p.stopName = near.stopName;
+        }
     }
 
     // ---------- 数据加载 ----------
@@ -189,6 +256,7 @@
         state.shapeId = view.shapeId;
         state.editPoints = view.points.map(p => ({ lat: parseFloat(p.lat), lng: parseFloat(p.lng) }));
         renderStops(view.stops || []);
+        markSnappedStops();
         redraw();
         fitToData();
         $('tripInfo').innerHTML =
@@ -201,20 +269,30 @@
 
     function renderStops(stops) {
         state.stopLayer.clearLayers();
-        $('stopCount').textContent = stops.length;
-        $('stopList').innerHTML = stops.length
-            ? stops.map(s =>
-                '<div class="item"><span>' + (s.stopSequence ?? '?') + '. ' + (s.stopName || s.stopId) + '</span>' +
-                '<span style="color:#9aa0a6">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span></div>'
+        state.stopMarkers = {};
+        state.stops = (stops || []).map(s => ({
+            stopPk: s.stopPk, stopId: s.stopId, stopName: s.stopName, stopSequence: s.stopSequence,
+            lat: parseFloat(s.lat), lng: parseFloat(s.lng)
+        }));
+        $('stopCount').textContent = state.stops.length;
+        $('stopList').innerHTML = state.stops.length
+            ? state.stops.map(s =>
+                '<div class="item"><span>' + (s.stopSequence ?? '?') + '. ' + esc(s.stopName || s.stopId) + '</span>' +
+                '<span style="color:#9aa0a6">' + s.lat.toFixed(5) + ',' + s.lng.toFixed(5) + '</span></div>'
             ).join('')
             : '<div class="empty">该班次暂无停站数据</div>';
-        stops.forEach(s => {
-            const m = L.circleMarker([parseFloat(s.lat), parseFloat(s.lng)], {
+        state.stops.forEach(s => {
+            const m = L.circleMarker([s.lat, s.lng], {
                 radius: 6, color: '#fff', weight: 2, fillColor: '#e8710a', fillOpacity: 1
-            }).bindTooltip((s.stopName || s.stopId), { direction: 'top' });
-            m.bindPopup('<b>' + (s.stopName || '-') + '</b><br>' + s.stopId);
+            }).bindTooltip(esc(s.stopName || s.stopId), { direction: 'top' });
+            m.bindPopup('<b>' + esc(s.stopName || '-') + '</b><br>' + esc(s.stopId)
+                + '<br><span style="color:#9aa0a6">点击圆点接入画线</span>');
+            // 点击站点 = 将站点精确坐标作为画线顶点（起点/接续均可）
+            m.on('click', () => addVertex(s.lat, s.lng, s.stopName, true));
+            state.stopMarkers[s.stopPk] = m;
             state.stopLayer.addLayer(m);
         });
+        updateCoverage();
     }
 
     // ---------- 地图绘制 ----------
@@ -236,14 +314,17 @@
         $('pointList').innerHTML = state.editPoints.length
             ? state.editPoints.map((p, i) =>
                 '<div class="item"><span>' + (i + 1) + '.</span>' +
-                '<span style="color:#5f6368;margin-left:6px;flex:1">' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + '</span>' +
+                (p.stopName
+                    ? '<span style="color:#2e8b57;margin-left:6px;flex:1" title="' + esc(p.stopName) + '">站点·' + esc(p.stopName) + '</span>'
+                    : '<span style="color:#5f6368;margin-left:6px;flex:1">' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + '</span>') +
                 '<span class="del" data-i="' + i + '">删</span></div>'
             ).join('')
-            : '<div class="empty">点击地图追加顶点</div>';
+            : '<div class="empty">点击地图追加顶点，或点击站点圆点接入</div>';
         $('pointList').querySelectorAll('.del').forEach(el =>
             el.addEventListener('click', () => removePoint(parseInt(el.dataset.i)))
         );
         updateButtons();
+        updateCoverage();
         // 实时刷新里程
         const info = $('tripInfo');
         if (info.innerHTML && state.editPoints.length) {
@@ -283,15 +364,20 @@
             return;
         }
         if (!state.tripPk) { toast('请先选择线路与班次', true); return; }
-        state.editPoints.push({ lat: +e.latlng.lat.toFixed(7), lng: +e.latlng.lng.toFixed(7) });
-        redraw();
+        // 距站点 20 米内的点击自动吸附为站点精确坐标
+        const near = nearestStop(e.latlng, SNAP_METERS);
+        if (near) addVertex(near.lat, near.lng, near.stopName, true);
+        else addVertex(e.latlng.lat, e.latlng.lng, null, false);
     });
 
     function renderStopsAppend(stop) {
-        const m = L.circleMarker([parseFloat(stop.stopLat), parseFloat(stop.stopLon)], {
+        const lat = parseFloat(stop.stopLat), lng = parseFloat(stop.stopLon);
+        const m = L.circleMarker([lat, lng], {
             radius: 6, color: '#fff', weight: 2, fillColor: '#2e8b57', fillOpacity: 1
-        }).bindTooltip(stop.stopName, { direction: 'top' });
-        m.bindPopup('<b>' + stop.stopName + '</b><br>' + stop.stopId + '<br><span style="color:#2e8b57">新建</span>');
+        }).bindTooltip(esc(stop.stopName), { direction: 'top' });
+        m.bindPopup('<b>' + esc(stop.stopName) + '</b><br>' + esc(stop.stopId)
+            + '<br><span style="color:#2e8b57">新建</span><br><span style="color:#9aa0a6">点击圆点接入画线</span>');
+        m.on('click', () => addVertex(lat, lng, stop.stopName, true));
         state.stopLayer.addLayer(m);
     }
 
@@ -325,6 +411,13 @@
     });
     $('btnSave').addEventListener('click', async () => {
         if (!state.tripPk) return;
+        // 预校验：形状必须经过全部停站（与后端校验同容差，避免无效请求）
+        const { missing } = stopCoverage();
+        if (state.stops.length && missing.length) {
+            toast('保存失败：形状未经过站点 ' + missing.map(s => s.stopName || s.stopId).join('、')
+                + '，请沿行驶道路描线覆盖（容差 ' + TOLERANCE_METERS + ' 米）', true);
+            return;
+        }
         const body = {
             shapeId: state.shapeId || undefined,
             points: state.editPoints.map(p => ({ lat: p.lat.toFixed(7), lng: p.lng.toFixed(7) }))

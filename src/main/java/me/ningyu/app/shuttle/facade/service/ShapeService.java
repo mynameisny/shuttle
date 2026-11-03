@@ -12,8 +12,10 @@ import me.ningyu.app.shuttle.domain.repo.TripRepository;
 import me.ningyu.app.shuttle.model.shape.SaveShapeRequest;
 import me.ningyu.app.shuttle.model.shape.ShapePointRequest;
 import me.ningyu.app.shuttle.model.shape.TripShapeView;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -32,6 +34,12 @@ public class ShapeService
      * 地球平均半径（米），用于 haversine 球面距离累计。
      */
     private static final double EARTH_RADIUS_METERS = 6371000.0;
+
+    /**
+     * 形状必须经过停站站点的容差（米）：站点到形状任一顶点的最小球面距离不得超过此值。
+     * 与管理端 map.html 前端预校验的 TOLERANCE_METERS 保持一致（前端 30）。
+     */
+    private static final double SHAPE_STOP_TOLERANCE_METERS = 30.0;
 
     private final ShapeRepository shapeRepository;
     private final TripRepository tripRepository;
@@ -67,6 +75,9 @@ public class ShapeService
     {
         Trip trip = tripRepository.findById(tripPk)
                 .orElseThrow(() -> new IllegalArgumentException("班次不存在: " + tripPk));
+
+        // 覆盖性校验：形状必须经过班次全部停站站点（在写库前执行，失败即拒绝）
+        validateShapeCoversStops(trip, request.getPoints());
 
         String shapeId = resolveShapeId(trip, request.getShapeId());
 
@@ -148,6 +159,41 @@ public class ShapeService
         String routeGtfsId = trip.getRoute() != null ? trip.getRoute().getRouteId() : "route";
         String suffix = String.format(Locale.ROOT, "%04x", ThreadLocalRandom.current().nextInt(0x10000));
         return String.format(Locale.ROOT, "%s_%s_m%s", routeGtfsId, direction, suffix);
+    }
+
+    /**
+     * 覆盖性校验：班次每个停站站点到形状点列的最小球面距离不得超过容差，
+     * 否则以 400 拒绝并指明未覆盖站点与最近距离，避免漏站形状入库。
+     * 无实体站点的停站（location 型）跳过；班次无停站时校验通过。
+     */
+    private void validateShapeCoversStops(Trip trip, List<ShapePointRequest> points)
+    {
+        List<StopTime> stopTimes = stopTimeRepository.findByTripOrderByStopSequenceAsc(trip);
+        for (StopTime st : stopTimes)
+        {
+            if (st.getStop() == null)
+            {
+                continue; // location_group / location 型停站无实体站点
+            }
+            double stopLat = st.getStop().getStopLat().doubleValue();
+            double stopLon = st.getStop().getStopLon().doubleValue();
+            double minDist = Double.MAX_VALUE;
+            for (ShapePointRequest p : points)
+            {
+                double d = haversine(stopLat, stopLon, p.getLat().doubleValue(), p.getLng().doubleValue());
+                if (d < minDist)
+                {
+                    minDist = d;
+                }
+            }
+            if (minDist > SHAPE_STOP_TOLERANCE_METERS)
+            {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "形状未经过站点「" + st.getStop().getStopName() + "」（最近距离 "
+                                + Math.round(minDist) + " 米，容差 " + (int) SHAPE_STOP_TOLERANCE_METERS
+                                + " 米），请沿行驶道路描线覆盖全部停站后保存");
+            }
+        }
     }
 
     private TripShapeView buildTripShapeView(Trip trip)
