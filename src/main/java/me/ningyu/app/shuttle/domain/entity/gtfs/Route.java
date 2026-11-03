@@ -1,7 +1,7 @@
 package me.ningyu.app.shuttle.domain.entity.gtfs;
 
 import me.ningyu.app.shuttle.domain.entity.AbstractAuditable;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import me.ningyu.app.shuttle.enums.CemvSupport;
@@ -111,8 +111,13 @@ public class Route extends AbstractAuditable
     @Builder.Default
     private CemvSupport cemvSupport = CemvSupport.NO_INFORMATION;
 
+    /**
+     * 线路下的班次集合。
+     * 序列化忽略：线路列表接口不应级联携带全部班次（查班次走 GET /api/trips/by-route/{routeId}），
+     * 且 Route.trips ↔ Trip.route 双向引用会造成 Jackson 无限循环。
+     */
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    @JsonManagedReference
+    @JsonIgnore
     private List<Trip> trips = new ArrayList<>();
 }

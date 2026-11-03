@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班车线路描图 - Shuttle 管理端</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+        #app { display: flex; height: 100%; }
+
+        /* ---------- 左侧面板 ---------- */
+        #panel {
+            width: 340px; min-width: 340px; height: 100%;
+            background: #f7f8fa; border-right: 1px solid #e0e3e8;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        #panel header {
+            padding: 14px 16px; background: #1a73e8; color: #fff;
+        }
+        #panel header h1 { font-size: 16px; font-weight: 600; }
+        #panel header p { font-size: 12px; opacity: .85; margin-top: 2px; }
+        #panel .body { flex: 1; overflow-y: auto; padding: 12px 16px 24px; }
+
+        .field { margin-bottom: 10px; }
+        .field label { display: block; font-size: 12px; color: #5f6368; margin-bottom: 4px; }
+        .field select {
+            width: 100%; padding: 7px 8px; font-size: 13px;
+            border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
+        }
+        .group-title {
+            font-size: 12px; font-weight: 600; color: #1a73e8;
+            margin: 14px 0 6px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .group-title .badge { font-weight: 400; color: #5f6368; }
+        .list { border: 1px solid #e0e3e8; border-radius: 6px; background: #fff; max-height: 180px; overflow-y: auto; }
+        .list .item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 5px 8px; font-size: 12px; border-bottom: 1px solid #f0f2f5;
+        }
+        .list .item:last-child { border-bottom: none; }
+        .list .item .del { color: #d93025; cursor: pointer; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+        .list .item .del:hover { background: #fce8e6; }
+        .list .empty { padding: 10px; font-size: 12px; color: #9aa0a6; text-align: center; }
+
+        .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        button {
+            padding: 7px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #d0d5dd;
+            background: #fff; cursor: pointer; color: #333;
+        }
+        button:hover { background: #f0f4f9; }
+        button.primary { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+        button.primary:hover { background: #1765cc; }
+        button.danger { color: #d93025; border-color: #d93025; }
+        button:disabled { opacity: .5; cursor: not-allowed; }
+
+        .mode-row { margin-top: 12px; padding: 10px; background: #e8f0fe; border-radius: 6px; font-size: 12px; color: #174ea6; }
+        .mode-row label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+        #hint { font-size: 12px; color: #5f6368; line-height: 1.7; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #d0d5dd; }
+        #tripInfo { font-size: 12px; color: #5f6368; margin-top: 4px; line-height: 1.6; }
+
+        /* ---------- 地图 ---------- */
+        #map { flex: 1; height: 100%; }
+
+        /* ---------- Toast ---------- */
+        #toast {
+            position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+            background: #202124; color: #fff; font-size: 13px;
+            padding: 9px 18px; border-radius: 8px; opacity: 0; pointer-events: none;
+            transition: opacity .25s; z-index: 9999; max-width: 70%;
+        }
+        #toast.show { opacity: .95; }
+        #toast.err { background: #b3261e; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div id="panel">
+        <header>
+            <h1>班车线路描图</h1>
+            <p>地图手工选点（站点）· 描线（几何形状）</p>
+        </header>
+        <div class="body">
+            <div class="field">
+                <label>线路</label>
+                <select id="routeSelect"><option value="">加载中…</option></select>
+            </div>
+            <div class="field">
+                <label>班次</label>
+                <select id="tripSelect" disabled><option value="">请先选择线路</option></select>
+            </div>
+            <div id="tripInfo"></div>
+
+            <div class="group-title">站点（班次停站） <span class="badge" id="stopCount">0</span></div>
+            <div class="list" id="stopList"><div class="empty">选择班次后显示</div></div>
+
+            <div class="group-title">形状顶点（按顺序） <span class="badge" id="pointCount">0</span></div>
+            <div class="list" id="pointList"><div class="empty">点击地图追加顶点</div></div>
+
+            <div class="btn-row">
+                <button id="btnUndo" disabled>撤销上一点</button>
+                <button id="btnClear" disabled>清空</button>
+                <button id="btnSave" class="primary" disabled>保存形状</button>
+            </div>
+
+            <div class="mode-row">
+                <label><input type="checkbox" id="addStopMode"> 新建站点模式（点击地图选点）</label>
+            </div>
+
+            <div id="hint">
+                使用说明：<br>
+                1. 选择线路与班次；已有形状将自动载入为顶点。<br>
+                2. 直接点击地图按行驶顺序描线；单击地图顶点圆点可删除该点。<br>
+                3. 勾选"新建站点模式"后点击地图创建站点（输入站名）。<br>
+                4. 保存后形状写入 GTFS shape 表并绑定班次，里程自动累计。
+            </div>
+        </div>
+    </div>
+    <div id="map"></div>
+</div>
+<div id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const API = {
+        routes: '/api/routes',
+        tripsByRoute: pk => '/api/trips/by-route/' + pk,
+        tripShape: pk => '/api/shapes/by-trip/' + pk,
+        stops: '/api/stops'
+    };
+    // WGS-84 数据 + OSM 底图：无 GCJ-02 偏移问题（勿换高德/百度底图）
+    const map = L.map('map', { doubleClickZoom: false }).setView([40.10, 116.30], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const state = {
+        tripPk: null, shapeId: null,
+        editPoints: [],   // [{lat, lng}] 编辑中的形状顶点
+        shapeLayer: null, // 既有/编辑中折线
+        vertexMarkers: [],// 顶点圆点
+        stopLayer: L.layerGroup().addTo(map)
+    };
+
+    const $ = id => document.getElementById(id);
+
+    function toast(msg, isErr) {
+        const t = $('toast');
+        t.textContent = msg;
+        t.className = 'show' + (isErr ? ' err' : '');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.className = '', 2600);
+    }
+
+    async function api(url, options) {
+        const resp = await fetch(url, options);
+        if (!resp.ok) {
+            let detail = 'HTTP ' + resp.status;
+            try { const body = await resp.json(); if (body && body.message) detail = body.message; } catch (e) { /* ignore */ }
+            throw new Error(detail);
+        }
+        return resp.json();
+    }
+
+    // ---------- haversine（与后端同公式，单位米） ----------
+    function haversine(a, b) {
+        const R = 6371000, rad = Math.PI / 180;
+        const dLat = (b.lat - a.lat) * rad, dLon = (b.lng - a.lng) * rad;
+        const s = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
+        return 2 * R * Math.asin(Math.sqrt(s));
+    }
+    function totalDistance() {
+        let d = 0;
+        for (let i = 1; i < state.editPoints.length; i++) d += haversine(state.editPoints[i - 1], state.editPoints[i]);
+        return d;
+    }
+
+    // ---------- 数据加载 ----------
+    async function loadRoutes() {
+        const routes = await api(API.routes);
+        const sel = $('routeSelect');
+        sel.innerHTML = '<option value="">请选择线路</option>' + routes.map(r =>
+            '<option value="' + r.id + '">' + (r.routeShortName ? '[' + r.routeShortName + '] ' : '') + r.routeLongName + '</option>'
+        ).join('');
+        sel.disabled = false;
+    }
+
+    async function loadTrips(routePk) {
+        const sel = $('tripSelect');
+        if (!routePk) { sel.innerHTML = '<option value="">请先选择线路</option>'; sel.disabled = true; return; }
+        const trips = await api(API.tripsByRoute(routePk));
+        sel.innerHTML = '<option value="">请选择班次</option>' + trips.map(t =>
+            '<option value="' + t.id + '">' + t.tripId
+            + '（' + (t.directionId === 1 ? '回程' : '去程') + '）'
+            + (t.shapeId ? ' · ' + t.shapeId : ' · 无形状') + '</option>'
+        ).join('');
+        sel.disabled = false;
+    }
+
+    async function loadTripShape(tripPk) {
+        const view = await api(API.tripShape(tripPk));
+        state.tripPk = tripPk;
+        state.shapeId = view.shapeId;
+        state.editPoints = view.points.map(p => ({ lat: parseFloat(p.lat), lng: parseFloat(p.lng) }));
+        renderStops(view.stops || []);
+        redraw();
+        fitToData();
+        $('tripInfo').innerHTML =
+            '班次：<b>' + view.tripId + '</b>（' + (view.directionId === 1 ? '回程' : '去程') + '）<br>' +
+            '形状：' + (view.shapeId || '<span style="color:#d93025">未绑定</span>') +
+            '　线路：' + (view.routeGtfsId || '-') + '<br>' +
+            '总里程：<b>' + (totalDistance() / 1000).toFixed(2) + '</b> km（' + state.editPoints.length + ' 点）';
+        updateButtons();
+    }
+
+    function renderStops(stops) {
+        state.stopLayer.clearLayers();
+        $('stopCount').textContent = stops.length;
+        $('stopList').innerHTML = stops.length
+            ? stops.map(s =>
+                '<div class="item"><span>' + (s.stopSequence ?? '?') + '. ' + (s.stopName || s.stopId) + '</span>' +
+                '<span style="color:#9aa0a6">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span></div>'
+            ).join('')
+            : '<div class="empty">该班次暂无停站数据</div>';
+        stops.forEach(s => {
+            const m = L.circleMarker([parseFloat(s.lat), parseFloat(s.lng)], {
+                radius: 6, color: '#fff', weight: 2, fillColor: '#e8710a', fillOpacity: 1
+            }).bindTooltip((s.stopName || s.stopId), { direction: 'top' });
+            m.bindPopup('<b>' + (s.stopName || '-') + '</b><br>' + s.stopId);
+            state.stopLayer.addLayer(m);
+        });
+    }
+
+    // ---------- 地图绘制 ----------
+    function redraw() {
+        const latlngs = state.editPoints.map(p => [p.lat, p.lng]);
+        if (state.shapeLayer) state.shapeLayer.setLatLngs(latlngs);
+        else state.shapeLayer = L.polyline(latlngs, { color: '#1a73e8', weight: 4, opacity: .8 }).addTo(map);
+
+        state.vertexMarkers.forEach(m => map.removeLayer(m));
+        state.vertexMarkers = state.editPoints.map((p, i) =>
+            L.circleMarker([p.lat, p.lng], {
+                radius: 4, color: '#fff', weight: 1.5, fillColor: '#1a73e8', fillOpacity: 1
+            }).bindTooltip('顶点 ' + (i + 1), { direction: 'top' })
+              .on('click', () => removePoint(i))
+              .addTo(map)
+        );
+
+        $('pointCount').textContent = state.editPoints.length;
+        $('pointList').innerHTML = state.editPoints.length
+            ? state.editPoints.map((p, i) =>
+                '<div class="item"><span>' + (i + 1) + '.</span>' +
+                '<span style="color:#5f6368;margin-left:6px;flex:1">' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + '</span>' +
+                '<span class="del" data-i="' + i + '">删</span></div>'
+            ).join('')
+            : '<div class="empty">点击地图追加顶点</div>';
+        $('pointList').querySelectorAll('.del').forEach(el =>
+            el.addEventListener('click', () => removePoint(parseInt(el.dataset.i)))
+        );
+        updateButtons();
+        // 实时刷新里程
+        const info = $('tripInfo');
+        if (info.innerHTML && state.editPoints.length) {
+            info.innerHTML = info.innerHTML.replace(/<b>[\d.]+<\/b> km（\d+ 点）/,
+                '<b>' + (totalDistance() / 1000).toFixed(2) + '</b> km（' + state.editPoints.length + ' 点）');
+        }
+    }
+
+    function removePoint(i) {
+        state.editPoints.splice(i, 1);
+        redraw();
+    }
+
+    function fitToData() {
+        const pts = state.editPoints.map(p => [p.lat, p.lng]);
+        if (pts.length >= 2) { map.fitBounds(state.shapeLayer.getBounds().pad(0.15)); return; }
+        const ss = document.querySelectorAll('#stopList .item');
+        // 无形状时以第一个站点为中心
+        if (state.tripPk) { /* 站点 marker 已在图上，尝试取图层 bounds */ }
+        const sb = state.stopLayer.getBounds && state.stopLayer.getBounds();
+        if (sb && sb.isValid()) { map.fitBounds(sb.pad(0.3)); }
+    }
+
+    // ---------- 地图点击：描线 / 新建站点 ----------
+    map.on('click', async e => {
+        if ($('addStopMode').checked) {
+            const name = prompt('站点名称：');
+            if (!name || !name.trim()) return;
+            try {
+                const stop = await api(API.stops, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stopName: name.trim(), lat: +e.latlng.lat.toFixed(7), lng: +e.latlng.lng.toFixed(7) })
+                });
+                renderStopsAppend(stop);
+                toast('站点已创建：' + stop.stopId);
+            } catch (err) { toast('创建站点失败：' + err.message, true); }
+            return;
+        }
+        if (!state.tripPk) { toast('请先选择线路与班次', true); return; }
+        state.editPoints.push({ lat: +e.latlng.lat.toFixed(7), lng: +e.latlng.lng.toFixed(7) });
+        redraw();
+    });
+
+    function renderStopsAppend(stop) {
+        const m = L.circleMarker([parseFloat(stop.stopLat), parseFloat(stop.stopLon)], {
+            radius: 6, color: '#fff', weight: 2, fillColor: '#2e8b57', fillOpacity: 1
+        }).bindTooltip(stop.stopName, { direction: 'top' });
+        m.bindPopup('<b>' + stop.stopName + '</b><br>' + stop.stopId + '<br><span style="color:#2e8b57">新建</span>');
+        state.stopLayer.addLayer(m);
+    }
+
+    // ---------- 操作按钮 ----------
+    function updateButtons() {
+        const has = state.editPoints.length > 0;
+        $('btnUndo').disabled = !has;
+        $('btnClear').disabled = !has;
+        $('btnSave').disabled = !(state.tripPk && state.editPoints.length >= 2);
+    }
+
+    $('btnUndo').addEventListener('click', () => { if (state.editPoints.length) { state.editPoints.pop(); redraw(); } });
+    $('btnClear').addEventListener('click', () => {
+        if (!state.editPoints.length) return;
+        if (confirm('确定清空全部 ' + state.editPoints.length + ' 个顶点？')) { state.editPoints = []; redraw(); }
+    });
+    $('btnSave').addEventListener('click', async () => {
+        if (!state.tripPk) return;
+        const body = {
+            shapeId: state.shapeId || undefined,
+            points: state.editPoints.map(p => ({ lat: p.lat.toFixed(7), lng: p.lng.toFixed(7) }))
+        };
+        try {
+            const view = await api(API.tripShape(state.tripPk), {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            state.shapeId = view.shapeId;
+            toast('已保存：' + view.shapeId + '（' + view.points.length + ' 点，'
+                + ((view.points.length ? parseFloat(view.points[view.points.length - 1].distTraveled) : 0) / 1000).toFixed(2) + ' km）');
+            // 刷新班次下拉中的形状标识显示
+            await loadTrips($('routeSelect').value);
+            $('tripSelect').value = state.tripPk;
+        } catch (err) { toast('保存失败：' + err.message, true); }
+    });
+
+    // ---------- 下拉联动 ----------
+    $('routeSelect').addEventListener('change', e => {
+        $('tripSelect').value = '';
+        $('tripInfo').innerHTML = '';
+        loadTrips(e.target.value);
+    });
+    $('tripSelect').addEventListener('change', e => {
+        if (e.target.value) loadTripShape(e.target.value).catch(err => toast('加载班次失败：' + err.message, true));
+    });
+
+    // ---------- 初始化 ----------
+    loadRoutes().catch(() => {
+        $('routeSelect').innerHTML = '<option value="">加载失败（后端未启动？）</option>';
+    });
+</script>
+</body>
+</html>

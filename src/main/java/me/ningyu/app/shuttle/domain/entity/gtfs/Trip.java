@@ -1,6 +1,7 @@
 package me.ningyu.app.shuttle.domain.entity.gtfs;
 
 import me.ningyu.app.shuttle.domain.entity.AbstractAuditable;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -56,8 +57,14 @@ import java.util.List;
 @AllArgsConstructor
 public class Trip extends AbstractAuditable
 {
+    /**
+     * 所属线路。
+     * 序列化忽略（反向引用）：防止 trip.route.trips 双向递归导致 Jackson 无限循环，
+     * 与 stop_times.trip 的处理方式一致。
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id", referencedColumnName = "route_id", nullable = false, columnDefinition = "VARCHAR(50) COMMENT '所属线路'")
+    @JsonBackReference
     private Route route;
 
     @Column(name = "trip_id", nullable = false, unique = true, columnDefinition = "VARCHAR(50) COMMENT '行程标识，如 463_outbound_1'")

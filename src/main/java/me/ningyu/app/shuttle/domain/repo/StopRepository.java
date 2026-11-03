@@ -17,4 +17,6 @@ public interface StopRepository extends JpaRepository<Stop, Long>, PagingAndSort
     List<Stop> findByParentStationId(Long parentStationId);
 
     List<Stop> findByLocationType(String locationType);
+
+    List<Stop> findByStopNameContaining(String stopName);
 }
