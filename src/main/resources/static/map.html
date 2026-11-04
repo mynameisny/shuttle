@@ -342,7 +342,7 @@
             '描图：' + (view.shapeId
                 ? '<b>' + state.editPoints.length + '</b> 点'
                 : '<span style="color:#d93025">待描图</span>') +
-            '　线路：' + (view.routeGtfsId || '-') + '<br>' +
+            '　开往：' + esc(view.tripHeadsign || '-') + '<br>' +
             '总里程：<b>' + (totalDistance() / 1000).toFixed(2) + '</b> km';
         updateButtons();
     }
