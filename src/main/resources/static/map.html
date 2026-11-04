@@ -122,7 +122,7 @@
                 使用说明：<br>
                 1. 选择线路与班次；已有形状将自动载入为顶点。<br>
                 2. 直接点击地图按行驶顺序描线；单击地图顶点圆点可删除该点；<b>清空</b>会删除数据库中的形状并解除班次绑定。<br>
-                3. <b>点击站点圆点</b>（或距站点 20 米内点击地图）可将站点精确接入画线，顶点列表以绿色站名标记。<br>
+                3. <b>点击站点圆点</b>（或距站点 20 米内点击地图）接入站点：勾选沿路吸附时自动沿道路展开到该站（末点精确落在站点坐标）；顶点列表以绿色站名标记。<br>
                 4. <b>沿路吸附</b>：勾选后点击地图空白处，两点之间自动沿实际道路展开（OSRM 路径规划，需联网）；<b>撤销上一步</b>会整段撤掉最近一段路。失败时自动退回直线加点。<br>
                 5. 保存时要求形状经过该班次全部停站（30 米容差）：已覆盖站点显示绿色，未覆盖为橙色；不足时保存将被拒绝。<br>
                 6. 勾选"新建站点模式"后点击地图创建站点（输入站名）。<br>
@@ -225,10 +225,22 @@
         if (snapped) toast('已接入站点：' + stopName);
     }
 
-    // 沿路吸附：上一顶点 → 点击位置调用 OSRM route，把道路几何点列插入画线。
+    // 站点接入统一入口：勾选沿路吸附且已有起点时，从上一顶点沿实际道路展开到该站
+    //（末点精确落在站点坐标上，保证 30m 覆盖校验）；否则精确直线接入
+    async function addStopVertex(s) {
+        if ($('followRoadMode').checked && state.editPoints.length) {
+            await followRoad({ lat: s.lat, lng: s.lng }, s.stopName);
+        } else {
+            addVertex(s.lat, s.lng, s.stopName, true);
+        }
+    }
+
+    // 沿路吸附：上一顶点 → 目标位置调用 OSRM route，把道路几何点列插入画线。
     // 首点是 OSRM 路网吸附后的起点（与上一锚点几乎重合），跳过；末点作为新锚点（road=false），
-    // 其余中间点标记 road=true——撤销时随锚点整段回退。失败自动降级为直线锚点。
-    async function followRoad(latlng) {
+    // 其余中间点标记 road=true——撤销时随锚点整段回退。
+    // stopName 非空表示目标是站点：末点用站点精确坐标落点（OSRM 终点吸附路网，可能偏离站点），
+    // 失败降级时也以站点精确坐标直线接入，保证覆盖校验精度。
+    async function followRoad(latlng, stopName) {
         const from = state.editPoints[state.editPoints.length - 1];
         const to = { lat: latlng.lat, lng: latlng.lng };
         const url = OSRM_URL + '/' + from.lng.toFixed(6) + ',' + from.lat.toFixed(6)
@@ -248,17 +260,23 @@
             const coords = data.routes[0].geometry.coordinates || [];
             if (coords.length < 2) throw new Error('路径点不足');
             for (let i = 1; i < coords.length; i++) {
+                const last = i === coords.length - 1;
+                const land = last && stopName; // 末点接到站点时用站点精确坐标
                 state.editPoints.push({
-                    lat: +coords[i][1].toFixed(7), lng: +coords[i][0].toFixed(7),
-                    stopName: null, road: i < coords.length - 1
+                    lat: +(land ? latlng.lat : coords[i][1]).toFixed(7),
+                    lng: +(land ? latlng.lng : coords[i][0]).toFixed(7),
+                    stopName: land ? stopName : null,
+                    road: !last
                 });
             }
             redraw();
-            toast('沿路展开 ' + (coords.length - 1) + ' 点 · ' + (data.routes[0].distance / 1000).toFixed(2) + ' km');
+            toast(stopName
+                ? '已沿路接入站点：' + stopName + '（' + (coords.length - 1) + ' 点 · ' + (data.routes[0].distance / 1000).toFixed(2) + ' km）'
+                : '沿路展开 ' + (coords.length - 1) + ' 点 · ' + (data.routes[0].distance / 1000).toFixed(2) + ' km');
         } catch (err) {
             const msg = err.name === 'AbortError' ? '超时（' + (OSRM_TIMEOUT_MS / 1000) + 's）' : err.message;
-            toast('沿路吸附失败，已按直线加点：' + msg, true);
-            addVertex(to.lat, to.lng, null, false);
+            toast('沿路吸附失败，已按直线加点' + (stopName ? '（站点精确坐标）' : '') + '：' + msg, true);
+            addVertex(to.lat, to.lng, stopName || null, !!stopName);
         }
     }
 
@@ -330,7 +348,7 @@
             m.bindPopup('<b>' + esc(s.stopName || '-') + '</b><br>' + esc(s.stopId)
                 + '<br><span style="color:#9aa0a6">点击圆点接入画线</span>');
             // 点击站点 = 将站点精确坐标作为画线顶点（起点/接续均可）
-            m.on('click', () => addVertex(s.lat, s.lng, s.stopName, true));
+            m.on('click', () => addStopVertex(s));
             state.stopMarkers[s.stopPk] = m;
             state.stopLayer.addLayer(m);
         });
@@ -409,9 +427,9 @@
             return;
         }
         if (!state.tripPk) { toast('请先选择线路与班次', true); return; }
-        // 距站点 20 米内的点击自动吸附为站点精确坐标
+        // 距站点 20 米内的点击自动吸附为站点（沿路勾选时同样走 OSRM 展开到站点）
         const near = nearestStop(e.latlng, SNAP_METERS);
-        if (near) { addVertex(near.lat, near.lng, near.stopName, true); return; }
+        if (near) { await addStopVertex(near); return; }
         // 沿路吸附：勾选且已有起点时，两点之间沿实际道路展开（OSRM）；首点/失败降级走直线锚点
         if ($('followRoadMode').checked && state.editPoints.length) {
             await followRoad(e.latlng);
@@ -427,7 +445,7 @@
         }).bindTooltip(esc(stop.stopName), { direction: 'top' });
         m.bindPopup('<b>' + esc(stop.stopName) + '</b><br>' + esc(stop.stopId)
             + '<br><span style="color:#2e8b57">新建</span><br><span style="color:#9aa0a6">点击圆点接入画线</span>');
-        m.on('click', () => addVertex(lat, lng, stop.stopName, true));
+        m.on('click', () => addStopVertex({ lat: lat, lng: lng, stopName: stop.stopName }));
         state.stopLayer.addLayer(m);
     }
 
