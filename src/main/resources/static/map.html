@@ -384,7 +384,7 @@
                 (p.stopName
                     ? '<span style="color:#2e8b57;margin-left:6px;flex:1" title="' + esc(p.stopName) + '">站点·' + esc(p.stopName) + '</span>'
                     : p.road
-                        ? '<span style="color:#9aa0a6;margin-left:6px;flex:1">沿路路径点</span>'
+                        ? '<span style="color:#9aa0a6;margin-left:6px;flex:1">沿路 · ' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + '</span>'
                         : '<span style="color:#5f6368;margin-left:6px;flex:1">' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + '</span>') +
                 '<span class="del" data-i="' + i + '">删</span></div>'
             ).join('')
