@@ -310,9 +310,12 @@
         const sel = $('tripSelect');
         if (!routePk) { sel.innerHTML = '<option value="">请先选择线路</option>'; sel.disabled = true; return; }
         const trips = await api(API.tripsByRoute(routePk));
+        // 优先用 tripShortName（如"霍营2线上班"），未设置时回退 tripId + 方向；短名本身含方向语义，不再叠加"（去程）"
         sel.innerHTML = '<option value="">请选择班次</option>' + trips.map(t =>
-            '<option value="' + t.id + '">' + t.tripId
-            + '（' + (t.directionId === 1 ? '回程' : '去程') + '）'
+            '<option value="' + t.id + '">'
+            + (t.tripShortName
+                ? esc(t.tripShortName)
+                : t.tripId + '（' + (t.directionId === 1 ? '回程' : '去程') + '）')
             + (t.shapeId ? ' · 已描图' : ' · 待描图') + '</option>'
         ).join('');
         sel.disabled = false;
