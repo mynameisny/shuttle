@@ -78,6 +78,19 @@
         .meta-line span { color: #1a73e8; font-weight: 500; }
         .tip { font-size: 11px; color: #5f6368; line-height: 1.6; margin: 6px 0 2px; }
 
+        /* 引用面板行：信息行（可点击跳描线页）+ 内联时刻编辑行 */
+        .list .item.usage { display: block; cursor: default; padding: 6px 8px; }
+        .usage-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; cursor: pointer; }
+        .usage-head:hover .name { text-decoration: underline; }
+        .usage-edit { display: flex; align-items: center; gap: 5px; margin-top: 5px; font-size: 11px; color: #5f6368; flex-wrap: wrap; }
+        .usage-edit label { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+        .usage-edit input[type="time"], .usage-edit select {
+            padding: 2px 3px; font-size: 11px; border: 1px solid #d0d5dd; border-radius: 4px;
+            background: #fff; color: #333;
+        }
+        .usage-edit input[type="time"] { width: 74px; }
+        .usage-edit button { padding: 2px 8px; font-size: 11px; border-radius: 4px; }
+
         .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
         button {
             padding: 7px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #d0d5dd;
@@ -165,7 +178,7 @@
                 2. 列表项角标显示引用该站的线路与方向（同名去程/返程站台靠此区分），"未使用"表示无任何班次引用。<br>
                 3. 顶部可按线路筛选，列表按去程/返程分组显示（正向查询）；搜索框在筛选模式下停用。<br>
                 4. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；保存后立即生效。<br>
-                5. 编辑区下方显示引用该站点的班次明细，点击可跳转描线页查看。<br>
+                5. 编辑区下方为引用该站点的班次明细：点击标题行跳转描线页；行内可直接维护到/发时刻与时间精度（近似/精确），改完点保存立即生效。<br>
                 6. 新建站点请到「线路描图」页勾选"新建站点模式"。
             </div>
         </div>
@@ -183,7 +196,8 @@
         stopUsage: id => '/api/stops/' + id + '/usage',
         usageSummary: '/api/stops/usage-summary',
         routes: '/api/routes',
-        routeStops: pk => '/api/routes/' + pk + '/stops'
+        routeStops: pk => '/api/routes/' + pk + '/stops',
+        stopTime: (tripPk, seq) => '/api/trips/' + tripPk + '/stop-times/' + seq
     };
 
     const { map } = createMap('map');
@@ -420,7 +434,7 @@
         } catch (err) { toast('保存失败：' + err.message, true); }
     });
 
-    // ---------- 引用面板（影响面） ----------
+    // ---------- 引用面板（影响面 + 内联时刻编辑） ----------
     async function loadUsage(id) {
         $('usageCount').textContent = '…';
         $('usageList').innerHTML = '<div class="empty">加载中…</div>';
@@ -428,24 +442,63 @@
             const usage = await api(API.stopUsage(id)) || [];
             $('usageCount').textContent = usage.length;
             $('usageList').innerHTML = usage.length
-                ? usage.map(u =>
-                    '<div class="item" data-trip="' + u.tripPk + '">' +
-                    '<span class="name" title="' + esc(u.routeLongName || '') + '">' +
-                    (u.routeShortName ? '<b>[' + esc(u.routeShortName) + ']</b> ' : '') +
-                    esc(u.tripId || '(未命名班次)') + '</span>' +
-                    '<span class="coord">' + (u.directionId === 1 ? '回程' : '去程') + ' · 第' + (u.stopSequence ?? '?') + '站</span></div>'
-                ).join('')
+                ? usage.map(u => {
+                    const arr = (u.arrivalTime || '').slice(0, 5);  // "07:30:00" -> "07:30"（time input 格式）
+                    const dep = (u.departureTime || '').slice(0, 5);
+                    return '<div class="item usage" data-trip="' + u.tripPk + '">' +
+                        '<div class="usage-head" title="' + esc(u.routeLongName || '') + '（点击跳转描线页）">' +
+                        '<span class="name">' +
+                        (u.routeShortName ? '<b>[' + esc(u.routeShortName) + ']</b> ' : '') +
+                        esc(u.tripId || '(未命名班次)') + '</span>' +
+                        '<span class="coord">' + (u.directionId === 1 ? '回程' : '去程') + ' · 第' + (u.stopSequence ?? '?') + '站</span></div>' +
+                        '<div class="usage-edit" data-trip="' + u.tripPk + '" data-seq="' + (u.stopSequence ?? '') + '">' +
+                        '<label>到 <input type="time" class="u-arr" value="' + arr + '"></label>' +
+                        '<label>发 <input type="time" class="u-dep" value="' + dep + '"></label>' +
+                        '<select class="u-tp" title="时间精度">' +
+                        '<option value="APPROXIMATE"' + (u.timepoint === 'APPROXIMATE' ? ' selected' : '') + '>近似</option>' +
+                        '<option value="EXACT"' + (u.timepoint === 'EXACT' ? ' selected' : '') + '>精确</option>' +
+                        '</select>' +
+                        '<button class="u-save">保存</button>' +
+                        '</div></div>';
+                }).join('')
                 : '<div class="empty">暂无班次引用此站点</div>';
-            // 点击引用项 → 跳转描线页自动选中该班次
-            $('usageList').querySelectorAll('.item').forEach(el =>
+            // 点击引用头（信息行）→ 跳转描线页自动选中该班次；下方编辑行不跳转
+            $('usageList').querySelectorAll('.usage-head').forEach(el =>
                 el.addEventListener('click', () => {
-                    window.location.href = 'map.html?tripPk=' + el.dataset.trip;
+                    window.location.href = 'map.html?tripPk=' + el.closest('.item.usage').dataset.trip;
                 })
+            );
+            // 内联保存到/发时刻与时间精度
+            $('usageList').querySelectorAll('.u-save').forEach(btn =>
+                btn.addEventListener('click', () => saveStopTime(btn.closest('.usage-edit')))
             );
         } catch (err) {
             $('usageCount').textContent = '?';
             $('usageList').innerHTML = '<div class="empty">引用信息加载失败：' + esc(err.message) + '</div>';
         }
+    }
+
+    async function saveStopTime(box) {
+        const body = {
+            arrivalTime: box.querySelector('.u-arr').value,
+            departureTime: box.querySelector('.u-dep').value,
+            timepoint: box.querySelector('.u-tp').value
+        };
+        // time input 值固定 HH:MM，字典序即时间序
+        if (body.arrivalTime && body.departureTime && body.arrivalTime > body.departureTime) {
+            toast('到站时间不能晚于发车时间', true);
+            return;
+        }
+        try {
+            const updated = await api(API.stopTime(box.dataset.trip, box.dataset.seq), {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            box.querySelector('.u-arr').value = (updated.arrivalTime || '').slice(0, 5);
+            box.querySelector('.u-dep').value = (updated.departureTime || '').slice(0, 5);
+            toast('已保存：' + (updated.tripId || '班次') + ' 第' + updated.stopSequence + '站 '
+                + (updated.arrivalTime || '—').slice(0, 5) + '（' + (updated.timepoint === 'EXACT' ? '精确' : '近似') + '）');
+        } catch (err) { toast('保存失败：' + err.message, true); }
     }
 
     // ---------- 工具 ----------

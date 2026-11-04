@@ -18,6 +18,9 @@ public interface StopTimeRepository extends JpaRepository<StopTime, Long>, Pagin
     @Query("SELECT st FROM stop_time st WHERE st.trip = :trip ORDER BY st.stopSequence ASC")
     List<StopTime> findByTripOrderByStopSequenceAsc(@Param("trip") Trip trip);
 
+    @Query("SELECT st FROM stop_time st WHERE st.trip = :trip AND st.stopSequence = :stopSequence")
+    Optional<StopTime> findByTripAndStopSequence(@Param("trip") Trip trip, @Param("stopSequence") Integer stopSequence);
+
     @Query("SELECT st FROM stop_time st WHERE st.trip = :trip ORDER BY st.stopSequence ASC")
     Optional<StopTime> findFirstByTripOrderByStopSequenceAsc(@Param("trip") Trip trip);
 

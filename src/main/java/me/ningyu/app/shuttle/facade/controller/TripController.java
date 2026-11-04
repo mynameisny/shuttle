@@ -12,9 +12,11 @@ import me.ningyu.app.shuttle.domain.entity.gtfs.Trip;
 import me.ningyu.app.shuttle.facade.service.ShapeService;
 import me.ningyu.app.shuttle.facade.service.TripService;
 import me.ningyu.app.shuttle.model.schedule.CreateTripRequest;
+import me.ningyu.app.shuttle.model.schedule.UpdateStopTimeRequest;
 import me.ningyu.app.shuttle.model.schedule.UpdateTripRequest;
 import me.ningyu.app.shuttle.model.shape.SaveShapeRequest;
 import me.ningyu.app.shuttle.model.shape.TripShapeView;
+import me.ningyu.app.shuttle.model.stop.StopUsageView;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -127,5 +129,23 @@ public class TripController
     {
         shapeService.removeTripShape(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ---------- 班次的停站时刻（子资源，定位：站序） ----------
+
+    @PutMapping("/{id}/stop-times/{stopSequence}")
+    @Operation(summary = "更新停站时刻",
+            description = "更新班次中指定站序的到/发时刻与时间精度（站点维护页内联编辑）。"
+                    + "字段均可选：null=不修改，空白串=清空；时间支持 HH:MM / HH:MM:SS（不支持 GTFS 跨日 24:00+）；"
+                    + "timepoint 取值 APPROXIMATE（近似）/ EXACT（精确）；到站不得晚于发车")
+    @Parameters({
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "班次ID", schema = @Schema(type = "long")),
+            @Parameter(name = "stopSequence", in = ParameterIn.PATH, required = true, description = "站序（stop_sequence）", schema = @Schema(type = "integer"))
+    })
+    public ResponseEntity<StopUsageView> updateStopTime(@PathVariable Long id,
+                                                        @PathVariable Integer stopSequence,
+                                                        @RequestBody UpdateStopTimeRequest request)
+    {
+        return ResponseEntity.ok(tripService.updateStopTime(id, stopSequence, request));
     }
 }

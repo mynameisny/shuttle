@@ -4,18 +4,30 @@ import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Route;
+import me.ningyu.app.shuttle.domain.entity.gtfs.StopTime;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Trip;
 import me.ningyu.app.shuttle.domain.repo.RouteRepository;
+import me.ningyu.app.shuttle.domain.repo.StopTimeRepository;
 import me.ningyu.app.shuttle.domain.repo.TripRepository;
 import me.ningyu.app.shuttle.enums.BikeAllowance;
+import me.ningyu.app.shuttle.enums.Timepoint;
 import me.ningyu.app.shuttle.enums.WheelchairAccessibility;
 import me.ningyu.app.shuttle.model.schedule.CreateTripRequest;
+import me.ningyu.app.shuttle.model.schedule.UpdateStopTimeRequest;
 import me.ningyu.app.shuttle.model.schedule.UpdateTripRequest;
+import me.ningyu.app.shuttle.model.stop.StopUsageView;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DateTimeException;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Transactional
@@ -23,8 +35,12 @@ import java.util.Optional;
 @Slf4j
 public class TripService
 {
+    /** GTFS 时刻文本：HH:MM 或 HH:MM:SS（小时 1-2 位） */
+    private static final Pattern GTFS_TIME_PATTERN = Pattern.compile("^(\\d{1,2}):(\\d{2})(?::(\\d{2}))?$");
+
     private final TripRepository tripRepository;
     private final RouteRepository routeRepository;
+    private final StopTimeRepository stopTimeRepository;
 
     @Nonnull
     public Trip createTrip(CreateTripRequest request)
@@ -123,6 +139,79 @@ public class TripService
     public Optional<Trip> findTripByGtfsTripId(String tripId)
     {
         return tripRepository.findByTripId(tripId);
+    }
+
+    /**
+     * 更新班次中指定站序的停站时刻（管理端站点维护页内联编辑）。
+     * 定位采用 (tripPk, stopSequence)，与 GTFS stop_times 主键语义一致。
+     * 字段语义：null=不修改；空白串=清空；否则解析设置（支持 HH:MM / HH:MM:SS，
+     * 不支持 GTFS 跨日 24:00+，班车场景足够）。到站不得晚于发车（按合并后值校验）。
+     */
+    @Nonnull
+    public StopUsageView updateStopTime(Long tripPk, Integer stopSequence, UpdateStopTimeRequest request)
+    {
+        Trip trip = tripRepository.findById(tripPk)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在: id=" + tripPk));
+        StopTime stopTime = stopTimeRepository.findByTripAndStopSequence(trip, stopSequence)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "班次 " + trip.getTripId() + " 不存在站序 " + stopSequence));
+
+        LocalTime newArrival = request.getArrivalTime() != null
+                ? parseGtfsTime(request.getArrivalTime(), "arrivalTime") : stopTime.getArrivalTime();
+        LocalTime newDeparture = request.getDepartureTime() != null
+                ? parseGtfsTime(request.getDepartureTime(), "departureTime") : stopTime.getDepartureTime();
+        if (newArrival != null && newDeparture != null && newArrival.isAfter(newDeparture))
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "到站时间不能晚于发车时间");
+        }
+        if (request.getArrivalTime() != null) stopTime.setArrivalTime(newArrival);
+        if (request.getDepartureTime() != null) stopTime.setDepartureTime(newDeparture);
+        if (request.getTimepoint() != null)
+        {
+            if (request.getTimepoint().isBlank())
+            {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "timepoint 不能为空白（可选 APPROXIMATE/EXACT）");
+            }
+            try
+            {
+                stopTime.setTimepoint(Timepoint.valueOf(request.getTimepoint().trim().toUpperCase(Locale.ROOT)));
+            }
+            catch (IllegalArgumentException e)
+            {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "timepoint 非法: " + request.getTimepoint() + "（可选 APPROXIMATE/EXACT）");
+            }
+        }
+
+        StopTime saved = stopTimeRepository.save(stopTime);
+        return StopUsageView.of(saved);
+    }
+
+    /**
+     * 解析 GTFS 时刻文本为 LocalTime：空白返回 null（清空语义）；
+     * 格式非法或超出 00:00:00-23:59:59 范围时抛 400（带可读原因）。
+     */
+    private LocalTime parseGtfsTime(String text, String field)
+    {
+        if (text.isBlank())
+        {
+            return null;
+        }
+        Matcher m = GTFS_TIME_PATTERN.matcher(text.trim());
+        if (!m.matches())
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    field + " 时间格式非法: \"" + text + "\"（支持 HH:MM 或 HH:MM:SS）");
+        }
+        try
+        {
+            return LocalTime.of(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)),
+                    m.group(3) != null ? Integer.parseInt(m.group(3)) : 0);
+        }
+        catch (DateTimeException e)
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, field + " 时间超出范围: " + text);
+        }
     }
 
     @Nonnull
