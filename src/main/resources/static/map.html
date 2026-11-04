@@ -330,11 +330,16 @@
         markSnappedStops();
         redraw();
         fitToData();
+        // 班次行显示短名（如"霍营2线上班"），悬停 title 显示 tripId（方向）与形状 ID；描图行显示点数，未描图红字提示
+        const dirText = view.directionId === 1 ? '回程' : '去程';
+        const tripTitle = view.tripId + '（' + dirText + '）' + (view.shapeId ? ' · 形状 ' + view.shapeId : '');
         $('tripInfo').innerHTML =
-            '班次：<b>' + view.tripId + '</b>（' + (view.directionId === 1 ? '回程' : '去程') + '）<br>' +
-            '形状：' + (view.shapeId || '<span style="color:#d93025">待描图</span>') +
+            '班次：<b title="' + esc(tripTitle) + '" style="cursor:help">' + esc(view.tripShortName || view.tripId + '（' + dirText + '）') + '</b><br>' +
+            '描图：' + (view.shapeId
+                ? '<b>' + state.editPoints.length + '</b> 点'
+                : '<span style="color:#d93025">待描图</span>') +
             '　线路：' + (view.routeGtfsId || '-') + '<br>' +
-            '总里程：<b>' + (totalDistance() / 1000).toFixed(2) + '</b> km（' + state.editPoints.length + ' 点）';
+            '总里程：<b>' + (totalDistance() / 1000).toFixed(2) + '</b> km';
         updateButtons();
     }
 
@@ -406,11 +411,12 @@
         );
         updateButtons();
         updateCoverage();
-        // 实时刷新里程
+        // 实时刷新描图点数与里程
         const info = $('tripInfo');
         if (info.innerHTML && state.editPoints.length) {
-            info.innerHTML = info.innerHTML.replace(/<b>[\d.]+<\/b> km（\d+ 点）/,
-                '<b>' + (totalDistance() / 1000).toFixed(2) + '</b> km（' + state.editPoints.length + ' 点）');
+            info.innerHTML = info.innerHTML
+                .replace(/描图：<b>\d+<\/b> 点/, '描图：<b>' + state.editPoints.length + '</b> 点')
+                .replace(/<b>[\d.]+<\/b> km/, '<b>' + (totalDistance() / 1000).toFixed(2) + '</b> km');
         }
     }
 

@@ -23,6 +23,7 @@ public class TripShapeView
     private Long tripPk;
     private String tripId;
     private String tripHeadsign;
+    private String tripShortName;
     private Integer directionId;
 
     private Long routePk;
@@ -97,6 +98,7 @@ public class TripShapeView
                 .tripPk(trip.getId())
                 .tripId(trip.getTripId())
                 .tripHeadsign(trip.getTripHeadsign())
+                .tripShortName(trip.getTripShortName())
                 .directionId(trip.getDirectionId())
                 .routePk(trip.getRoute() != null ? trip.getRoute().getId() : null)
                 .routeGtfsId(trip.getRoute() != null ? trip.getRoute().getRouteId() : null)
