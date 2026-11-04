@@ -108,12 +108,13 @@
             <div class="list" id="pointList"><div class="empty">点击地图追加顶点</div></div>
 
             <div class="btn-row">
-                <button id="btnUndo" disabled>撤销上一点</button>
+                <button id="btnUndo" disabled>撤销上一步</button>
                 <button id="btnClear" disabled>清空</button>
                 <button id="btnSave" class="primary" disabled>保存形状</button>
             </div>
 
             <div class="mode-row">
+                <label><input type="checkbox" id="followRoadMode" checked> 沿路吸附（点击地图自动沿道路展开）</label>
                 <label><input type="checkbox" id="addStopMode"> 新建站点模式（点击地图选点）</label>
             </div>
 
@@ -122,9 +123,10 @@
                 1. 选择线路与班次；已有形状将自动载入为顶点。<br>
                 2. 直接点击地图按行驶顺序描线；单击地图顶点圆点可删除该点；<b>清空</b>会删除数据库中的形状并解除班次绑定。<br>
                 3. <b>点击站点圆点</b>（或距站点 20 米内点击地图）可将站点精确接入画线，顶点列表以绿色站名标记。<br>
-                4. 保存时要求形状经过该班次全部停站（30 米容差）：已覆盖站点显示绿色，未覆盖为橙色；不足时保存将被拒绝。<br>
-                5. 勾选"新建站点模式"后点击地图创建站点（输入站名）。<br>
-                6. 保存后形状写入 GTFS shape 表并绑定班次，里程自动累计。
+                4. <b>沿路吸附</b>：勾选后点击地图空白处，两点之间自动沿实际道路展开（OSRM 路径规划，需联网）；<b>撤销上一步</b>会整段撤掉最近一段路。失败时自动退回直线加点。<br>
+                5. 保存时要求形状经过该班次全部停站（30 米容差）：已覆盖站点显示绿色，未覆盖为橙色；不足时保存将被拒绝。<br>
+                6. 勾选"新建站点模式"后点击地图创建站点（输入站名）。<br>
+                7. 保存后形状写入 GTFS shape 表并绑定班次，里程自动累计。
             </div>
         </div>
     </div>
@@ -147,10 +149,13 @@
     const TOLERANCE_METERS = 30;
     // 点击地图描线时吸附站点的半径（米）
     const SNAP_METERS = 20;
+    // 沿路吸附：OSRM route 服务（默认 demo server 免费限流，有自建实例时替换此 URL 即可）
+    const OSRM_URL = 'https://router.project-osrm.org/route/v1/driving';
+    const OSRM_TIMEOUT_MS = 8000;
 
     const state = {
         tripPk: null, shapeId: null,
-        editPoints: [],   // [{lat, lng, stopName?}] 编辑中的形状顶点（stopName 非空表示吸附自站点）
+        editPoints: [],   // [{lat, lng, stopName?, road?}] 编辑中的形状顶点；stopName 非空=吸附自站点；road=true=沿路吸附产生的中间路径点（撤销时随锚点整段回退）
         stops: [],        // 当前班次停站 [{stopPk, stopId, stopName, lat, lng}]（覆盖校验集合，与后端 stop_times 一致）
         stopMarkers: {},  // stopPk -> circleMarker（覆盖状态着色）
         shapeLayer: null, // 既有/编辑中折线
@@ -218,6 +223,43 @@
         state.editPoints.push({ lat: +lat.toFixed(7), lng: +lng.toFixed(7), stopName: stopName || null });
         redraw();
         if (snapped) toast('已接入站点：' + stopName);
+    }
+
+    // 沿路吸附：上一顶点 → 点击位置调用 OSRM route，把道路几何点列插入画线。
+    // 首点是 OSRM 路网吸附后的起点（与上一锚点几乎重合），跳过；末点作为新锚点（road=false），
+    // 其余中间点标记 road=true——撤销时随锚点整段回退。失败自动降级为直线锚点。
+    async function followRoad(latlng) {
+        const from = state.editPoints[state.editPoints.length - 1];
+        const to = { lat: latlng.lat, lng: latlng.lng };
+        const url = OSRM_URL + '/' + from.lng.toFixed(6) + ',' + from.lat.toFixed(6)
+            + ';' + to.lng.toFixed(6) + ',' + to.lat.toFixed(6)
+            + '?overview=full&geometries=geojson';
+        toast('正在沿路展开…');
+        try {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), OSRM_TIMEOUT_MS);
+            const res = await fetch(url, { signal: ctrl.signal });
+            clearTimeout(timer);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            if (data.code !== 'Ok' || !data.routes || !data.routes.length) {
+                throw new Error(data.message || data.code || '无可用路径');
+            }
+            const coords = data.routes[0].geometry.coordinates || [];
+            if (coords.length < 2) throw new Error('路径点不足');
+            for (let i = 1; i < coords.length; i++) {
+                state.editPoints.push({
+                    lat: +coords[i][1].toFixed(7), lng: +coords[i][0].toFixed(7),
+                    stopName: null, road: i < coords.length - 1
+                });
+            }
+            redraw();
+            toast('沿路展开 ' + (coords.length - 1) + ' 点 · ' + (data.routes[0].distance / 1000).toFixed(2) + ' km');
+        } catch (err) {
+            const msg = err.name === 'AbortError' ? '超时（' + (OSRM_TIMEOUT_MS / 1000) + 's）' : err.message;
+            toast('沿路吸附失败，已按直线加点：' + msg, true);
+            addVertex(to.lat, to.lng, null, false);
+        }
     }
 
     // 既有形状载入后，反推各顶点是否落在站点上（列表展示用）
@@ -302,13 +344,14 @@
         else state.shapeLayer = L.polyline(latlngs, { color: '#1a73e8', weight: 4, opacity: .8 }).addTo(map);
 
         state.vertexMarkers.forEach(m => map.removeLayer(m));
-        state.vertexMarkers = state.editPoints.map((p, i) =>
-            L.circleMarker([p.lat, p.lng], {
+        // 沿路吸附的中间路径点不画圆点（折线本身已表达，避免数百个密集圆点），仅锚点/站点可点击删除
+        state.vertexMarkers = state.editPoints
+            .map((p, i) => p.road ? null : L.circleMarker([p.lat, p.lng], {
                 radius: 4, color: '#fff', weight: 1.5, fillColor: '#1a73e8', fillOpacity: 1
             }).bindTooltip('顶点 ' + (i + 1), { direction: 'top' })
               .on('click', () => removePoint(i))
-              .addTo(map)
-        );
+              .addTo(map))
+            .filter(Boolean);
 
         $('pointCount').textContent = state.editPoints.length;
         $('pointList').innerHTML = state.editPoints.length
@@ -316,7 +359,9 @@
                 '<div class="item"><span>' + (i + 1) + '.</span>' +
                 (p.stopName
                     ? '<span style="color:#2e8b57;margin-left:6px;flex:1" title="' + esc(p.stopName) + '">站点·' + esc(p.stopName) + '</span>'
-                    : '<span style="color:#5f6368;margin-left:6px;flex:1">' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + '</span>') +
+                    : p.road
+                        ? '<span style="color:#9aa0a6;margin-left:6px;flex:1">沿路路径点</span>'
+                        : '<span style="color:#5f6368;margin-left:6px;flex:1">' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + '</span>') +
                 '<span class="del" data-i="' + i + '">删</span></div>'
             ).join('')
             : '<div class="empty">点击地图追加顶点，或点击站点圆点接入</div>';
@@ -366,8 +411,13 @@
         if (!state.tripPk) { toast('请先选择线路与班次', true); return; }
         // 距站点 20 米内的点击自动吸附为站点精确坐标
         const near = nearestStop(e.latlng, SNAP_METERS);
-        if (near) addVertex(near.lat, near.lng, near.stopName, true);
-        else addVertex(e.latlng.lat, e.latlng.lng, null, false);
+        if (near) { addVertex(near.lat, near.lng, near.stopName, true); return; }
+        // 沿路吸附：勾选且已有起点时，两点之间沿实际道路展开（OSRM）；首点/失败降级走直线锚点
+        if ($('followRoadMode').checked && state.editPoints.length) {
+            await followRoad(e.latlng);
+        } else {
+            addVertex(e.latlng.lat, e.latlng.lng, null, false);
+        }
     });
 
     function renderStopsAppend(stop) {
@@ -389,7 +439,15 @@
         $('btnSave').disabled = !(state.tripPk && state.editPoints.length >= 2);
     }
 
-    $('btnUndo').addEventListener('click', () => { if (state.editPoints.length) { state.editPoints.pop(); redraw(); } });
+    // 撤销上一步：普通锚点撤一个；沿路吸附产生的整段路径点随锚点一起回退（一次撤销=一段路）
+    $('btnUndo').addEventListener('click', () => {
+        if (!state.editPoints.length) return;
+        state.editPoints.pop();
+        while (state.editPoints.length && state.editPoints[state.editPoints.length - 1].road) {
+            state.editPoints.pop();
+        }
+        redraw();
+    });
     $('btnClear').addEventListener('click', async () => {
         if (!state.editPoints.length && !state.shapeId) return;
         const msg = state.shapeId
