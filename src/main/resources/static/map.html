@@ -280,11 +280,17 @@
         }
     }
 
-    // 既有形状载入后，反推各顶点是否落在站点上（列表展示用）
+    // 既有形状载入后，反推站点标注：每个站点只在距离最近的一个顶点上标站名。
+    // 沿路吸附的路径点间距约 20m，站点 30m 圈内会落进多个路径点——
+    // 逐顶点反推会让同名标注连串出现（列表多个"站点·XX"），故反转为按站点取最近顶点。
     function markSnappedStops() {
-        for (const p of state.editPoints) {
-            const near = nearestStop(p, TOLERANCE_METERS);
-            if (near) p.stopName = near.stopName;
+        for (const s of state.stops) {
+            let bestI = -1, bestD = TOLERANCE_METERS;
+            for (let i = 0; i < state.editPoints.length; i++) {
+                const d = haversine(s, state.editPoints[i]);
+                if (d <= bestD) { bestD = d; bestI = i; }
+            }
+            if (bestI >= 0) state.editPoints[bestI].stopName = s.stopName;
         }
     }
 
