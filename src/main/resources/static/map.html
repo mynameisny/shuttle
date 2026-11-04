@@ -46,6 +46,8 @@
             padding: 5px 8px; font-size: 12px; border-bottom: 1px solid #f0f2f5;
         }
         .list .item:last-child { border-bottom: none; }
+        .list .item.clickable { cursor: pointer; }
+        .list .item.clickable:hover { background: #f1f6ff; }
         .list .item .del { color: #d93025; cursor: pointer; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
         .list .item .del:hover { background: #fce8e6; }
         .list .empty { padding: 10px; font-size: 12px; color: #9aa0a6; text-align: center; }
@@ -122,7 +124,7 @@
                 使用说明：<br>
                 1. 选择线路与班次；已有形状将自动载入为顶点。<br>
                 2. 直接点击地图按行驶顺序描线；单击地图顶点圆点可删除该点；<b>清空</b>会删除数据库中的形状并解除班次绑定。<br>
-                3. <b>点击站点圆点</b>（或距站点 20 米内点击地图）接入站点：勾选沿路吸附时自动沿道路展开到该站（末点精确落在站点坐标）；顶点列表以绿色站名标记。<br>
+                3. <b>点击左侧站点列表项或地图站点圆点</b>（或距站点 20 米内点击地图）接入站点：勾选沿路吸附时自动沿道路展开到该站（末点精确落在站点坐标）；顶点列表以绿色站名标记。<br>
                 4. <b>沿路吸附</b>：勾选后点击地图空白处，两点之间自动沿实际道路展开（OSRM 路径规划，需联网）；<b>撤销上一步</b>会整段撤掉最近一段路。失败时自动退回直线加点。<br>
                 5. 保存时要求形状经过该班次全部停站（30 米容差）：已覆盖站点显示绿色，未覆盖为橙色；不足时保存将被拒绝。<br>
                 6. 勾选"新建站点模式"后点击地图创建站点（输入站名）。<br>
@@ -342,11 +344,18 @@
         }));
         $('stopCount').textContent = state.stops.length;
         $('stopList').innerHTML = state.stops.length
-            ? state.stops.map(s =>
-                '<div class="item"><span>' + (s.stopSequence ?? '?') + '. ' + esc(s.stopName || s.stopId) + '</span>' +
+            ? state.stops.map((s, i) =>
+                '<div class="item clickable" data-i="' + i + '" title="点击接入画线"><span>' + (s.stopSequence ?? '?') + '. ' + esc(s.stopName || s.stopId) + '</span>' +
                 '<span style="color:#9aa0a6">' + s.lat.toFixed(5) + ',' + s.lng.toFixed(5) + '</span></div>'
             ).join('')
             : '<div class="empty">该班次暂无停站数据</div>';
+        // 点击左侧站点列表项 = 点击地图站点圆点，等效接入画线（勾选沿路吸附时自动沿路展开到该站）
+        $('stopList').querySelectorAll('.item.clickable').forEach(el =>
+            el.addEventListener('click', () => {
+                const s = state.stops[parseInt(el.dataset.i)];
+                if (s) addStopVertex(s);
+            })
+        );
         state.stops.forEach(s => {
             const m = L.circleMarker([s.lat, s.lng], {
                 radius: 6, color: '#fff', weight: 2, fillColor: '#e8710a', fillOpacity: 1
