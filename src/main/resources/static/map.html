@@ -313,7 +313,7 @@
         sel.innerHTML = '<option value="">请选择班次</option>' + trips.map(t =>
             '<option value="' + t.id + '">' + t.tripId
             + '（' + (t.directionId === 1 ? '回程' : '去程') + '）'
-            + (t.shapeId ? ' · ' + t.shapeId : ' · 待描图') + '</option>'
+            + (t.shapeId ? ' · 已描图' : ' · 待描图') + '</option>'
         ).join('');
         sel.disabled = false;
     }
