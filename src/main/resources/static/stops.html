@@ -44,15 +44,14 @@
             border-radius: 4px; padding: 1px 4px; margin-right: 2px; vertical-align: 1px; white-space: nowrap;
         }
         .ref-tag.orphan { color: #9aa0a6; background: #f1f3f4; }
+        /* 方向标题（块外常显，每组跟随一个独立 .list 块；不再 sticky——标题不随块内滚动消失） */
         .dir-head {
-            padding: 6px 8px; font-size: 11px; font-weight: 600; color: #174ea6;
-            background: #f0f4f9; border-bottom: 1px solid #e0e3e8; position: sticky; top: 0; z-index: 1;
+            margin: 14px 0 6px; padding: 0 2px; font-size: 12px; font-weight: 600; color: #174ea6;
         }
-        /* 方向组之间的分隔线（首个方向头顶部与列表容器边框重合，免双线） */
-        .dir-head ~ .dir-head { border-top: 1px solid #e0e3e8; }
-        /* 方向组之间的空隙：普通流 spacer 块。不能把 margin 加在 sticky 组头上——吸附后空隙区域会透出滚动内容；spacer 随内容滚动滚出可视区被裁剪，无透底问题 */
-        .dir-gap { height: 10px; background: #fff; }
-        .dir-head .term { font-weight: 400; color: #5f6368; font-size: 10px; margin-top: 1px; }
+        #stopList .dir-head:first-child { margin-top: 0; }
+        .dir-head .term { font-weight: 400; color: #5f6368; font-size: 10px; margin-top: 2px; }
+        /* 线路筛选模式：#stopList 退化为纯容器（自带边框/限高中和掉，样式由内层方向块承担） */
+        .list.stacked { border: none; border-radius: 0; background: transparent; max-height: none; overflow: visible; padding: 0; }
         .seq { display: inline-block; min-width: 16px; color: #9aa0a6; font-size: 10px; }
         .field-row { display: flex; gap: 8px; }
         .field-row .field { flex: 1; }
@@ -313,6 +312,7 @@
 
     function renderList() {
         if (state.routeFilter !== null && state.routeStops) { renderRouteList(); return; }
+        $('stopList').classList.remove('stacked');
         $('stopCount').textContent = state.stops.length;
         $('stopList').innerHTML = state.stops.length
             ? state.stops.map(s =>
@@ -329,23 +329,26 @@
         const v = state.routeStops;
         const total = (v.directions || []).reduce((n, d) => n + (d.stops || []).length, 0);
         $('stopCount').textContent = total;
-        $('stopList').innerHTML = (v.directions || []).map((d, idx) => {
+        $('stopList').classList.add('stacked');
+        $('stopList').innerHTML = (v.directions || []).map(d => {
             const stops = d.stops || [];
             // 起终点行：首末站名均非空且不同才展示（单站/缺名/同名兜底不显示第二行）
             const first = stops[0] && stops[0].stopName;
             const last = stops.length > 1 && stops[stops.length - 1].stopName;
             const term = (first && last && first !== last)
                 ? '<div class="term">' + esc(first) + ' → ' + esc(last) + '</div>' : '';
-            // 第二个方向组前插入 spacer 空隙块（见 .dir-gap 注释），配合分隔线拉开组间距
-            return (idx ? '<div class="dir-gap"></div>' : '') + '<div class="dir-head">'
+            // 拆块：每个方向 = 块外标题（dir-head）+ 独立 .list 块，组间由标题 margin 分隔
+            return '<div class="dir-head">'
                 + '<div>' + (d.directionId === 1 ? '返程站点' : '去程站点')
                 + ' · ' + (d.tripCount || 0) + ' 个班次 · ' + stops.length + ' 站</div>'
                 + term + '</div>'
+                + '<div class="list">'
                 + (stops.length ? stops.map(s =>
                     '<div class="item" data-id="' + s.stopPk + '">' +
                     '<span class="name" title="' + esc(s.stopName || '') + '"><span class="seq">' + s.stopSequence + '</span> ' + esc(s.stopName || '(未命名)') + '</span>' +
                     '<span class="coord">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span></div>'
-                ).join('') : '<div class="empty">该方向暂无停站</div>');
+                ).join('') : '<div class="empty">该方向暂无停站</div>')
+                + '</div>';
         }).join('') || '<div class="empty">该线路暂无停站数据</div>';
         bindListClicks();
     }
