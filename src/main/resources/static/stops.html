@@ -48,6 +48,7 @@
             padding: 6px 8px; font-size: 11px; font-weight: 600; color: #174ea6;
             background: #f0f4f9; border-bottom: 1px solid #e0e3e8; position: sticky; top: 0; z-index: 1;
         }
+        .dir-head .term { font-weight: 400; color: #5f6368; }
         .seq { display: inline-block; min-width: 16px; color: #9aa0a6; font-size: 10px; }
         .field-row { display: flex; gap: 8px; }
         .field-row .field { flex: 1; }
@@ -297,20 +298,26 @@
         bindListClicks();
     }
 
-    // 线路筛选模式：按方向分组的分组视图
+    // 线路筛选模式：按方向分组的分组视图（方向标题附起终点信息）
     function renderRouteList() {
         const v = state.routeStops;
         const total = (v.directions || []).reduce((n, d) => n + (d.stops || []).length, 0);
         $('stopCount').textContent = total;
-        $('stopList').innerHTML = (v.directions || []).map(d =>
-            '<div class="dir-head">' + (d.directionId === 1 ? '返程站台' : '去程站台')
-            + ' · ' + (d.tripCount || 0) + ' 个班次 · ' + (d.stops || []).length + ' 站</div>'
-            + ((d.stops || []).length ? d.stops.map(s =>
-                '<div class="item" data-id="' + s.stopPk + '">' +
-                '<span class="name" title="' + esc(s.stopName || '') + '"><span class="seq">' + s.stopSequence + '</span> ' + esc(s.stopName || '(未命名)') + '</span>' +
-                '<span class="coord">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span></div>'
-            ).join('') : '<div class="empty">该方向暂无停站</div>')
-        ).join('') || '<div class="empty">该线路暂无停站数据</div>';
+        $('stopList').innerHTML = (v.directions || []).map(d => {
+            const stops = d.stops || [];
+            // 起终点段：首末站名均非空且不同才展示（单站/缺名/同名兜底不加括号段）
+            const first = stops[0] && stops[0].stopName;
+            const last = stops.length > 1 && stops[stops.length - 1].stopName;
+            const term = (first && last && first !== last)
+                ? '<span class="term">（' + esc(first) + ' → ' + esc(last) + '）</span>' : '';
+            return '<div class="dir-head">' + (d.directionId === 1 ? '返程站台' : '去程站台') + term
+                + ' · ' + (d.tripCount || 0) + ' 个班次 · ' + stops.length + ' 站</div>'
+                + (stops.length ? stops.map(s =>
+                    '<div class="item" data-id="' + s.stopPk + '">' +
+                    '<span class="name" title="' + esc(s.stopName || '') + '"><span class="seq">' + s.stopSequence + '</span> ' + esc(s.stopName || '(未命名)') + '</span>' +
+                    '<span class="coord">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span></div>'
+                ).join('') : '<div class="empty">该方向暂无停站</div>');
+        }).join('') || '<div class="empty">该线路暂无停站数据</div>';
         bindListClicks();
     }
 
