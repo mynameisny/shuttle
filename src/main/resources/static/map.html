@@ -137,8 +137,8 @@
 <script>
     const API = {
         routes: '/api/routes',
-        tripsByRoute: pk => '/api/trips/by-route/' + pk,
-        tripShape: pk => '/api/shapes/by-trip/' + pk,
+        tripsByRoute: pk => '/api/routes/' + pk + '/trips',
+        tripShape: pk => '/api/trips/' + pk + '/shape',
         stops: '/api/stops'
     };
     const { map } = createMap('map');

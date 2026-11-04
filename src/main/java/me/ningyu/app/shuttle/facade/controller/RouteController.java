@@ -11,7 +11,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Route;
+import me.ningyu.app.shuttle.domain.entity.gtfs.Trip;
 import me.ningyu.app.shuttle.facade.service.RouteService;
+import me.ningyu.app.shuttle.facade.service.TripService;
 import me.ningyu.app.shuttle.model.route.CreateRouteRequest;
 import me.ningyu.app.shuttle.model.route.RouteStopsView;
 import me.ningyu.app.shuttle.model.route.UpdateRouteRequest;
@@ -31,6 +33,7 @@ import java.util.List;
 public class RouteController
 {
     private final RouteService routeService;
+    private final TripService tripService;
 
     @PostMapping
     @Operation(summary = "创建线路", description = "创建新的线路（对应GTFS routes.txt）")
@@ -84,6 +87,15 @@ public class RouteController
             @PathVariable Long id)
     {
         return ResponseEntity.ok(routeService.getRouteStops(id));
+    }
+
+    @GetMapping("/{id}/trips")
+    @Operation(summary = "获取线路班次", description = "获取指定线路下的全部班次（嵌套子资源）")
+    public ResponseEntity<List<Trip>> getTrips(
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "线路ID", schema = @Schema(type = "long"))
+            @PathVariable Long id)
+    {
+        return ResponseEntity.ok(tripService.getTripsByRouteId(id));
     }
 
     @GetMapping

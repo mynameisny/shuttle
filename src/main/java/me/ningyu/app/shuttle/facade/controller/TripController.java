@@ -9,9 +9,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Trip;
+import me.ningyu.app.shuttle.facade.service.ShapeService;
 import me.ningyu.app.shuttle.facade.service.TripService;
 import me.ningyu.app.shuttle.model.schedule.CreateTripRequest;
 import me.ningyu.app.shuttle.model.schedule.UpdateTripRequest;
+import me.ningyu.app.shuttle.model.shape.SaveShapeRequest;
+import me.ningyu.app.shuttle.model.shape.TripShapeView;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -26,6 +29,7 @@ import java.util.List;
 public class TripController
 {
     private final TripService tripService;
+    private final ShapeService shapeService;
 
     @PostMapping
     @Operation(summary = "创建班次", description = "创建一个新的班次（对应 GTFS trips.txt）")
@@ -72,32 +76,17 @@ public class TripController
         return ResponseEntity.ok(trip);
     }
 
-    @GetMapping("/by-trip-id/{tripId}")
-    @Operation(summary = "根据tripId获取班次", description = "根据GTFS trip_id获取班次信息")
-    @Parameters({
-            @Parameter(name = "tripId", in = ParameterIn.PATH, required = true, description = "班次唯一标识（trip_id）", schema = @Schema(type = "string"))
-    })
-    public ResponseEntity<Trip> getByTripId(@PathVariable String tripId)
-    {
-        Trip trip = tripService.getTripByTripId(tripId);
-        return ResponseEntity.ok(trip);
-    }
-
-    @GetMapping("/by-route/{routeId}")
-    @Operation(summary = "根据线路查询班次", description = "获取指定线路下的所有班次")
-    @Parameters({
-            @Parameter(name = "routeId", in = ParameterIn.PATH, required = true, description = "线路ID", schema = @Schema(type = "long"))
-    })
-    public ResponseEntity<List<Trip>> getByRoute(@PathVariable Long routeId)
-    {
-        List<Trip> trips = tripService.getTripsByRouteId(routeId);
-        return ResponseEntity.ok(trips);
-    }
-
     @GetMapping
-    @Operation(summary = "获取班次列表", description = "获取所有班次列表，可按服务日历ID筛选")
-    public ResponseEntity<List<Trip>> getAll(@RequestParam(required = false) String serviceId)
+    @Operation(summary = "获取班次列表", description = "获取所有班次列表；支持按 GTFS trip_id 精确筛选（无匹配返回空列表）或按服务日历ID筛选")
+    public ResponseEntity<List<Trip>> getAll(@RequestParam(required = false) String serviceId,
+                                             @RequestParam(required = false) String tripId)
     {
+        if (tripId != null && !tripId.isBlank())
+        {
+            return tripService.findTripByGtfsTripId(tripId)
+                    .map(t -> ResponseEntity.ok(List.of(t)))
+                    .orElseGet(() -> ResponseEntity.ok(List.of()));
+        }
         if (serviceId != null && !serviceId.isBlank())
         {
             List<Trip> trips = tripService.getTripsByServiceId(serviceId);
@@ -105,5 +94,38 @@ public class TripController
         }
         List<Trip> trips = tripService.getAllTrips();
         return ResponseEntity.ok(trips);
+    }
+
+    // ---------- 班次的形状（1:1 单例子资源） ----------
+
+    @GetMapping("/{id}/shape")
+    @Operation(summary = "获取班次形状", description = "获取班次绑定的形状点列与沿途停站站点（管理端地图页数据源）")
+    @Parameters({
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "班次ID", schema = @Schema(type = "long"))
+    })
+    public ResponseEntity<TripShapeView> getShape(@PathVariable Long id)
+    {
+        return ResponseEntity.ok(shapeService.getTripShape(id));
+    }
+
+    @PutMapping("/{id}/shape")
+    @Operation(summary = "保存班次形状", description = "全量替换班次形状点列（自动编号并按haversine累计里程），并绑定到班次；保存前校验形状必须经过全部停站（30米容差）")
+    @Parameters({
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "班次ID", schema = @Schema(type = "long"))
+    })
+    public ResponseEntity<TripShapeView> saveShape(@PathVariable Long id, @Valid @RequestBody SaveShapeRequest request)
+    {
+        return ResponseEntity.ok(shapeService.saveTripShape(id, request));
+    }
+
+    @DeleteMapping("/{id}/shape")
+    @Operation(summary = "删除班次形状", description = "删除班次绑定的形状全部点列，并解除 trip.shape_id 绑定（幂等，管理端地图页清空操作）")
+    @Parameters({
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "班次ID", schema = @Schema(type = "long"))
+    })
+    public ResponseEntity<Void> deleteShape(@PathVariable Long id)
+    {
+        shapeService.removeTripShape(id);
+        return ResponseEntity.noContent().build();
     }
 }

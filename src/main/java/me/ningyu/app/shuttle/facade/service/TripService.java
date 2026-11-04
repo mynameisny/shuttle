@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -113,6 +114,15 @@ public class TripService
     {
         return tripRepository.findByTripId(tripId)
                 .orElseThrow(() -> new IllegalArgumentException("班次不存在: " + tripId));
+    }
+
+    /**
+     * 按 GTFS trip_id 查找班次（可选语义，供集合筛选使用：无匹配返回空而非报错）。
+     */
+    @Nonnull
+    public Optional<Trip> findTripByGtfsTripId(String tripId)
+    {
+        return tripRepository.findByTripId(tripId);
     }
 
     @Nonnull
