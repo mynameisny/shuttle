@@ -313,7 +313,7 @@
         sel.innerHTML = '<option value="">请选择班次</option>' + trips.map(t =>
             '<option value="' + t.id + '">' + t.tripId
             + '（' + (t.directionId === 1 ? '回程' : '去程') + '）'
-            + (t.shapeId ? ' · ' + t.shapeId : ' · 无形状') + '</option>'
+            + (t.shapeId ? ' · ' + t.shapeId : ' · 待描图') + '</option>'
         ).join('');
         sel.disabled = false;
     }
@@ -329,7 +329,7 @@
         fitToData();
         $('tripInfo').innerHTML =
             '班次：<b>' + view.tripId + '</b>（' + (view.directionId === 1 ? '回程' : '去程') + '）<br>' +
-            '形状：' + (view.shapeId || '<span style="color:#d93025">未绑定</span>') +
+            '形状：' + (view.shapeId || '<span style="color:#d93025">待描图</span>') +
             '　线路：' + (view.routeGtfsId || '-') + '<br>' +
             '总里程：<b>' + (totalDistance() / 1000).toFixed(2) + '</b> km（' + state.editPoints.length + ' 点）';
         updateButtons();
@@ -420,7 +420,7 @@
         const pts = state.editPoints.map(p => [p.lat, p.lng]);
         if (pts.length >= 2) { map.fitBounds(state.shapeLayer.getBounds().pad(0.15)); return; }
         const ss = document.querySelectorAll('#stopList .item');
-        // 无形状时以第一个站点为中心
+        // 待描图时以第一个站点为中心
         if (state.tripPk) { /* 站点 marker 已在图上，尝试取图层 bounds */ }
         const sb = state.stopLayer.getBounds && state.stopLayer.getBounds();
         if (sb && sb.isValid()) { map.fitBounds(sb.pad(0.3)); }
@@ -494,7 +494,7 @@
             } catch (err) { toast('删除形状失败：' + err.message, true); return; }
         }
         state.editPoints = [];
-        // 重新加载班次：形状显示"未绑定"、点列清空、停站列表保留
+        // 重新加载班次：形状显示"待描图"、点列清空、停站列表保留
         await loadTrips($('routeSelect').value);
         $('tripSelect').value = state.tripPk || '';
         if (state.tripPk) await loadTripShape(state.tripPk);
