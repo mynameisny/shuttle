@@ -200,14 +200,14 @@
         // 覆盖进度与未覆盖明细
         const el = $('coverageInfo');
         if (!state.stops.length) {
-            el.innerHTML = '<span style="color:#9aa0a6">该班次无停站，无需覆盖校验</span>';
+            el.innerHTML = '<span style="color:#9aa0a6">该班次暂无停站，无需覆盖校验</span>';
             return;
         }
         el.style.color = missing.length ? '#b3261e' : '#188038';
         el.innerHTML = '站点覆盖：<b>' + covered.size + '/' + state.stops.length + '</b>'
             + (missing.length
-                ? '　未经过：' + missing.map(s => esc(s.stopName || s.stopId)).join('、') + '（容差 ' + TOLERANCE_METERS + ' 米）'
-                : '　全部停站已被形状经过');
+                ? '　未覆盖：' + missing.map(s => esc(s.stopName || s.stopId)).join('、') + '（容差 ' + TOLERANCE_METERS + ' 米）'
+                : '　全部站点已覆盖');
     }
 
     // 点击位置附近最近站点（maxMeters 内），无则返回 null
@@ -505,7 +505,7 @@
         // 预校验：形状必须经过全部停站（与后端校验同容差，避免无效请求）
         const { missing } = stopCoverage();
         if (state.stops.length && missing.length) {
-            toast('保存失败：形状未经过站点 ' + missing.map(s => s.stopName || s.stopId).join('、')
+            toast('保存失败：站点未覆盖 ' + missing.map(s => s.stopName || s.stopId).join('、')
                 + '，请沿行驶道路描线覆盖（容差 ' + TOLERANCE_METERS + ' 米）', true);
             return;
         }
