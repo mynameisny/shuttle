@@ -48,6 +48,8 @@
             padding: 6px 8px; font-size: 11px; font-weight: 600; color: #174ea6;
             background: #f0f4f9; border-bottom: 1px solid #e0e3e8; position: sticky; top: 0; z-index: 1;
         }
+        /* 方向组之间的分隔线（首个方向头顶部与列表容器边框重合，免双线） */
+        .dir-head ~ .dir-head { border-top: 1px solid #e0e3e8; }
         .dir-head .term { font-weight: 400; color: #5f6368; font-size: 10px; margin-top: 1px; }
         .seq { display: inline-block; min-width: 16px; color: #9aa0a6; font-size: 10px; }
         .field-row { display: flex; gap: 8px; }
@@ -183,7 +185,7 @@
             <div id="hint">
                 使用说明：<br>
                 1. 站点为全局资源：修改坐标会影响所有引用它的班次，请谨慎操作。<br>
-                2. 列表项角标显示引用该站的线路与方向（同名去程/返程站台靠此区分），"未使用"表示无任何班次引用。<br>
+                2. 列表项角标显示引用该站的线路与方向（同名去程/返程站点靠此区分），"未使用"表示无任何班次引用。<br>
                 3. 顶部可按线路筛选，列表按去程/返程分组显示（正向查询）；搜索框在筛选模式下停用。<br>
                 4. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；保存后立即生效。<br>
                 5. 编辑区下方为引用该站点的班次明细（点击跳转描线页）；选中站点后地图自动弹出「时刻维护」浮层，可逐班次维护到/发时刻与时间精度（近似/精确）。<br>
@@ -333,7 +335,7 @@
             const term = (first && last && first !== last)
                 ? '<div class="term">' + esc(first) + ' → ' + esc(last) + '</div>' : '';
             return '<div class="dir-head">'
-                + '<div>' + (d.directionId === 1 ? '返程站台' : '去程站台')
+                + '<div>' + (d.directionId === 1 ? '返程站点' : '去程站点')
                 + ' · ' + (d.tripCount || 0) + ' 个班次 · ' + stops.length + ' 站</div>'
                 + term + '</div>'
                 + (stops.length ? stops.map(s =>
