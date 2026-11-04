@@ -50,6 +50,8 @@
         }
         /* 方向组之间的分隔线（首个方向头顶部与列表容器边框重合，免双线） */
         .dir-head ~ .dir-head { border-top: 1px solid #e0e3e8; }
+        /* 方向组之间的空隙：普通流 spacer 块。不能把 margin 加在 sticky 组头上——吸附后空隙区域会透出滚动内容；spacer 随内容滚动滚出可视区被裁剪，无透底问题 */
+        .dir-gap { height: 10px; background: #fff; }
         .dir-head .term { font-weight: 400; color: #5f6368; font-size: 10px; margin-top: 1px; }
         .seq { display: inline-block; min-width: 16px; color: #9aa0a6; font-size: 10px; }
         .field-row { display: flex; gap: 8px; }
@@ -327,14 +329,15 @@
         const v = state.routeStops;
         const total = (v.directions || []).reduce((n, d) => n + (d.stops || []).length, 0);
         $('stopCount').textContent = total;
-        $('stopList').innerHTML = (v.directions || []).map(d => {
+        $('stopList').innerHTML = (v.directions || []).map((d, idx) => {
             const stops = d.stops || [];
             // 起终点行：首末站名均非空且不同才展示（单站/缺名/同名兜底不显示第二行）
             const first = stops[0] && stops[0].stopName;
             const last = stops.length > 1 && stops[stops.length - 1].stopName;
             const term = (first && last && first !== last)
                 ? '<div class="term">' + esc(first) + ' → ' + esc(last) + '</div>' : '';
-            return '<div class="dir-head">'
+            // 第二个方向组前插入 spacer 空隙块（见 .dir-gap 注释），配合分隔线拉开组间距
+            return (idx ? '<div class="dir-gap"></div>' : '') + '<div class="dir-head">'
                 + '<div>' + (d.directionId === 1 ? '返程站点' : '去程站点')
                 + ' · ' + (d.tripCount || 0) + ' 个班次 · ' + stops.length + ' 站</div>'
                 + term + '</div>'
