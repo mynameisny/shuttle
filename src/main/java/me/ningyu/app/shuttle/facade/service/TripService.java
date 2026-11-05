@@ -240,6 +240,28 @@ public class TripService
         }
     }
 
+    /**
+     * 从班次移除指定站序的停站（管理端站点维护页分组视图「移除」按钮）。
+     * 按 (tripPk, stopSequence) 定位（与 GTFS stop_times 主键语义一致），删除后
+     * 剩余停站 stop_sequence 重写为 1..N 连续（保持相对顺序，后续站序自动前移）。
+     * 移除后班次可无停站（管理端逐步编辑语义）。
+     */
+    public void removeStopTime(Long tripPk, Integer stopSequence)
+    {
+        Trip trip = tripRepository.findById(tripPk)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在: id=" + tripPk));
+        StopTime stopTime = stopTimeRepository.findByTripAndStopSequence(trip, stopSequence)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "班次 " + trip.getTripId() + " 不存在站序 " + stopSequence));
+        stopTimeRepository.delete(stopTime);
+        // 剩余停站站序前移：同一事务内重查（AUTO flush 先落 delete），重写 1..N 连续
+        List<StopTime> remaining = stopTimeRepository.findByTripOrderByStopSequenceAsc(trip);
+        for (int i = 0; i < remaining.size(); i++)
+        {
+            remaining.get(i).setStopSequence(i + 1);
+        }
+    }
+
     @Nonnull
     public StopUsageView updateStopTime(Long tripPk, Integer stopSequence, UpdateStopTimeRequest request)
     {

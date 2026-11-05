@@ -178,4 +178,18 @@ public class TripController
     {
         return ResponseEntity.ok(tripService.updateStopTime(id, stopSequence, request));
     }
+
+    @DeleteMapping("/{id}/stop-times/{stopSequence}")
+    @Operation(summary = "移除停站",
+            description = "从班次移除指定站序的停站（站点维护页分组视图「移除」按钮）。"
+                    + "剩余停站站序自动前移重写为 1..N 连续；移除后班次可无停站")
+    @Parameters({
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "班次ID", schema = @Schema(type = "long")),
+            @Parameter(name = "stopSequence", in = ParameterIn.PATH, required = true, description = "站序（stop_sequence）", schema = @Schema(type = "integer"))
+    })
+    public ResponseEntity<Void> removeStopTime(@PathVariable Long id, @PathVariable Integer stopSequence)
+    {
+        tripService.removeStopTime(id, stopSequence);
+        return ResponseEntity.noContent().build();
+    }
 }

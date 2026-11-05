@@ -70,6 +70,11 @@
         .list .item.sel { background: #e8f0fe; }
         .list .item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .list .item .coord { color: #9aa0a6; font-size: 11px; white-space: nowrap; }
+        .list .item .rm-btn {
+            flex: none; width: 16px; height: 16px; line-height: 15px; text-align: center;
+            border-radius: 3px; color: #d93025; font-size: 12px; cursor: pointer; user-select: none;
+        }
+        .list .item .rm-btn:hover { background: #fce8e6; }
         .list .item[draggable="true"] { cursor: grab; }
         .list .item[draggable="true"]:active { cursor: grabbing; }
         .list .item.dragging { opacity: .4; background: #e8f0fe; }
@@ -211,7 +216,7 @@
                 3. 顶部可按线路筛选，列表按去程/返程分组显示（正向查询）；搜索框在筛选模式下停用。单班次方向的分组列表可按住拖拽调整停靠顺序（写入 stop_sequence，到/发时刻随站点移动）；多班次方向请到线路描图页逐班次调整。<br>
                 4. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；保存后立即生效。<br>
                 5. 编辑区下方为引用该站点的班次明细（点击跳转描线页）；选中站点后地图自动弹出「时刻维护」浮层，可逐班次维护到/发时刻与时间精度（近似/精确）。<br>
-                6. 点击「新增站点」进入选点模式（Esc 取消），点击地图后填写站名与到/发时间（描述可选），站点将追加到所选方向班次停站末尾（可拖拽调整顺序）；删除站点须先解除班次引用（仍被引用时会提示引用线路）。
+                6. 点击「新增站点」进入选点模式（Esc 取消），点击地图后填写站名与到/发时间（描述可选），站点将追加到所选方向班次停站末尾（可拖拽调整顺序）；删除站点须先解除班次引用：在分组视图点击站点右侧 ✕ 从班次移除（单班次方向可用），再到台账删除站点。
             </div>
         </div>
     </div>
@@ -410,7 +415,9 @@
                     '<div class="item" data-id="' + s.stopPk + '"'
                     + (singleTrip ? ' draggable="true" title="按住拖拽调整停靠顺序"' : '') + '>' +
                     '<span class="name" title="' + esc(s.stopName || '') + '"><span class="seq">' + s.stopSequence + '</span> ' + esc(s.stopName || '(未命名)') + '</span>' +
-                    '<span class="coord">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span></div>'
+                    '<span class="coord">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span>' +
+                    (singleTrip ? '<span class="rm-btn" data-seq="' + s.stopSequence + '" data-name="' + esc(s.stopName || '') + '" title="从班次移除该站">✕</span>' : '') +
+                    '</div>'
                 ).join('') : '<div class="empty">该方向暂无停站</div>')
                 + '</div>';
         }).join('') || '<div class="empty">该线路暂无停站数据</div>';
@@ -421,6 +428,13 @@
     function bindListClicks() {
         $('stopList').querySelectorAll('.item').forEach(el =>
             el.addEventListener('click', () => selectStop(parseInt(el.dataset.id)))
+        );
+        $('stopList').querySelectorAll('.rm-btn').forEach(el =>
+            el.addEventListener('click', e => {
+                e.stopPropagation(); // 不触发 item 的选中
+                const list = el.closest('.list[data-trip-pk]');
+                if (list) removeStopFromTrip(parseInt(list.dataset.tripPk), parseInt(el.dataset.seq), el.dataset.name);
+            })
         );
     }
 
@@ -480,6 +494,27 @@
             if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
             return closest;
         }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // 从班次移除停站：删除站点前的解引用入口（删除站点须先解除班次引用）。
+    // 成功后剩余站序由后端重写为 1..N 连续，前端重拉分组视图同步。
+    // 复用 state.reordering 锁：移除请求完成前禁止拖拽与再次移除，防并发竞态。
+    async function removeStopFromTrip(tripPk, stopSequence, stopName) {
+        if (state.reordering) { toast('上一次停站变更保存中，请稍候'); return; }
+        if (!confirm('从班次移除「' + (stopName || '该站') + '」？剩余站点站序将自动前移。')) return;
+        state.reordering = true;
+        $('stopList').classList.add('reordering');
+        try {
+            await api(API.stopTime(tripPk, stopSequence), { method: 'DELETE' });
+            toast('已从班次移除：' + (stopName || '站点') + '（站点仍保留在台账，可另行删除）');
+            await applyRouteFilter();
+            await loadUsageSummary();
+        } catch (err) {
+            toast('移除失败：' + err.message, true);
+        } finally {
+            state.reordering = false;
+            $('stopList').classList.remove('reordering');
+        }
     }
 
     // 拖拽落定：按 DOM 顺序乐观更新本地数据并持久化 stop_sequence（1 起重写）；失败回滚重拉。
@@ -716,7 +751,7 @@
         const refs = state.usageMap[stop.id] || [];
         if (refs.length) {
             toast('该站点仍被 ' + refs.map(r => '[' + (r.routeShortName || '?') + (r.directionId === 1 ? '·回程' : '·去程') + ']').join('')
-                + ' 引用，请先在班次中移除该站', true);
+                + ' 引用；请先在分组视图点击站点右侧 ✕ 从班次移除，再删除站点', true);
             return;
         }
         if (!confirm('确定删除站点「' + (stop.stopName || stop.stopId) + '」？此操作不可恢复。')) return;
