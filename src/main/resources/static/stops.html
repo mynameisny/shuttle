@@ -70,6 +70,9 @@
         .list .item.sel { background: #e8f0fe; }
         .list .item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .list .item .coord { color: #9aa0a6; font-size: 11px; white-space: nowrap; }
+        .list .item[draggable="true"] { cursor: grab; }
+        .list .item[draggable="true"]:active { cursor: grabbing; }
+        .list .item.dragging { opacity: .4; background: #e8f0fe; }
         .list .empty { padding: 10px; font-size: 12px; color: #9aa0a6; text-align: center; }
 
         .empty-box {
@@ -195,7 +198,8 @@
                 3. 顶部可按线路筛选，列表按去程/返程分组显示（正向查询）；搜索框在筛选模式下停用。<br>
                 4. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；保存后立即生效。<br>
                 5. 编辑区下方为引用该站点的班次明细（点击跳转描线页）；选中站点后地图自动弹出「时刻维护」浮层，可逐班次维护到/发时刻与时间精度（近似/精确）。<br>
-                6. 点击「新建站点」进入选点模式（Esc 取消），点击地图输入站名即可创建；删除站点须先解除班次引用（仍被引用时会提示引用线路）。
+                6. 点击「新建站点」进入选点模式（Esc 取消），点击地图输入站名即可创建；删除站点须先解除班次引用（仍被引用时会提示引用线路）。<br>
+                7. 「全部站点」模式下可按住列表项拖拽调整台账顺序（松手即保存；搜索/线路筛选时不可拖）；新建站点默认排在最后，可拖到任意位置。
             </div>
         </div>
     </div>
@@ -211,6 +215,7 @@
         stop: id => '/api/stops/' + id,
         stopUsage: id => '/api/stops/' + id + '/usage',
         usageSummary: '/api/stops/usage-summary',
+        reorder: '/api/stops/order',
         routes: '/api/routes',
         routeStops: pk => '/api/routes/' + pk + '/stops',
         stopTime: (tripPk, seq) => '/api/trips/' + tripPk + '/stop-times/' + seq
@@ -221,6 +226,7 @@
     const state = {
         allStops: [],     // 全量站点（编辑查找的权威数据，不受搜索影响）
         stops: [],        // 全量模式当前展示集（受搜索影响）
+        searchKeyword: '',// 当前搜索关键字（空=全量无搜索，列表可拖拽排序）
         usageMap: {},     // stopPk -> [{routePk, routeShortName, directionId}]（列表消歧角标）
         routeFilter: null,// 当前筛选线路 pk（null=全量模式）
         routeStops: null, // 线路筛选模式数据（GET /api/routes/{pk}/stops）
@@ -245,6 +251,7 @@
     });
 
     async function loadStops(keyword) {
+        state.searchKeyword = keyword || '';
         const url = keyword ? API.stops + '?keyword=' + encodeURIComponent(keyword) : API.stops;
         try {
             state.stops = await api(url) || [];
@@ -320,14 +327,19 @@
         if (state.routeFilter !== null && state.routeStops) { renderRouteList(); return; }
         $('stopList').classList.remove('stacked');
         $('stopCount').textContent = state.stops.length;
+        // 仅全量且无搜索时可拖拽排序；搜索子集/筛选分组视图拖拽语义不清（后者顺序是 stop_sequence 业务数据）
+        const dnd = state.routeFilter === null && !state.searchKeyword;
         $('stopList').innerHTML = state.stops.length
             ? state.stops.map(s =>
-                '<div class="item' + (s.id === state.selectedId ? ' sel' : '') + '" data-id="' + s.id + '">' +
+                '<div class="item' + (s.id === state.selectedId ? ' sel' : '') + '"'
+                + (dnd ? ' draggable="true" title="按住拖拽调整顺序"' : '')
+                + ' data-id="' + s.id + '">' +
                 '<span class="name" title="' + esc(s.stopName || '') + '">' + esc(s.stopName || '(未命名)') + ' ' + refTags(s.id) + '</span>' +
                 '<span class="coord">' + parseFloat(s.stopLat).toFixed(5) + ',' + parseFloat(s.stopLon).toFixed(5) + '</span></div>'
             ).join('')
             : '<div class="empty">无匹配站点（新建请到线路描图页）</div>';
         bindListClicks();
+        bindDnd();
     }
 
     // 线路筛选模式：按方向分组的分组视图（方向标题附起终点信息）
@@ -363,6 +375,76 @@
         $('stopList').querySelectorAll('.item').forEach(el =>
             el.addEventListener('click', () => selectStop(parseInt(el.dataset.id)))
         );
+    }
+
+    // ---------- 全量模式拖拽排序（筛选分组视图顺序是 stop_sequence 业务数据，不开放拖拽） ----------
+    let dragId = null;
+
+    function bindDnd() {
+        const list = $('stopList');
+        const items = list.querySelectorAll('.item[draggable="true"]');
+        if (!items.length) return;
+        items.forEach(el => {
+            el.addEventListener('dragstart', e => {
+                dragId = parseInt(el.dataset.id);
+                el.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', el.dataset.id); // Firefox 需非空 data 才启动拖拽
+            });
+            el.addEventListener('dragend', () => {
+                el.classList.remove('dragging');
+                dragId = null;
+            });
+        });
+        // dragover 委托到容器：按鼠标 Y 实时计算插入位置，拖动项随之移动（live-reorder）
+        list.addEventListener('dragover', e => {
+            if (dragId === null) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const dragging = list.querySelector('.item.dragging');
+            if (!dragging) return;
+            const after = getDragAfterElement(list, e.clientY);
+            if (after == null) list.appendChild(dragging);
+            else if (after !== dragging) list.insertBefore(dragging, after);
+        });
+        list.addEventListener('drop', e => {
+            if (dragId === null) return;
+            e.preventDefault();
+            commitOrder();
+        });
+    }
+
+    // 找到鼠标位置后第一个列表项（作为插入锚点），无则插入末尾
+    function getDragAfterElement(container, y) {
+        const els = [...container.querySelectorAll('.item[draggable="true"]')];
+        return els.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+            return closest;
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // 拖拽结束：按 DOM 顺序乐观更新本地数据并持久化；失败回滚重载
+    async function commitOrder() {
+        const ids = [...$('stopList').querySelectorAll('.item[draggable="true"]')]
+            .map(el => parseInt(el.dataset.id));
+        if (ids.length !== state.stops.length) return; // 列表与数据不一致，放弃本次提交
+        const byId = {};
+        state.stops.forEach(s => { byId[s.id] = s; });
+        state.stops = ids.map(id => byId[id]).filter(Boolean);
+        state.allStops = state.stops.slice();
+        renderList();
+        try {
+            await api(API.reorder, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(ids)
+            });
+            toast('顺序已保存');
+        } catch (err) {
+            toast('顺序保存失败：' + err.message, true);
+            await loadStops(''); // 回滚到服务端权威顺序
+        }
     }
 
     function renderMarkers() {

@@ -17,9 +17,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -92,15 +94,45 @@ public class StopService
 
     /**
      * 查询停靠点列表，keyword 非空时按名称模糊匹配。
+     * 结果按台账显示顺序排序（display_order 空值排最后）。
      */
     @Nonnull
     public List<Stop> getStops(String keyword)
     {
         if (keyword != null && !keyword.isBlank())
         {
-            return stopRepository.findByStopNameContaining(keyword.trim());
+            return stopRepository.findByStopNameContainingOrdered(keyword.trim());
         }
-        return stopRepository.findAll();
+        return stopRepository.findAllOrdered();
+    }
+
+    /**
+     * 重排台账显示顺序（管理端列表拖拽排序）。
+     * 按前端传入的有序主键列表写 display_order（从 1 起）；
+     * 列表未包含的站点（如并发新建）保持空值，仍按"空值排最后"的兜底规则展示。
+     */
+    public void reorderStops(List<Long> orderedIds)
+    {
+        if (orderedIds == null || orderedIds.isEmpty())
+        {
+            return;
+        }
+        Set<Long> distinctIds = new LinkedHashSet<>(orderedIds);
+        if (distinctIds.size() != orderedIds.size())
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "顺序列表含重复站点");
+        }
+        List<Stop> stops = stopRepository.findAllById(distinctIds);
+        if (stops.size() != orderedIds.size())
+        {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "部分站点不存在，请刷新后重试");
+        }
+        Map<Long, Stop> byId = stops.stream()
+                .collect(Collectors.toMap(Stop::getId, s -> s));
+        for (int i = 0; i < orderedIds.size(); i++)
+        {
+            byId.get(orderedIds.get(i)).setDisplayOrder(i + 1);
+        }
     }
 
     /**

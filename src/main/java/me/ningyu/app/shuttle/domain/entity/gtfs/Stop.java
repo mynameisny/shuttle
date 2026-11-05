@@ -57,6 +57,7 @@ import java.math.BigDecimal;
  * - level_id           → level
  * - platform_code      → platformCode
  * - stop_access        → stopAccess
+ * - display_order      → displayOrder（扩展字段，非 GTFS：台账显示顺序，管理端拖拽维护）
  * </pre>
  */
 @Entity(name = "stop")
@@ -133,4 +134,12 @@ public class Stop extends AbstractAuditable
     @Enumerated(EnumType.STRING)
     @Column(name = "stop_access", columnDefinition = "VARCHAR(20) COMMENT '站点进入方式（VIA_ENTRANCE=需经入口，DIRECT_ACCESS=可直接进入）'")
     private StopAccess stopAccess;
+
+    /**
+     * 台账显示顺序（扩展字段，非 GTFS stops.txt 规范字段）。
+     * 管理端站点维护页拖拽排序维护；空值视为未排序排在最后，
+     * 新建站点默认排最后，可拖拽调整到任意位置。
+     */
+    @Column(name = "display_order", columnDefinition = "INT COMMENT '台账显示顺序（管理端拖拽维护，非GTFS字段，空值排最后）'")
+    private Integer displayOrder;
 }
