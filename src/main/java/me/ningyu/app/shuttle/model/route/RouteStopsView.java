@@ -34,6 +34,8 @@ public class RouteStopsView
         private Integer tripCount;
         /** 方向内全部班次数据库主键（单班次方向供前端拖拽重排定位班次用） */
         private List<Long> tripPks;
+        /** 与 tripPks 同序的班次显示名（trip_short_name 优先，回退 trip_id），供加站时选择目标班次 */
+        private List<String> tripLabels;
         private List<StopItem> stops;
     }
 

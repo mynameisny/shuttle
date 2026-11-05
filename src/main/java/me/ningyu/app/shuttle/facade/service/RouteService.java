@@ -7,6 +7,7 @@ import me.ningyu.app.shuttle.domain.entity.gtfs.Agency;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Route;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Stop;
 import me.ningyu.app.shuttle.domain.entity.gtfs.StopTime;
+import me.ningyu.app.shuttle.domain.entity.gtfs.Trip;
 import me.ningyu.app.shuttle.domain.repo.AgencyRepository;
 import me.ningyu.app.shuttle.domain.repo.RouteRepository;
 import me.ningyu.app.shuttle.domain.repo.StopTimeRepository;
@@ -22,7 +23,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -149,10 +149,16 @@ public class RouteService
         List<RouteStopsView.DirectionStops> directions = byDirection.entrySet().stream()
                 .map(directionEntry -> {
                     Map<Long, List<StopTime>> stopMap = directionEntry.getValue();
-                    Set<Long> tripPks = stopMap.values().stream()
+                    // 班次按首遇顺序收集（LinkedHashMap 保序），label 取 trip_short_name 回退 trip_id
+                    Map<Long, Trip> tripById = new LinkedHashMap<>();
+                    stopMap.values().stream()
                             .flatMap(List::stream)
-                            .map(st -> st.getTrip().getId())
-                            .collect(Collectors.toSet());
+                            .forEach(st -> tripById.putIfAbsent(st.getTrip().getId(), st.getTrip()));
+                    List<Long> tripPks = List.copyOf(tripById.keySet());
+                    List<String> tripLabels = tripById.values().stream()
+                            .map(t -> t.getTripShortName() != null && !t.getTripShortName().isBlank()
+                                    ? t.getTripShortName() : t.getTripId())
+                            .collect(Collectors.toList());
                     List<RouteStopsView.StopItem> stops = stopMap.values().stream()
                             .map(records -> {
                                 StopTime first = records.get(0);
@@ -172,7 +178,8 @@ public class RouteService
                     return RouteStopsView.DirectionStops.builder()
                             .directionId(directionEntry.getKey())
                             .tripCount(tripPks.size())
-                            .tripPks(List.copyOf(tripPks))
+                            .tripPks(tripPks)
+                            .tripLabels(tripLabels)
                             .stops(stops)
                             .build();
                 })

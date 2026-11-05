@@ -27,6 +27,10 @@ public class CreateStopRequest
     @Size(max = 100, message = "站点名称长度不能超过100")
     private String stopName;
 
+    /** 站点描述（GTFS stop_desc，可选；补充说明而非重复名称） */
+    @Size(max = 1000, message = "站点描述长度不能超过1000")
+    private String stopDesc;
+
     @NotNull(message = "纬度不能为空")
     @DecimalMin(value = "-90", message = "纬度范围 [-90, 90]")
     @DecimalMax(value = "90", message = "纬度范围 [-90, 90]")

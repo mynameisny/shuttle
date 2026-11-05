@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Trip;
 import me.ningyu.app.shuttle.facade.service.ShapeService;
 import me.ningyu.app.shuttle.facade.service.TripService;
+import me.ningyu.app.shuttle.model.schedule.AddStopTimeRequest;
 import me.ningyu.app.shuttle.model.schedule.CreateTripRequest;
 import me.ningyu.app.shuttle.model.schedule.UpdateStopTimeRequest;
 import me.ningyu.app.shuttle.model.schedule.UpdateTripRequest;
@@ -132,6 +133,20 @@ public class TripController
     }
 
     // ---------- 班次的停站时刻（子资源，定位：站序） ----------
+
+    @PostMapping("/{id}/stop-times")
+    @Operation(summary = "追加停站",
+            description = "向班次停站序列末尾追加一个站点（管理端站点维护页「线路下加站」）。"
+                    + "stop_sequence 按现有最大站序 +1 分配；到/发时间必填（HH:MM 或 HH:MM:SS）；"
+                    + "同班次重复停靠同一站点返回 409")
+    @Parameters({
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "班次ID", schema = @Schema(type = "long"))
+    })
+    public ResponseEntity<StopUsageView> addStopTime(@PathVariable Long id,
+                                                     @Valid @RequestBody AddStopTimeRequest request)
+    {
+        return ResponseEntity.ok(tripService.addStopTime(id, request));
+    }
 
     @PutMapping("/{id}/stop-times/order")
     @Operation(summary = "重排班次停站顺序",

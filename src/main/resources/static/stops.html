@@ -140,6 +140,18 @@
         }
         #toast.show { opacity: .95; }
         #toast.err { background: #b3261e; }
+
+        /* ---------- 加站表单弹层 ---------- */
+        .modal-mask {
+            position: fixed; inset: 0; background: rgba(0,0,0,.35);
+            display: flex; align-items: center; justify-content: center; z-index: 10000;
+        }
+        .modal {
+            width: 300px; background: #fff; border-radius: 10px; padding: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,.25);
+        }
+        .modal-title { font-size: 14px; font-weight: 600; color: #1a73e8; margin-bottom: 2px; }
+        .modal-coord { font-size: 11px; color: #9aa0a6; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -199,11 +211,43 @@
                 3. 顶部可按线路筛选，列表按去程/返程分组显示（正向查询）；搜索框在筛选模式下停用。单班次方向的分组列表可按住拖拽调整停靠顺序（写入 stop_sequence，到/发时刻随站点移动）；多班次方向请到线路描图页逐班次调整。<br>
                 4. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；保存后立即生效。<br>
                 5. 编辑区下方为引用该站点的班次明细（点击跳转描线页）；选中站点后地图自动弹出「时刻维护」浮层，可逐班次维护到/发时刻与时间精度（近似/精确）。<br>
-                6. 点击「新建站点」进入选点模式（Esc 取消），点击地图输入站名即可创建；删除站点须先解除班次引用（仍被引用时会提示引用线路）。
+                6. 点击「新增站点」进入选点模式（Esc 取消），点击地图后填写站名与到/发时间（描述可选），站点将追加到所选方向班次停站末尾（可拖拽调整顺序）；删除站点须先解除班次引用（仍被引用时会提示引用线路）。
             </div>
         </div>
     </div>
     <div id="map"></div>
+</div>
+<div id="addModal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <div class="modal-title">新增站点</div>
+        <div class="modal-coord" id="addCoord"></div>
+        <div class="field">
+            <label>站点名称 *</label>
+            <input type="text" id="addName" maxlength="100" placeholder="与面向乘客的名称一致">
+        </div>
+        <div class="field">
+            <label>加入班次 *</label>
+            <select id="addTrip"></select>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>到达时间 *</label>
+                <input type="time" id="addArr" step="60">
+            </div>
+            <div class="field">
+                <label>发车时间 *</label>
+                <input type="time" id="addDep" step="60">
+            </div>
+        </div>
+        <div class="field">
+            <label>站点描述（可选）</label>
+            <input type="text" id="addDesc" maxlength="1000" placeholder="补充说明，如停靠位置/出入口">
+        </div>
+        <div class="btn-row" style="margin-top:12px">
+            <button id="btnAddConfirm" class="primary">创建并加入班次</button>
+            <button id="btnAddCancel">取消（重新选点）</button>
+        </div>
+    </div>
 </div>
 <div id="toast"></div>
 
@@ -217,6 +261,7 @@
         usageSummary: '/api/stops/usage-summary',
         routes: '/api/routes',
         routeStops: pk => '/api/routes/' + pk + '/stops',
+        stopTimeAdd: tripPk => '/api/trips/' + tripPk + '/stop-times',
         stopTimeOrder: tripPk => '/api/trips/' + tripPk + '/stop-times/order',
         stopTime: (tripPk, seq) => '/api/trips/' + tripPk + '/stop-times/' + seq
     };
@@ -247,6 +292,8 @@
         state.routeFilter = e.target.value ? parseInt(e.target.value) : null;
         $('searchInput').disabled = state.routeFilter !== null;
         if (state.routeFilter !== null) $('searchInput').value = '';
+        if (state.creating) setCreating(false); // 切线路退出选点模式
+        updateCreateBtn();
         applyRouteFilter();
     });
 
@@ -558,35 +605,107 @@
         } catch (err) { toast('保存失败：' + err.message, true); }
     });
 
-    // ---------- 新建站点：进入选点模式，点地图输入站名 ----------
-    function setCreating(on) {
-        state.creating = on;
-        $('btnCreate').textContent = on ? '点击地图选点（Esc 取消）' : '＋ 新建站点';
-        $('btnCreate').classList.toggle('creating', on);
-        map.getContainer().style.cursor = on ? 'crosshair' : '';
+    // ---------- 新建站点：须先选线路；选点后弹表单，创建并追加班次停站 ----------
+    function updateCreateBtn() {
+        const off = state.routeFilter === null;
+        $('btnCreate').disabled = off;
+        $('btnCreate').textContent = off
+            ? '＋ 选择线路后加站'
+            : (state.creating ? '点击地图选点（Esc 取消）' : '＋ 新增站点');
     }
 
-    $('btnCreate').addEventListener('click', () => setCreating(!state.creating));
+    function setCreating(on) {
+        state.creating = on;
+        $('btnCreate').classList.toggle('creating', on);
+        map.getContainer().style.cursor = on ? 'crosshair' : '';
+        updateCreateBtn();
+    }
 
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && state.creating) setCreating(false);
+    $('btnCreate').addEventListener('click', () => {
+        if (state.routeFilter === null) return; // disabled 兜底
+        setCreating(!state.creating);
     });
 
-    map.on('click', async e => {
-        if (!state.creating) return;
-        const name = prompt('站点名称：');
-        if (!name || !name.trim()) return; // 取消输入则留在选点模式，可重新选点
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            if ($('addModal').style.display !== 'none') { closeAddModal(); return; } // 关表单，留在选点模式
+            if (state.creating) setCreating(false);
+        }
+    });
+
+    // ---------- 加站表单弹层 ----------
+    let addLatLng = null;
+
+    function openAddModal(latlng) {
+        addLatLng = latlng;
+        $('addCoord').textContent = '选中位置：' + latlng.lat.toFixed(7) + ', ' + latlng.lng.toFixed(7);
+        // 班次选项 = 各方向展开（label：方向 · 班次名）
+        const dirs = state.routeStops.directions || [];
+        $('addTrip').innerHTML = dirs.map(d =>
+            (d.tripPks || []).map((pk, i) =>
+                '<option value="' + pk + '">'
+                + (d.directionId === 1 ? '返程' : '去程') + ' · '
+                + esc((d.tripLabels || [])[i] || ('班次 ' + pk)) + '</option>'
+            ).join('')
+        ).join('') || '<option value="">该线路暂无班次</option>';
+        $('addName').value = '';
+        $('addArr').value = '';
+        $('addDep').value = '';
+        $('addDesc').value = '';
+        $('addModal').style.display = '';
+        $('addName').focus();
+    }
+
+    function closeAddModal() {
+        $('addModal').style.display = 'none';
+        addLatLng = null; // 置空后选点模式继续等待下一次点击
+    }
+
+    $('btnAddCancel').addEventListener('click', closeAddModal);
+
+    $('btnAddConfirm').addEventListener('click', async () => {
+        const name = $('addName').value.trim();
+        if (!name) { toast('站点名称不能为空', true); return; }
+        const arr = $('addArr').value, dep = $('addDep').value;
+        if (!arr || !dep) { toast('请填写到达与发车时间', true); return; }
+        if (arr > dep) { toast('到达时间不能晚于发车时间', true); return; }
+        const tripPk = parseInt($('addTrip').value);
+        if (!tripPk) { toast('该线路暂无班次，请先在描图页创建班次', true); return; }
+        const desc = $('addDesc').value.trim();
+        // ① 创建站点（含可选描述）
+        let stop;
         try {
-            const stop = await api(API.stops, {
+            stop = await api(API.stops, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stopName: name.trim(), lat: +e.latlng.lat.toFixed(7), lng: +e.latlng.lng.toFixed(7) })
+                body: JSON.stringify({
+                    stopName: name,
+                    stopDesc: desc || null,
+                    lat: +addLatLng.lat.toFixed(7),
+                    lng: +addLatLng.lng.toFixed(7)
+                })
+            });
+        } catch (err) { toast('创建站点失败：' + err.message, true); return; }
+        // ② 追加到班次停站末尾（stop_sequence = 末序 +1）
+        try {
+            const usage = await api(API.stopTimeAdd(tripPk), {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stopPk: stop.id, arrivalTime: arr, departureTime: dep })
             });
             setCreating(false);
-            toast('站点已创建：' + (stop.stopName || stop.stopId));
-            // 全量模式重载展示集（fitToStops 顺带把视野带到含新站的全貌）；筛选模式下孤儿站不入班次视图
-            if (state.routeFilter === null) await loadStops($('searchInput').value.trim());
+            closeAddModal();
+            toast('已加入：' + (usage.tripId || '班次') + ' 第' + usage.stopSequence + '站 · ' + name
+                + '（可拖拽调整顺序）');
+            await applyRouteFilter(); // 分组视图刷新，新站出现在该方向末尾
             await loadUsageSummary();
-        } catch (err) { toast('创建失败：' + err.message, true); }
+        } catch (err) {
+            closeAddModal();
+            toast('站点已创建（可在列表删除），但追加班次失败：' + err.message, true);
+        }
+    });
+
+    map.on('click', e => {
+        if (!state.creating) return;
+        openAddModal(e.latlng);
     });
 
     // ---------- 删除站点（引用保护：被班次停站引用的站点拒绝删除） ----------
@@ -733,6 +852,7 @@
     loadRouteOptions();
     loadUsageSummary();
     loadStops();
+    updateCreateBtn(); // 页面加载时未选线路，按钮应禁用
 </script>
 </body>
 </html>

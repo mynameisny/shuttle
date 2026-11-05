@@ -50,6 +50,7 @@ public class StopService
         Stop stop = Stop.builder()
                 .stopId(stopId)
                 .stopName(request.getStopName())
+                .stopDesc(request.getStopDesc())
                 .stopLat(request.getLat())
                 .stopLon(request.getLng())
                 .build();

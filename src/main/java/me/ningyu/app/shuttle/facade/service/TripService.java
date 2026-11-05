@@ -4,14 +4,17 @@ import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Route;
+import me.ningyu.app.shuttle.domain.entity.gtfs.Stop;
 import me.ningyu.app.shuttle.domain.entity.gtfs.StopTime;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Trip;
 import me.ningyu.app.shuttle.domain.repo.RouteRepository;
+import me.ningyu.app.shuttle.domain.repo.StopRepository;
 import me.ningyu.app.shuttle.domain.repo.StopTimeRepository;
 import me.ningyu.app.shuttle.domain.repo.TripRepository;
 import me.ningyu.app.shuttle.enums.BikeAllowance;
 import me.ningyu.app.shuttle.enums.Timepoint;
 import me.ningyu.app.shuttle.enums.WheelchairAccessibility;
+import me.ningyu.app.shuttle.model.schedule.AddStopTimeRequest;
 import me.ningyu.app.shuttle.model.schedule.CreateTripRequest;
 import me.ningyu.app.shuttle.model.schedule.UpdateStopTimeRequest;
 import me.ningyu.app.shuttle.model.schedule.UpdateTripRequest;
@@ -45,6 +48,51 @@ public class TripService
     private final TripRepository tripRepository;
     private final RouteRepository routeRepository;
     private final StopTimeRepository stopTimeRepository;
+    private final StopRepository stopRepository;
+
+    /**
+     * 追加停站到班次末尾（管理端站点维护页"线路下加站"）。
+     * stop_sequence 按现有最大站序 +1 分配（GTFS 允许非连续递增；空班次从 1 起）；
+     * 同班次重复停靠同一站点拒绝（班车场景重复必为误操作）。
+     * 到/发时间必填，复用 GTFS 时刻解析与到发先后校验。
+     */
+    @Nonnull
+    public StopUsageView addStopTime(Long tripPk, AddStopTimeRequest request)
+    {
+        Trip trip = tripRepository.findById(tripPk)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在: id=" + tripPk));
+        Stop stop = stopRepository.findById(request.getStopPk())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "站点不存在: id=" + request.getStopPk()));
+        List<StopTime> existing = stopTimeRepository.findByTripOrderByStopSequenceAsc(trip);
+        boolean duplicated = existing.stream()
+                .anyMatch(st -> st.getStop() != null && st.getStop().getId().equals(request.getStopPk()));
+        if (duplicated)
+        {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "班次 " + trip.getTripId() + " 已包含站点「" + stop.getStopName() + "」");
+        }
+        int nextSeq = existing.stream()
+                .mapToInt(StopTime::getStopSequence)
+                .max()
+                .orElse(0) + 1;
+
+        LocalTime arrival = parseGtfsTime(request.getArrivalTime(), "arrivalTime");
+        LocalTime departure = parseGtfsTime(request.getDepartureTime(), "departureTime");
+        if (arrival.isAfter(departure))
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "到站时间不能晚于发车时间");
+        }
+
+        StopTime saved = stopTimeRepository.save(StopTime.builder()
+                .trip(trip)
+                .stop(stop)
+                .stopSequence(nextSeq)
+                .arrivalTime(arrival)
+                .departureTime(departure)
+                .build());
+        return StopUsageView.of(saved);
+    }
 
     @Nonnull
     public Trip createTrip(CreateTripRequest request)
