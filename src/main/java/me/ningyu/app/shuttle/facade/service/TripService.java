@@ -23,9 +23,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DateTimeException;
 import java.time.LocalTime;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -147,6 +151,47 @@ public class TripService
      * 字段语义：null=不修改；空白串=清空；否则解析设置（支持 HH:MM / HH:MM:SS，
      * 不支持 GTFS 跨日 24:00+，班车场景足够）。到站不得晚于发车（按合并后值校验）。
      */
+    /**
+     * 重排班次停站顺序（管理端站点维护页分组视图拖拽）。
+     * 按传入的有序站点主键列表重写 stop_sequence（1 起连续递增，满足 GTFS 非负递增要求）；
+     * 到/发时刻等字段随行整体移动，不做时间轴重排。
+     * 含 location_group/location 型停站的班次不支持重排（无法用站点主键定位）。
+     */
+    public void reorderStopTimes(Long tripPk, List<Long> orderedStopPks)
+    {
+        Trip trip = tripRepository.findById(tripPk)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在: id=" + tripPk));
+        if (orderedStopPks == null || orderedStopPks.isEmpty())
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "停站顺序列表不能为空");
+        }
+        Set<Long> distinctPks = new LinkedHashSet<>(orderedStopPks);
+        if (distinctPks.size() != orderedStopPks.size())
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "停站顺序列表含重复站点");
+        }
+        List<StopTime> stopTimes = stopTimeRepository.findByTripOrderByStopSequenceAsc(trip);
+        Map<Long, StopTime> byStopPk = new LinkedHashMap<>();
+        for (StopTime st : stopTimes)
+        {
+            if (st.getStop() == null)
+            {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "班次 " + trip.getTripId() + " 含非实体站点停站，不支持拖拽重排");
+            }
+            byStopPk.put(st.getStop().getId(), st);
+        }
+        if (!byStopPk.keySet().equals(distinctPks))
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "停站列表与班次现有停站不一致，请刷新后重试");
+        }
+        for (int i = 0; i < orderedStopPks.size(); i++)
+        {
+            byStopPk.get(orderedStopPks.get(i)).setStopSequence(i + 1);
+        }
+    }
+
     @Nonnull
     public StopUsageView updateStopTime(Long tripPk, Integer stopSequence, UpdateStopTimeRequest request)
     {

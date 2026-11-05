@@ -172,6 +172,7 @@ public class RouteService
                     return RouteStopsView.DirectionStops.builder()
                             .directionId(directionEntry.getKey())
                             .tripCount(tripPks.size())
+                            .tripPks(List.copyOf(tripPks))
                             .stops(stops)
                             .build();
                 })

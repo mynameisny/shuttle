@@ -133,6 +133,21 @@ public class TripController
 
     // ---------- 班次的停站时刻（子资源，定位：站序） ----------
 
+    @PutMapping("/{id}/stop-times/order")
+    @Operation(summary = "重排班次停站顺序",
+            description = "按传入的有序站点主键列表重写 stop_sequence（1起连续递增）；"
+                    + "到/发时刻随行整体移动。列表须与班次现有实体站点停站完全一致（400 兜底）；"
+                    + "含 location 型停站的班次不支持重排")
+    @Parameters({
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "班次ID", schema = @Schema(type = "long"))
+    })
+    public ResponseEntity<Void> reorderStopTimes(@PathVariable Long id,
+                                                 @RequestBody List<Long> orderedStopPks)
+    {
+        tripService.reorderStopTimes(id, orderedStopPks);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/{id}/stop-times/{stopSequence}")
     @Operation(summary = "更新停站时刻",
             description = "更新班次中指定站序的到/发时刻与时间精度（站点维护页内联编辑）。"

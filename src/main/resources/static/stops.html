@@ -70,6 +70,9 @@
         .list .item.sel { background: #e8f0fe; }
         .list .item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .list .item .coord { color: #9aa0a6; font-size: 11px; white-space: nowrap; }
+        .list .item[draggable="true"] { cursor: grab; }
+        .list .item[draggable="true"]:active { cursor: grabbing; }
+        .list .item.dragging { opacity: .4; background: #e8f0fe; }
         .list .empty { padding: 10px; font-size: 12px; color: #9aa0a6; text-align: center; }
 
         .empty-box {
@@ -192,7 +195,7 @@
                 使用说明：<br>
                 1. 站点为全局资源：修改坐标会影响所有引用它的班次，请谨慎操作。<br>
                 2. 列表项角标显示引用该站的线路与方向（同名去程/返程站点靠此区分），"未使用"表示无任何班次引用。<br>
-                3. 顶部可按线路筛选，列表按去程/返程分组显示（正向查询）；搜索框在筛选模式下停用。<br>
+                3. 顶部可按线路筛选，列表按去程/返程分组显示（正向查询）；搜索框在筛选模式下停用。单班次方向的分组列表可按住拖拽调整停靠顺序（写入 stop_sequence，到/发时刻随站点移动）；多班次方向请到线路描图页逐班次调整。<br>
                 4. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；保存后立即生效。<br>
                 5. 编辑区下方为引用该站点的班次明细（点击跳转描线页）；选中站点后地图自动弹出「时刻维护」浮层，可逐班次维护到/发时刻与时间精度（近似/精确）。<br>
                 6. 点击「新建站点」进入选点模式（Esc 取消），点击地图输入站名即可创建；删除站点须先解除班次引用（仍被引用时会提示引用线路）。
@@ -213,6 +216,7 @@
         usageSummary: '/api/stops/usage-summary',
         routes: '/api/routes',
         routeStops: pk => '/api/routes/' + pk + '/stops',
+        stopTimeOrder: tripPk => '/api/trips/' + tripPk + '/stop-times/order',
         stopTime: (tripPk, seq) => '/api/trips/' + tripPk + '/stop-times/' + seq
     };
 
@@ -331,6 +335,7 @@
     }
 
     // 线路筛选模式：按方向分组的分组视图（方向标题附起终点信息）
+    // 单班次方向（tripPks.length===1）支持拖拽重排 stop_sequence；多班次方向顺序需逐班次维护，不开放拖拽
     function renderRouteList() {
         const v = state.routeStops;
         const total = (v.directions || []).reduce((n, d) => n + (d.stops || []).length, 0);
@@ -338,6 +343,7 @@
         $('stopList').classList.add('stacked');
         $('stopList').innerHTML = (v.directions || []).map(d => {
             const stops = d.stops || [];
+            const singleTrip = (d.tripPks || []).length === 1;
             // 起终点行：首末站名均非空且不同才展示（单站/缺名/同名兜底不显示第二行）
             const first = stops[0] && stops[0].stopName;
             const last = stops.length > 1 && stops[stops.length - 1].stopName;
@@ -346,23 +352,104 @@
             // 拆块：每个方向 = 块外标题（dir-head）+ 独立 .list 块，组间由标题 margin 分隔
             return '<div class="dir-head">'
                 + '<div>' + (d.directionId === 1 ? '返程站点' : '去程站点')
-                + ' · ' + (d.tripCount || 0) + ' 个班次 · ' + stops.length + ' 站</div>'
+                + ' · ' + (d.tripCount || 0) + ' 个班次 · ' + stops.length + ' 站'
+                + (singleTrip && stops.length > 1 ? ' <span style="font-weight:400;color:#9aa0a6">· 可拖拽调序</span>' : '')
+                + '</div>'
                 + term + '</div>'
-                + '<div class="list">'
+                + '<div class="list"' + (singleTrip ? ' data-trip-pk="' + d.tripPks[0] + '"' : '') + '>'
                 + (stops.length ? stops.map(s =>
-                    '<div class="item" data-id="' + s.stopPk + '">' +
+                    '<div class="item" data-id="' + s.stopPk + '"'
+                    + (singleTrip ? ' draggable="true" title="按住拖拽调整停靠顺序"' : '') + '>' +
                     '<span class="name" title="' + esc(s.stopName || '') + '"><span class="seq">' + s.stopSequence + '</span> ' + esc(s.stopName || '(未命名)') + '</span>' +
                     '<span class="coord">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span></div>'
                 ).join('') : '<div class="empty">该方向暂无停站</div>')
                 + '</div>';
         }).join('') || '<div class="empty">该线路暂无停站数据</div>';
         bindListClicks();
+        bindDnd();
     }
 
     function bindListClicks() {
         $('stopList').querySelectorAll('.item').forEach(el =>
             el.addEventListener('click', () => selectStop(parseInt(el.dataset.id)))
         );
+    }
+
+    // ---------- 分组视图拖拽重排班次停站顺序（stop_times.stop_sequence） ----------
+    // 仅单班次方向块（.list[data-trip-pk]）可拖；台账全量列表无业务顺序概念，不开放拖拽
+    let dragId = null;
+    let dragList = null;
+
+    function bindDnd() {
+        $('stopList').querySelectorAll('.list[data-trip-pk]').forEach(list => {
+            const items = list.querySelectorAll('.item[draggable="true"]');
+            if (!items.length) return;
+            items.forEach(el => {
+                el.addEventListener('dragstart', e => {
+                    dragId = parseInt(el.dataset.id);
+                    dragList = list;
+                    el.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', el.dataset.id); // Firefox 需非空 data 才启动拖拽
+                });
+                el.addEventListener('dragend', () => {
+                    el.classList.remove('dragging');
+                    dragId = null;
+                    dragList = null;
+                });
+            });
+            // dragover 委托到块容器：实时计算块内插入位置（不跨块移动）
+            list.addEventListener('dragover', e => {
+                if (dragId === null || dragList !== list) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const dragging = list.querySelector('.item.dragging');
+                if (!dragging) return;
+                const after = getDragAfterElement(list, e.clientY);
+                if (after == null) list.appendChild(dragging);
+                else if (after !== dragging) list.insertBefore(dragging, after);
+            });
+            list.addEventListener('drop', e => {
+                if (dragId === null || dragList !== list) return;
+                e.preventDefault();
+                commitRouteOrder(list);
+            });
+        });
+    }
+
+    // 找到鼠标位置后第一个列表项（作为插入锚点），无则插入末尾
+    function getDragAfterElement(container, y) {
+        const els = [...container.querySelectorAll('.item[draggable="true"]')];
+        return els.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+            return closest;
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // 拖拽落定：按 DOM 顺序乐观更新本地数据并持久化 stop_sequence（1 起重写）；失败回滚重拉
+    async function commitRouteOrder(list) {
+        const tripPk = parseInt(list.dataset.tripPk);
+        const pks = [...list.querySelectorAll('.item[draggable="true"]')]
+            .map(el => parseInt(el.dataset.id));
+        const dir = (state.routeStops.directions || []).find(d => (d.tripPks || [])[0] === tripPk);
+        if (!dir) return;
+        const byPk = {};
+        (dir.stops || []).forEach(s => { byPk[s.stopPk] = s; });
+        dir.stops = pks.map(pk => byPk[pk]).filter(Boolean);
+        dir.stops.forEach((s, i) => { s.stopSequence = i + 1; });
+        renderList();
+        try {
+            await api(API.stopTimeOrder(tripPk), {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pks)
+            });
+            toast('停靠顺序已保存');
+        } catch (err) {
+            toast('顺序保存失败：' + err.message, true);
+            await applyRouteFilter(); // 回滚到服务端权威顺序
+        }
     }
 
     function renderMarkers() {

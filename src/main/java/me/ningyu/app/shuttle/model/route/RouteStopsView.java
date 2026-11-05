@@ -32,6 +32,8 @@ public class RouteStopsView
     {
         private Integer directionId;
         private Integer tripCount;
+        /** 方向内全部班次数据库主键（单班次方向供前端拖拽重排定位班次用） */
+        private List<Long> tripPks;
         private List<StopItem> stops;
     }
 
