@@ -587,7 +587,14 @@
     function selectStop(id) {
         state.selectedId = id;
         const stop = findSelected();
-        if (!stop) return;
+        if (!stop) {
+            // 本地台账数据未同步（如新建站点尚未进入 allStops）：按需拉取单个站点后重新选中
+            api(API.stop(id)).then(created => {
+                if (!state.allStops.some(s => s.id === id)) state.allStops.push(created);
+                selectStop(id);
+            }).catch(() => toast('站点不存在或已被删除', true));
+            return;
+        }
         $('editEmpty').style.display = 'none';
         $('editArea').style.display = '';
         $('editMeta').textContent = stop.stopId;
@@ -720,6 +727,7 @@
                 })
             });
         } catch (err) { toast('创建站点失败：' + err.message, true); return; }
+        state.allStops.push(stop); // 同步台账权威数据：否则点击新站 findSelected 找不到坐标，无法跳转选中
         // ② 追加到班次停站末尾（stop_sequence = 末序 +1）
         try {
             const usage = await api(API.stopTimeAdd(tripPk), {

@@ -78,6 +78,13 @@ public class StopService
      * 被 stop_times 引用的站点拒绝删除（GTFS 引用完整性），须先在班次中移除该站；
      * 无引用站点直接删除。
      */
+    @Nonnull
+    public Stop getStopById(Long id)
+    {
+        return stopRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "站点不存在: id=" + id));
+    }
+
     public void deleteStop(Long id)
     {
         Stop stop = stopRepository.findById(id)

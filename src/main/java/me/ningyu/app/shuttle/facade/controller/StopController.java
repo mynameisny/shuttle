@@ -51,6 +51,14 @@ public class StopController
         return ResponseEntity.ok(stopService.updateStop(id, request));
     }
 
+    @GetMapping("/{id}")
+    @Operation(summary = "获取停靠点详情", description = "按数据库主键查询单个站点（管理端站点维护页选中定位兜底：本地台账数据未同步时按需拉取）")
+    public ResponseEntity<Stop> getById(
+            @Parameter(description = "站点数据库主键") @PathVariable Long id)
+    {
+        return ResponseEntity.ok(stopService.getStopById(id));
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "删除停靠点", description = "删除无引用的站点；被班次停站引用时返回 409 拒绝（GTFS 引用完整性）")
     public ResponseEntity<Void> delete(
