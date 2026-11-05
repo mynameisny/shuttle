@@ -110,13 +110,14 @@ public class RouteService
     @Nonnull
     public List<Route> getAllRoutes()
     {
-        return routeRepository.findAll();
+        // 按 route_sort_order 升序，保证业务含义相近的线路（同 network_id 分组）相邻
+        return routeRepository.findAllByOrderByRouteSortOrderAsc();
     }
 
     @Nonnull
     public List<Route> getRoutesByAgencyId(Long agencyId)
     {
-        return routeRepository.findByAgencyId(agencyId);
+        return routeRepository.findByAgencyIdOrderByRouteSortOrderAsc(agencyId);
     }
 
     /**

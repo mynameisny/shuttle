@@ -319,9 +319,32 @@
     async function loadRouteOptions() {
         try {
             const routes = await api(API.routes) || [];
-            $('routeFilter').innerHTML = '<option value="">全部站点</option>' + routes.map(r =>
-                '<option value="' + r.id + '">' + (r.routeShortName ? '[' + r.routeShortName + '] ' : '') + (r.routeLongName || r.routeId) + '</option>'
-            ).join('');
+            // 后端已按 route_sort_order 返回（同 network_id 分组相邻），前端按 networkId 折成 optgroup 便于查找
+            const netNames = {
+                CP_NORTH: '昌平园区 · 北向',
+                CP_EAST: '昌平园区 · 东向',
+                CP_CENTER: '昌平园区 · 城区西向',
+                CP_LOCAL: '昌平园区 · 周边短驳',
+                BJ_OCT: '八角办公区',
+                ZZ_OCT: '涿州 → 八角',
+                ZZ_CP: '涿州 → 昌平'
+            };
+            const opt = r => '<option value="' + r.id + '">' +
+                (r.routeShortName ? '[' + r.routeShortName + '] ' : '') + (r.routeLongName || r.routeId) + '</option>';
+            const groups = new Map();
+            const loose = [];
+            routes.forEach(r => {
+                if (r.networkId && netNames[r.networkId]) {
+                    if (!groups.has(r.networkId)) groups.set(r.networkId, []);
+                    groups.get(r.networkId).push(r);
+                } else { loose.push(r); }
+            });
+            let html = '<option value="">全部站点</option>';
+            groups.forEach((list, net) => {
+                html += '<optgroup label="' + netNames[net] + '">' + list.map(opt).join('') + '</optgroup>';
+            });
+            if (loose.length) html += '<optgroup label="未分组">' + loose.map(opt).join('') + '</optgroup>';
+            $('routeFilter').innerHTML = html;
         } catch (err) { /* 筛选下拉加载失败不阻塞台账主功能 */ }
     }
 

@@ -15,4 +15,15 @@ public interface RouteRepository extends JpaRepository<Route, Long>, PagingAndSo
     boolean existsByRouteId(String routeId);
 
     List<Route> findByAgencyId(Long agencyId);
+
+    /**
+     * 按展示排序返回全部线路（route_sort_order 升序，空值排最后），
+     * 使业务含义相近的线路（同一 network_id 分组）在列表中相邻。
+     */
+    List<Route> findAllByOrderByRouteSortOrderAsc();
+
+    /**
+     * 按展示排序返回指定机构下的线路（排序规则同上）。
+     */
+    List<Route> findByAgencyIdOrderByRouteSortOrderAsc(Long agencyId);
 }
