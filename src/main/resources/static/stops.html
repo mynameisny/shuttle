@@ -108,6 +108,10 @@
             background: #fff; cursor: pointer; color: #333;
         }
         button:hover { background: #f0f4f9; }
+        .group-title .mini-btn { font-size: 11px; padding: 2px 10px; font-weight: 400; }
+        .group-title .mini-btn.creating { background: #e8f0fe; color: #174ea6; border-color: #a8c7fa; }
+        button.danger { color: #d93025; border-color: #f3c2bd; }
+        button.danger:hover { background: #fce8e6; }
         button.primary { background: #1a73e8; border-color: #1a73e8; color: #fff; }
         button.primary:hover { background: #1765cc; }
         button:disabled { opacity: .5; cursor: not-allowed; }
@@ -153,7 +157,7 @@
                 <input type="text" id="searchInput" placeholder="输入站点名称关键字…" autocomplete="off">
             </div>
 
-            <div class="group-title">站点列表 <span class="badge" id="stopCount">0</span></div>
+            <div class="group-title"><span>站点列表 <span class="badge" id="stopCount">0</span></span><button id="btnCreate" class="mini-btn">＋ 新建站点</button></div>
             <div class="list" id="stopList"><div class="empty">加载中…</div></div>
 
             <div class="group-title">编辑站点</div>
@@ -177,6 +181,7 @@
                 <div class="tip">拖动地图上的蓝色圆点调整位置，坐标自动回填；也可直接输入经纬度。</div>
                 <div class="btn-row">
                     <button id="btnSave" class="primary">保存修改</button>
+                    <button id="btnDelete" class="danger">删除站点</button>
                     <button id="btnCancel">取消选择</button>
                 </div>
                 <div class="group-title" style="margin-top:12px">被班次引用 <span class="badge" id="usageCount">0</span></div>
@@ -190,7 +195,7 @@
                 3. 顶部可按线路筛选，列表按去程/返程分组显示（正向查询）；搜索框在筛选模式下停用。<br>
                 4. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；保存后立即生效。<br>
                 5. 编辑区下方为引用该站点的班次明细（点击跳转描线页）；选中站点后地图自动弹出「时刻维护」浮层，可逐班次维护到/发时刻与时间精度（近似/精确）。<br>
-                6. 新建站点请到「线路描图」页勾选"新建站点模式"。
+                6. 点击「新建站点」进入选点模式（Esc 取消），点击地图输入站名即可创建；删除站点须先解除班次引用（仍被引用时会提示引用线路）。
             </div>
         </div>
     </div>
@@ -220,6 +225,7 @@
         routeFilter: null,// 当前筛选线路 pk（null=全量模式）
         routeStops: null, // 线路筛选模式数据（GET /api/routes/{pk}/stops）
         selectedId: null, // 选中站点数据库主键
+        creating: false,  // 新建站点选点模式
         normalLayer: L.layerGroup().addTo(map), // 普通站点橙色圆点
         selMarker: null   // 选中站点的可拖拽蓝色圆点
     };
@@ -449,6 +455,59 @@
             map.panTo([parseFloat(updated.stopLat), parseFloat(updated.stopLon)]);
             toast('已保存：' + updated.stopName);
         } catch (err) { toast('保存失败：' + err.message, true); }
+    });
+
+    // ---------- 新建站点：进入选点模式，点地图输入站名 ----------
+    function setCreating(on) {
+        state.creating = on;
+        $('btnCreate').textContent = on ? '点击地图选点（Esc 取消）' : '＋ 新建站点';
+        $('btnCreate').classList.toggle('creating', on);
+        map.getContainer().style.cursor = on ? 'crosshair' : '';
+    }
+
+    $('btnCreate').addEventListener('click', () => setCreating(!state.creating));
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && state.creating) setCreating(false);
+    });
+
+    map.on('click', async e => {
+        if (!state.creating) return;
+        const name = prompt('站点名称：');
+        if (!name || !name.trim()) return; // 取消输入则留在选点模式，可重新选点
+        try {
+            const stop = await api(API.stops, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stopName: name.trim(), lat: +e.latlng.lat.toFixed(7), lng: +e.latlng.lng.toFixed(7) })
+            });
+            setCreating(false);
+            toast('站点已创建：' + (stop.stopName || stop.stopId));
+            // 全量模式重载展示集（fitToStops 顺带把视野带到含新站的全貌）；筛选模式下孤儿站不入班次视图
+            if (state.routeFilter === null) await loadStops($('searchInput').value.trim());
+            await loadUsageSummary();
+        } catch (err) { toast('创建失败：' + err.message, true); }
+    });
+
+    // ---------- 删除站点（引用保护：被班次停站引用的站点拒绝删除） ----------
+    $('btnDelete').addEventListener('click', async () => {
+        const stop = findSelected();
+        if (!stop) return;
+        // 前端先查引用角标（线路+方向去重），有引用直接提示，不发 DELETE；后端 409 仅作并发兜底
+        const refs = state.usageMap[stop.id] || [];
+        if (refs.length) {
+            toast('该站点仍被 ' + refs.map(r => '[' + (r.routeShortName || '?') + (r.directionId === 1 ? '·回程' : '·去程') + ']').join('')
+                + ' 引用，请先在班次中移除该站', true);
+            return;
+        }
+        if (!confirm('确定删除站点「' + (stop.stopName || stop.stopId) + '」？此操作不可恢复。')) return;
+        try {
+            await api(API.stop(stop.id), { method: 'DELETE' });
+            toast('已删除：' + (stop.stopName || stop.stopId));
+            state.allStops = state.allStops.filter(s => s.id !== stop.id);
+            state.stops = state.stops.filter(s => s.id !== stop.id);
+            deselect();              // 退出编辑态并刷新列表/橙点
+            await loadUsageSummary(); // 引用角标数据源同步
+        } catch (err) { toast('删除失败：' + err.message, true); }
     });
 
     // ---------- 引用面板（影响面，纯列表） ----------

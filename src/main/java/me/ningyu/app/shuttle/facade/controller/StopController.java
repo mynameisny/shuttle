@@ -51,6 +51,15 @@ public class StopController
         return ResponseEntity.ok(stopService.updateStop(id, request));
     }
 
+    @DeleteMapping("/{id}")
+    @Operation(summary = "删除停靠点", description = "删除无引用的站点；被班次停站引用时返回 409 拒绝（GTFS 引用完整性）")
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "站点数据库主键") @PathVariable Long id)
+    {
+        stopService.deleteStop(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/usage-summary")
     @Operation(summary = "站点引用摘要", description = "批量返回各站点被线路/方向引用的摘要（同线路同方向去重）；无引用站点不出现在结果中，用于列表消歧与孤儿站识别")
     public ResponseEntity<List<StopUsageSummaryView>> usageSummary()

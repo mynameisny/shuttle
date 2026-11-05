@@ -10,8 +10,10 @@ import me.ningyu.app.shuttle.model.stop.CreateStopRequest;
 import me.ningyu.app.shuttle.model.stop.StopUsageSummaryView;
 import me.ningyu.app.shuttle.model.stop.StopUsageView;
 import me.ningyu.app.shuttle.model.stop.UpdateStopRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -68,6 +70,24 @@ public class StopService
         stop.setStopLat(request.getLat());
         stop.setStopLon(request.getLng());
         return stopRepository.save(stop);
+    }
+
+    /**
+     * 删除停靠点（管理端站点维护页）。
+     * 被 stop_times 引用的站点拒绝删除（GTFS 引用完整性），须先在班次中移除该站；
+     * 无引用站点直接删除。
+     */
+    public void deleteStop(Long id)
+    {
+        Stop stop = stopRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "站点不存在: id=" + id));
+        int refs = stopTimeRepository.findByStopId(id).size();
+        if (refs > 0)
+        {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "站点被 " + refs + " 条班次停站引用，不能删除；请先在班次中移除该站");
+        }
+        stopRepository.delete(stop);
     }
 
     /**
