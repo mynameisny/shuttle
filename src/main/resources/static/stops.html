@@ -43,7 +43,8 @@
             display: inline-block; font-size: 10px; color: #1a73e8; background: #e8f0fe;
             border-radius: 4px; padding: 1px 4px; margin-right: 2px; vertical-align: 1px; white-space: nowrap;
         }
-        .ref-tag.orphan { color: #9aa0a6; background: #f1f3f4; }
+        .ref-tag.orphan { color: #9aa0a6; background: #f1f3f4; cursor: pointer; }
+        .ref-tag.orphan:hover { color: #d93025; background: #fce8e6; }
         /* 方向标题（块外常显，每组跟随一个独立 .list 块；不再 sticky——标题不随块内滚动消失） */
         .dir-head {
             margin: 14px 0 6px; padding: 0 2px; font-size: 12px; font-weight: 600; color: #174ea6;
@@ -368,7 +369,7 @@
 
     function refTags(stopPk) {
         const refs = state.usageMap[stopPk];
-        if (!refs || !refs.length) return '<span class="ref-tag orphan">未使用</span>';
+        if (!refs || !refs.length) return '<span class="ref-tag orphan" data-del="' + stopPk + '" title="未被任何班次引用，点击直接删除">未使用 ✕</span>';
         return refs.map(r =>
             '<span class="ref-tag">' + esc(r.routeShortName || '?') + '·' + (r.directionId === 1 ? '返' : '去') + '</span>'
         ).join('');
@@ -434,6 +435,12 @@
                 e.stopPropagation(); // 不触发 item 的选中
                 const list = el.closest('.list[data-trip-pk]');
                 if (list) removeStopFromTrip(parseInt(list.dataset.tripPk), parseInt(el.dataset.seq), el.dataset.name);
+            })
+        );
+        $('stopList').querySelectorAll('.ref-tag.orphan[data-del]').forEach(el =>
+            el.addEventListener('click', e => {
+                e.stopPropagation(); // 不触发 item 的选中
+                deleteOrphanStop(parseInt(el.dataset.del));
             })
         );
     }
@@ -750,6 +757,28 @@
         if (!state.creating) return;
         openAddModal(e.latlng);
     });
+
+    // ---------- 「未使用」角标一键删除（台账列表快捷入口，免去先选中再找删除按钮） ----------
+    async function deleteOrphanStop(stopPk) {
+        const stop = state.allStops.find(s => s.id === stopPk);
+        if (!stop) return;
+        // 本地角标可能过期（如另一端刚加了引用）：有引用则走正常选中流程；后端 409 兜底并发
+        const refs = state.usageMap[stopPk] || [];
+        if (refs.length) {
+            toast('该站点已被班次引用，请走选中删除流程', true);
+            await loadUsageSummary();
+            return;
+        }
+        if (!confirm('站点「' + (stop.stopName || stop.stopId) + '」未被任何班次引用，直接删除？此操作不可恢复。')) return;
+        try {
+            await api(API.stop(stopPk), { method: 'DELETE' });
+            state.allStops = state.allStops.filter(s => s.id !== stopPk);
+            state.stops = state.stops.filter(s => s.id !== stopPk);
+            if (state.selectedId === stopPk) deselect(); // 内部已重渲染列表与 marker
+            else { renderList(); renderMarkers(); }
+            toast('已删除：' + (stop.stopName || stop.stopId));
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
 
     // ---------- 删除站点（引用保护：被班次停站引用的站点拒绝删除） ----------
     $('btnDelete').addEventListener('click', async () => {
