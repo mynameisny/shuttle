@@ -47,8 +47,21 @@ function toast(msg, isErr) {
 //     })
 // };
 // 默认 OSM 标准底图：无 key 要求，内部低流量使用符合 OSM 瓦片政策（代价：natural=peak 山峰 ▲ 图标仍在）
+// 默认视野：北京。站点列表为空或全部为 (0,0) 占位（Excel 导入未定位站）时兜底。
+const MAP_DEFAULT_VIEW = { center: [39.9042, 116.4074], zoom: 11 };
+
+// 坐标有效性解析：非有限数字或 (0,0) 占位均视为"无坐标"→ 返回 null；有效 → [lat, lng]。
+// 消费约定：凡是拿站点坐标上图（marker/fitBounds/画线接入）前必须过此函数，
+// 避免占位站把视野拉到赤道 (0,0) 或画出无效几何。
+function parseLatLng(lat, lng) {
+    const a = parseFloat(lat), b = parseFloat(lng);
+    if (!isFinite(a) || !isFinite(b) || (a === 0 && b === 0)) return null;
+    return [a, b];
+}
+
 function createMap(elementId, opts) {
-    const map = L.map(elementId, Object.assign({ doubleClickZoom: false }, opts || {})).setView([40.10, 116.30], 12);
+    const map = L.map(elementId, Object.assign({ doubleClickZoom: false }, opts || {}))
+        .setView(MAP_DEFAULT_VIEW.center, MAP_DEFAULT_VIEW.zoom);
     const basemaps = {
         'OSM 标准': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'

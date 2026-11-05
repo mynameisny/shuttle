@@ -217,7 +217,8 @@
                 3. 顶部可按线路筛选，列表按去程/返程分组显示（正向查询）；搜索框在筛选模式下停用。单班次方向的分组列表可按住拖拽调整停靠顺序（写入 stop_sequence，到/发时刻随站点移动）；多班次方向请到线路描图页逐班次调整。<br>
                 4. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；保存后立即生效。<br>
                 5. 编辑区下方为引用该站点的班次明细（点击跳转描线页）；选中站点后地图自动弹出「时刻维护」浮层，可逐班次维护到/发时刻与时间精度（近似/精确）。<br>
-                6. 点击「新增站点」进入选点模式（Esc 取消），点击地图后填写站名与到/发时间（描述可选），站点将追加到所选方向班次停站末尾（可拖拽调整顺序）；删除站点须先解除班次引用：在分组视图点击站点右侧 ✕ 从班次移除（单班次方向可用），再到台账删除站点。
+                6. 点击「新增站点」进入选点模式（Esc 取消），点击地图后填写站名与到/发时间（描述可选），站点将追加到所选方向班次停站末尾（可拖拽调整顺序）；删除站点须先解除班次引用：在分组视图点击站点右侧 ✕ 从班次移除（单班次方向可用），再到台账删除站点。<br>
+                7. (0,0) 占位站点（Excel 导入的未定位站）不上图也不参与视野缩放，在编辑区填入坐标后即上图；地图无有效站点时默认显示北京。
             </div>
         </div>
     </div>
@@ -559,7 +560,9 @@
         state.normalLayer.clearLayers();
         currentStopList().forEach(s => {
             if (s.stopPk === state.selectedId) return; // 选中站点由可拖拽蓝点呈现
-            const m = L.circleMarker([parseFloat(s.lat), parseFloat(s.lng)], {
+            const ll = parseLatLng(s.lat, s.lng);
+            if (!ll) return; // (0,0) 占位站无真实坐标，不上图（台账列表仍可见，补坐标后自动出现）
+            const m = L.circleMarker(ll, {
                 radius: 6, color: '#fff', weight: 2, fillColor: '#e8710a', fillOpacity: 1
             }).bindTooltip(s.stopName || s.stopId, { direction: 'top' });
             m.on('click', () => selectStop(s.stopPk));
@@ -572,7 +575,9 @@
         const stop = findSelected();
         if (state.selMarker) { map.removeLayer(state.selMarker); state.selMarker = null; }
         if (!stop) return;
-        state.selMarker = L.marker([parseFloat(stop.stopLat), parseFloat(stop.stopLon)], {
+        const ll = parseLatLng(stop.stopLat, stop.stopLon);
+        if (!ll) return; // (0,0) 占位站无坐标可拖拽，不给蓝点
+        state.selMarker = L.marker(ll, {
             draggable: true, autoPan: true,
             icon: L.divIcon({ className: 'sel-stop-icon', html: '<div class="sel-dot"></div>', iconSize: [16, 16], iconAnchor: [8, 8] })
         }).bindTooltip(stop.stopName || stop.stopId, { direction: 'top' }).addTo(map);
@@ -585,8 +590,9 @@
     }
 
     function fitToStops() {
-        const pts = currentStopList().map(s => [parseFloat(s.lat), parseFloat(s.lng)]);
-        if (pts.length === 1) map.setView(pts[0], 14);
+        const pts = currentStopList().map(s => parseLatLng(s.lat, s.lng)).filter(Boolean);
+        if (pts.length === 0) map.setView(MAP_DEFAULT_VIEW.center, MAP_DEFAULT_VIEW.zoom); // 无有效坐标（含 (0,0) 占位）→ 默认北京视角
+        else if (pts.length === 1) map.setView(pts[0], 14);
         else if (pts.length > 1) map.fitBounds(L.latLngBounds(pts).pad(0.25));
     }
 

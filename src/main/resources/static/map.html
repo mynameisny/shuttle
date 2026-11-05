@@ -233,6 +233,7 @@
     // 站点接入统一入口：勾选沿路吸附且已有起点时，从上一顶点沿实际道路展开到该站
     //（末点精确落在站点坐标上，保证 30m 覆盖校验）；否则精确直线接入
     async function addStopVertex(s) {
+        if (!parseLatLng(s.lat, s.lng)) { toast('该站点暂无坐标，请先在站点台账定位后再接入画线', true); return; }
         if ($('followRoadMode').checked && state.editPoints.length) {
             await followRoad({ lat: s.lat, lng: s.lng }, s.stopName);
         } else {
@@ -369,6 +370,7 @@
             })
         );
         state.stops.forEach(s => {
+            if (!parseLatLng(s.lat, s.lng)) return; // (0,0) 占位站无真实坐标，不上图
             const m = L.circleMarker([s.lat, s.lng], {
                 radius: 6, color: '#fff', weight: 2, fillColor: '#e8710a', fillOpacity: 1
             }).bindTooltip(esc(s.stopName || s.stopId), { direction: 'top' });
@@ -467,13 +469,14 @@
     });
 
     function renderStopsAppend(stop) {
-        const lat = parseFloat(stop.stopLat), lng = parseFloat(stop.stopLon);
-        const m = L.circleMarker([lat, lng], {
+        const ll = parseLatLng(stop.stopLat, stop.stopLon);
+        if (!ll) return; // (0,0) 占位站无真实坐标，不上图
+        const m = L.circleMarker(ll, {
             radius: 6, color: '#fff', weight: 2, fillColor: '#2e8b57', fillOpacity: 1
         }).bindTooltip(esc(stop.stopName), { direction: 'top' });
         m.bindPopup('<b>' + esc(stop.stopName) + '</b><br>' + esc(stop.stopId)
             + '<br><span style="color:#2e8b57">新建</span><br><span style="color:#9aa0a6">点击圆点接入画线</span>');
-        m.on('click', () => addStopVertex({ lat: lat, lng: lng, stopName: stop.stopName }));
+        m.on('click', () => addStopVertex({ lat: ll[0], lng: ll[1], stopName: stop.stopName }));
         state.stopLayer.addLayer(m);
     }
 
