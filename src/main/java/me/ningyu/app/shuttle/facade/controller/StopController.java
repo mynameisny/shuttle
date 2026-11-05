@@ -60,14 +60,6 @@ public class StopController
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/order")
-    @Operation(summary = "重排站点顺序", description = "按传入的有序主键列表写台账显示顺序（管理端拖拽排序，非GTFS字段，从1起）；未包含的站点保持空值排最后")
-    public ResponseEntity<Void> reorder(@RequestBody List<Long> orderedIds)
-    {
-        stopService.reorderStops(orderedIds);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/usage-summary")
     @Operation(summary = "站点引用摘要", description = "批量返回各站点被线路/方向引用的摘要（同线路同方向去重）；无引用站点不出现在结果中，用于列表消歧与孤儿站识别")
     public ResponseEntity<List<StopUsageSummaryView>> usageSummary()
