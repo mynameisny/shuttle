@@ -30,5 +30,9 @@ public class StopUsageSummaryView
         private Long routePk;
         private String routeShortName;
         private Integer directionId;
+        /** 引用该站的班次（一条线路多个班次时，角标靠它区分是哪个班次） */
+        private Long tripPk;
+        /** 班次显示名：trip_short_name 优先，回退 trip_id */
+        private String tripLabel;
     }
 }

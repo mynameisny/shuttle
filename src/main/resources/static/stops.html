@@ -29,6 +29,11 @@
 
         .field { margin-bottom: 10px; }
         .field label { display: block; font-size: 12px; color: #5f6368; margin-bottom: 4px; }
+        .label-hint {
+            display: inline-block; width: 13px; height: 13px; line-height: 13px; text-align: center;
+            font-size: 9px; color: #5f6368; background: #e8eaed; border-radius: 50%;
+            cursor: help; margin-left: 2px; vertical-align: 1px;
+        }
         .field input {
             width: 100%; padding: 7px 8px; font-size: 13px;
             border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
@@ -45,12 +50,50 @@
         }
         .ref-tag.orphan { color: #9aa0a6; background: #f1f3f4; cursor: pointer; }
         .ref-tag.orphan:hover { color: #d93025; background: #fce8e6; }
+
+        /* ---------- 线路下拉（带色块） ----------
+           原生 <option> 放不了 HTML，所以用自定义按钮+浮层展示「色块 + [简称] 全称」，
+           真正的取值仍由隐藏的 #routeFilter 承担，既有联动逻辑一行不改。 */
+        .sr-only {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+        }
+        .route-picker { position: relative; }
+        .rp-btn {
+            width: 100%; padding: 7px 8px; font-size: 13px; text-align: left;
+            border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
+            cursor: pointer; display: flex; align-items: center; gap: 6px;
+            font-family: inherit; color: #333;
+        }
+        .rp-btn:disabled { color: #9aa0a6; cursor: default; }
+        .rp-btn:focus-visible { outline: 2px solid #aecbfa; border-color: #1a73e8; }
+        .rp-btn .rp-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rp-btn .rp-caret { color: #9aa0a6; font-size: 10px; flex: none; }
+        .rp-panel {
+            position: absolute; z-index: 1200; left: 0; right: 0; top: calc(100% + 4px);
+            max-height: 300px; overflow-y: auto; background: #fff;
+            border: 1px solid #d0d5dd; border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(0,0,0,.12); padding: 4px;
+        }
+        .rp-item {
+            display: flex; align-items: center; gap: 8px; padding: 4px 8px;
+            font-size: 12px; border-radius: 4px; cursor: pointer; color: #333;
+        }
+        .rp-item:hover { background: #f0f4f9; }
+        .rp-item.on { background: #e8f0fe; }
+        .rp-item .rp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* 线路色块：只表示颜色，线路名统一在右侧文字里出现，避免同名重复两遍 */
+        .route-chip {
+            display: inline-flex; flex: none; align-self: stretch;
+            border: 1px solid rgba(0,0,0,.12); border-radius: 3px; overflow: hidden;
+        }
+        .route-chip .rc-sw { width: 14px; min-height: 15px; display: block; }
+        .route-chip.muted { border-color: #e0e3e8; }
         /* 方向标题（块外常显，每组跟随一个独立 .list 块；不再 sticky——标题不随块内滚动消失） */
         .dir-head {
             margin: 14px 0 6px; padding: 0 2px; font-size: 12px; font-weight: 600; color: #174ea6;
         }
         #stopList .dir-head:first-child { margin-top: 0; }
-        .dir-head .term { font-weight: 400; color: #5f6368; font-size: 10px; margin-top: 2px; }
         /* 线路筛选模式：#stopList 退化为纯容器（自带边框/限高中和掉，样式由内层方向块承担） */
         .list.stacked { border: none; border-radius: 0; background: transparent; max-height: none; overflow: visible; padding: 0; }
         .seq { display: inline-block; min-width: 16px; color: #9aa0a6; font-size: 10px; }
@@ -81,6 +124,7 @@
         .list .item.dragging { opacity: .4; background: #e8f0fe; }
         #stopList.reordering .item[draggable="true"] { cursor: progress; }
         .list .empty { padding: 10px; font-size: 12px; color: #9aa0a6; text-align: center; }
+        .list .empty .empty-hint { display: inline-block; margin-top: 4px; font-size: 11px; color: #b0b6bd; }
 
         .empty-box {
             padding: 12px; font-size: 12px; color: #9aa0a6; text-align: center;
@@ -158,6 +202,23 @@
         }
         .modal-title { font-size: 14px; font-weight: 600; color: #1a73e8; margin-bottom: 2px; }
         .modal-coord { font-size: 11px; color: #9aa0a6; margin-bottom: 10px; }
+        .modal.wide { width: 340px; }
+
+        /* ---------- 线路视图：按班次分组 ---------- */
+        .trip-block { margin-bottom: 10px; }
+        .trip-head {
+            display: flex; align-items: center; gap: 6px; padding: 5px 8px;
+            background: #eef3fd; border: 1px solid #d2e3fc; border-radius: 6px 6px 0 0;
+            font-size: 12px; font-weight: 600; color: #174ea6; cursor: pointer; user-select: none;
+        }
+        .trip-head .th-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .trip-head .th-meta { font-weight: 400; color: #5f6368; font-size: 11px; white-space: nowrap; }
+        .trip-head .th-fold { color: #9aa0a6; font-size: 10px; width: 10px; text-align: center; }
+        /* 收起时班次块只留标题行 */
+        .trip-block.folded .trip-body { display: none; }
+        .trip-block.folded .trip-head { border-radius: 6px; }
+        .trip-block .list { border-radius: 0 0 6px 6px; border-top: none; max-height: 300px; }
+        .empty-box.mini { padding: 8px; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -170,8 +231,17 @@
         </header>
         <div class="body">
             <div class="field">
+                <label>分组维度 <span class="label-hint" title="决定线路下拉按哪个网络标签分组">?</span></label>
+                <select id="groupBy"><option value="">不分组（平铺）</option></select>
+            </div>
+
+            <div class="field">
                 <label>按线路筛选</label>
-                <select id="routeFilter"><option value="">全部站点</option></select>
+                <div class="route-picker" id="routePicker">
+                    <button type="button" class="rp-btn" id="rpBtn" disabled>加载中…</button>
+                    <div class="rp-panel" id="rpPanel" hidden></div>
+                </div>
+                <select id="routeFilter" class="sr-only" aria-hidden="true"><option value="">全部站点</option></select>
             </div>
 
             <div class="field">
@@ -179,7 +249,7 @@
                 <input type="text" id="searchInput" placeholder="输入站点名称关键字…" autocomplete="off">
             </div>
 
-            <div class="group-title"><span>站点列表 <span class="badge" id="stopCount">0</span></span><button id="btnCreate" class="mini-btn">＋ 新建站点</button></div>
+            <div class="group-title"><span>站点列表 <span class="badge" id="stopCount">0</span></span><span id="listActions"><button id="btnNewTrip" class="mini-btn" disabled>＋ 新建班次</button><button id="btnCreate" class="mini-btn">＋ 新建站点</button></span></div>
             <div class="list" id="stopList"><div class="empty">加载中…</div></div>
 
             <div class="group-title">编辑站点</div>
@@ -214,10 +284,10 @@
                 使用说明：<br>
                 1. 站点为全局资源：修改坐标会影响所有引用它的班次，请谨慎操作。<br>
                 2. 列表项角标显示引用该站的线路与方向（同名去程/返程站点靠此区分），"未使用"表示无任何班次引用。<br>
-                3. 顶部可按线路筛选，列表按去程/返程分组显示（正向查询）；搜索框在筛选模式下停用。单班次方向的分组列表可按住拖拽调整停靠顺序（写入 stop_sequence，到/发时刻随站点移动）；多班次方向请到线路描图页逐班次调整。<br>
+                3. 顶部可按线路筛选，列表按「班次」分组显示（每个班次一块，可折叠，班次内可拖拽调序）。「＋ 新建班次」可为当前线路建一条新班次（空班次），再用「＋ 新增站点」逐站加入。<br>
                 4. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；保存后立即生效。<br>
                 5. 编辑区下方为引用该站点的班次明细（点击跳转描线页）；选中站点后地图自动弹出「时刻维护」浮层，可逐班次维护到/发时刻与时间精度（近似/精确）。<br>
-                6. 点击「新增站点」进入选点模式（Esc 取消），点击地图后填写站名与到/发时间（描述可选），站点将追加到所选方向班次停站末尾（可拖拽调整顺序）；删除站点须先解除班次引用：在分组视图点击站点右侧 ✕ 从班次移除（单班次方向可用），再到台账删除站点。<br>
+                6. 点击「新增站点」进入选点模式（Esc 取消），点击地图后填写站名与到/发时间（描述可选），站点将追加到所选班次停站末尾（可拖拽调整顺序）；删除站点须先解除班次引用：在分组视图点击站点右侧 ✕ 从班次移除，再到台账删除站点。<br>
                 7. (0,0) 占位站点（Excel 导入的未定位站）不上图也不参与视野缩放，在编辑区填入坐标后即上图；地图无有效站点时默认显示北京。
             </div>
         </div>
@@ -256,6 +326,44 @@
         </div>
     </div>
 </div>
+<div id="tripModal" class="modal-mask" style="display:none">
+    <div class="modal wide">
+        <div class="modal-title">新建班次</div>
+        <div class="modal-coord" id="tripModalRoute"></div>
+        <div class="field">
+            <label>班次名称 *</label>
+            <input type="text" id="tmLabel" maxlength="100" placeholder="如：霍营-昌平1">
+        </div>
+        <div class="field">
+            <label>班次ID * <span class="label-hint" title="GTFS trip_id，须全局唯一；用于导出与外部引用">?</span></label>
+            <input type="text" id="tmTripId" maxlength="100" placeholder="如：huoying-cp-1">
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>方向</label>
+                <select id="tmDirection"><option value="0">去程</option><option value="1">返程</option></select>
+            </div>
+            <div class="field">
+                <label>服务日历 *</label>
+                <input type="text" id="tmService" value="WEEKDAY" maxlength="50" list="tmServiceList">
+                <datalist id="tmServiceList">
+                    <option value="WEEKDAY"></option>
+                    <option value="WEEKEND"></option>
+                    <option value="DAILY"></option>
+                </datalist>
+            </div>
+        </div>
+        <div class="field">
+            <label>终点站名（可选）</label>
+            <input type="text" id="tmHeadsign" maxlength="100" placeholder="如：昌平中石油科技园">
+        </div>
+        <div class="tip">创建后是空班次，再用「＋ 新增站点」逐站加到该班次末尾，可拖拽调序。</div>
+        <div class="btn-row" style="margin-top:12px">
+            <button id="btnTmConfirm" class="primary">创建班次</button>
+            <button id="btnTmCancel">取消</button>
+        </div>
+    </div>
+</div>
 <div id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -268,6 +376,8 @@
         usageSummary: '/api/stops/usage-summary',
         routes: '/api/routes',
         routeStops: pk => '/api/routes/' + pk + '/stops',
+        trips: '/api/trips',
+        trip: pk => '/api/trips/' + pk,
         stopTimeAdd: tripPk => '/api/trips/' + tripPk + '/stop-times',
         stopTimeOrder: tripPk => '/api/trips/' + tripPk + '/stop-times/order',
         stopTime: (tripPk, seq) => '/api/trips/' + tripPk + '/stop-times/' + seq
@@ -275,14 +385,24 @@
 
     const { map } = createMap('map');
 
+    // 分组维度的默认值：不分组（平铺）。不持久化到 localStorage，
+    // 每次打开页面都从「全部站点」开始，避免上次选的分组把人挡在局部数据集里。
+
     const state = {
         allStops: [],     // 全量站点（编辑查找的权威数据，不受搜索影响）
         stops: [],        // 全量模式当前展示集（受搜索影响）
         usageMap: {},     // stopPk -> [{routePk, routeShortName, directionId}]（列表消歧角标）
         routeFilter: null,// 当前筛选线路 pk（null=全量模式）
+        // 线路下拉的分组维度（network_id，''=不分组）。默认不分组，仅存在内存里，
+        // 刷新或重开页面即回到「不分组（平铺）」。
+        groupBy: '',
         routeStops: null, // 线路筛选模式数据（GET /api/routes/{pk}/stops）
+        // 分组维度生效时的站点集合（按所选 network 的线路并集算出来）；null = 当前不需要按分组过滤
+        groupStops: null,
+        stopFetchSeq: 0,  // 分组过滤请求的序号，用于丢弃乱序返回的旧响应（快速切换维度时）
         selectedId: null, // 选中站点数据库主键
         creating: false,  // 新建站点选点模式
+        foldedTrips: {},  // 线路视图里被收起的班次（tripPk -> true），切换线路时清空
         reordering: false,// 停站顺序保存中（锁：PUT 完成前禁止再次拖拽，防连续操作竞态）
         normalLayer: L.layerGroup().addTo(map), // 普通站点橙色圆点
         selMarker: null   // 选中站点的可拖拽蓝色圆点
@@ -297,6 +417,7 @@
 
     $('routeFilter').addEventListener('change', e => {
         state.routeFilter = e.target.value ? parseInt(e.target.value) : null;
+        state.foldedTrips = {}; // 换线路后班次折叠状态不再适用
         $('searchInput').disabled = state.routeFilter !== null;
         if (state.routeFilter !== null) $('searchInput').value = '';
         if (state.creating) setCreating(false); // 切线路退出选点模式
@@ -307,53 +428,138 @@
     async function loadStops(keyword) {
         const url = keyword ? API.stops + '?keyword=' + encodeURIComponent(keyword) : API.stops;
         try {
-            state.stops = await api(url) || [];
-            if (!keyword) state.allStops = state.stops.slice(); // 无搜索=全量，同步权威数据
+            const raw = await api(url) || [];
+            // 分组维度生效时，搜索也要限制在当前分组内：服务端搜索出来的结果按分组集合过滤，
+            // 否则搜「龙」会带出其他分组的同名站点，与「只显示该分组」的直觉不符。
+            if (state.groupBy && state.groupStops) {
+                const allowed = new Set(state.groupStops.map(s => s.id));
+                state.stops = raw.filter(s => allowed.has(s.id));
+            } else {
+                state.stops = raw;
+            }
+            if (!keyword) state.allStops = raw.slice(); // 无搜索=全量，同步权威数据（始终保存全量）
             renderList();
             renderMarkers();
             fitToStops();
         } catch (err) { toast('加载站点失败：' + err.message, true); }
     }
 
-    // 线路筛选下拉：按「目的地」维度分组（route_networks 多标签，一条线路可挂多个标签）
+    // ---------- 线路下拉分组（可按任意 network 标签分组，选择只在本会话内生效） ----------
+
+    // 缓存：一次拉「全部网络标签」+「带标签的线路」，两个下拉都从这里渲染，避免切分组维度时重复请求
+    let routesCache = null;   // [{routePk, routeShortName, routeLongName, routeGtfsId, tags:[{networkId, networkName}]}]
+    let networksCache = null; // [{networkId, networkName}]
+
+    async function ensureRouteData() {
+        if (routesCache && networksCache) return;
+        const [routes, networks] = await Promise.all([
+            api(API.routes + '?withTags=true'),
+            api('/api/networks')
+        ]);
+        routesCache = routes || [];
+        networksCache = networks || [];
+    }
+
+    const tagIds = r => (r.tags || []).map(t => t.networkId);
+
+    // 分组维度的展示名（取 network_name，取不到就退回 ID）
+    function groupLabel(networkId) {
+        const net = (networksCache || []).find(n => n.networkId === networkId);
+        return (net && (net.networkName || net.networkId)) || networkId || '';
+    }
+
+    // 分组维度下拉：不分组 + 每个 network 一项
+    function renderGroupByOptions() {
+        const cur = state.groupBy;
+        let html = '<option value="">不分组（平铺）</option>';
+        networksCache.forEach(n => {
+            html += '<option value="' + esc(n.networkId) + '">' + esc(n.networkName || n.networkId) + '</option>';
+        });
+        $('groupBy').innerHTML = html;
+        // 选中的标签若已被删除（或接口没返回），回退到不分组
+        if (cur && !networksCache.some(n => n.networkId === cur)) {
+            state.groupBy = '';
+        }
+        $('groupBy').value = state.groupBy || '';
+    }
+
+    // 线路下拉。
+    // 选了分组维度：只列出该标签下的线路，直接用平铺 <option>，不出现分组标题、
+    //              也不出现「全部站点」和「其他」——这两项会让下拉里混进不属于该分组的线路，
+    //              与「只看这个分组」的预期冲突。想看全部请把分组维度切回「不分组」。
+    //              此时线路下拉默认停在空值项「<分组名>全部线路」，列表即整个分组的站点；
+    //              只有用户主动选某条线路时才收窄到该线路，再选回空值项即回到分组视图。
+    function renderRouteOptions() {
+        // 选项文案只留「[简称] 全称」，不再拼（北向）（短驳）这类方位后缀，
+        // 方位信息对挑站点没有帮助，反而让同一分组内的选项显得啰嗦、难扫读。
+        const prev = state.routeFilter;
+        let list = null;      // null 表示当前没有可选项（分组下暂无线路）
+        let emptyText = '';
+
+        if (!state.groupBy) {
+            // 平铺：保持后端顺序
+            list = routesCache.slice();
+        } else {
+            // 分组模式：空值项就是「回归到整个分组」，它和下面的线路一样属于本分组，
+            // 不会混进别的分组，所以不违背「下拉里只有筛选结果」。
+            list = routesCache.filter(r => tagIds(r).includes(state.groupBy));
+            if (!list.length) emptyText = '该分组下暂无线路';
+        }
+
+        routeOptions = list || [];
+
+        // 隐藏的原生 select 仍按原来的结构生成，取值/派发 change 的旧逻辑完全复用
+        let html = '';
+        if (list) {
+            const emptyLabel = state.groupBy ? groupLabel(state.groupBy) + ' 全部线路' : '全部站点';
+            html = '<option value="">' + esc(emptyLabel) + '</option>'
+                + list.map(r => '<option value="' + r.routePk + '">' + esc(routeOptionLabel(r)) + '</option>').join('');
+        } else {
+            html = '<option value="">' + esc(emptyText) + '</option>';
+        }
+        $('routeFilter').innerHTML = html;
+
+        // 重渲染后恢复之前的选中项（分组维度变化不应丢掉当前筛选）
+        const prevRoute = prev === null ? null : routesCache.find(r => r.routePk === prev);
+        const stillThere = !!prevRoute && (!state.groupBy || tagIds(prevRoute).includes(state.groupBy));
+        if (stillThere) {
+            $('routeFilter').value = String(prev);
+        } else if (prev !== null) {
+            // 原选中线路已不在当前分组里（或已不存在），回到「未筛选」
+            state.routeFilter = null;
+            $('routeFilter').value = '';
+            $('searchInput').disabled = false;
+            updateCreateBtn();
+        }
+        renderRoutePicker();
+    }
+
     async function loadRouteOptions() {
         try {
-            const routes = await api(API.routes + '?withTags=true') || [];
-            const DEST_ORDER = ['CHANGPING', 'BAJIAO', 'ZHUOZHOU_TO_CP', 'ZHUOZHOU_TO_BJ'];
-            const DEST_LABEL = {
-                CHANGPING: '昌平办公区',
-                BAJIAO: '八角办公区',
-                ZHUOZHOU_TO_CP: '涿州 → 昌平',
-                ZHUOZHOU_TO_BJ: '涿州 → 八角'
-            };
-            // 方位标签用于选项后缀，帮助在同一目的地内快速区分
-            const BEARING = {
-                NORTH: '北向',
-                EAST: '东向',
-                WEST_CENTER: '城区西向',
-                LOCAL_SHUTTLE: '短驳'
-            };
-            const tagIds = r => (r.tags || []).map(t => t.networkId);
-            const opt = r => {
-                const b = tagIds(r).map(id => BEARING[id]).filter(Boolean).join('/');
-                const name = (r.routeShortName ? '[' + r.routeShortName + '] ' : '') + (r.routeLongName || r.routeGtfsId);
-                return '<option value="' + r.routePk + '">' + name + (b ? '（' + b + '）' : '') + '</option>';
-            };
-            const groups = new Map(DEST_ORDER.map(k => [k, []]));
-            const loose = [];
-            routes.forEach(r => {
-                const dest = tagIds(r).find(id => DEST_LABEL[id]);
-                if (dest) { groups.get(dest).push(r); } else { loose.push(r); }
-            });
-            let html = '<option value="">全部站点</option>';
-            groups.forEach((list, dest) => {
-                if (!list.length) return;
-                html += '<optgroup label="' + DEST_LABEL[dest] + '">' + list.map(opt).join('') + '</optgroup>';
-            });
-            if (loose.length) html += '<optgroup label="未分组">' + loose.map(opt).join('') + '</optgroup>';
-            $('routeFilter').innerHTML = html;
+            await ensureRouteData();
+            renderGroupByOptions();
+            renderRouteOptions();
         } catch (err) { /* 筛选下拉加载失败不阻塞台账主功能 */ }
     }
+
+    $('groupBy').addEventListener('change', async e => {
+        state.groupBy = e.target.value || '';
+
+        // 切分组维度后，原来选中的具体线路可能已不在新分组里，统一回到「全部站点」，
+        // 避免「线路筛选」与「分组维度」两个条件叠加出空列表
+        state.routeStops = null;
+        state.foldedTrips = {};
+        if (state.routeFilter !== null) {
+            state.routeFilter = null;
+            $('routeFilter').value = '';
+            $('searchInput').disabled = false;
+            updateCreateBtn();
+        }
+        if (state.creating) setCreating(false);
+
+        renderRouteOptions(); // 内部会重算可选项并同步按钮文案
+        await applyGroupFilter();
+    });
 
     // 批量引用摘要（列表消歧角标）
     async function loadUsageSummary() {
@@ -361,7 +567,7 @@
             const summary = await api(API.usageSummary) || [];
             state.usageMap = {};
             summary.forEach(s => { state.usageMap[s.stopPk] = s.refs || []; });
-            if (state.routeFilter === null) renderList(); // 全量模式重渲染加角标
+            if (state.routeFilter === null) renderList(); // 未选中具体线路时重渲染加角标（含分组模式）
         } catch (err) { /* 消歧失败不阻塞主功能 */ }
     }
 
@@ -380,13 +586,84 @@
         }
     }
 
+    // ---------- 分组维度过滤 ----------
+    // 选了分组维度后，列表只显示「带该标签的线路」所覆盖的站点，其余隐藏；
+    // 想看全部就把分组维度选回「不分组」。
+    // 站点与线路的归属关系只存在于 stop_times，所以这里按线路逐个取站点再取并集。
+    // 说明：当前库 trip/stop_time 为空，任何线路都取不到站点，此时返回空数组，
+    //      页面会提示「该分组下暂无站点」，而不是悄悄回退显示全部（避免误解为过滤没生效）。
+
+    // 单线路站点缓存：routePk -> Set(stopPk)。切换分组维度时命中缓存，避免重复请求
+    const routeStopCache = new Map();
+    const ROUTE_STOPS_CONCURRENCY = 6; // 并发上限：分组内可能有 30 条线路，全并发会瞬时打开大量连接
+
+    async function fetchRouteStopSet(routePk) {
+        if (routeStopCache.has(routePk)) return routeStopCache.get(routePk);
+        const data = await api(API.routeStops(routePk));
+        const set = new Set();
+        (data && data.directions || []).forEach(d => (d.stops || []).forEach(s => set.add(s.stopPk)));
+        routeStopCache.set(routePk, set);
+        return set;
+    }
+
+    // 按当前分组维度算出应展示的站点；返回 null 表示不过滤，返回 undefined 表示已被新请求取代
+    async function buildGroupStops() {
+        if (!state.groupBy || !routesCache) return null;
+        const routePks = routesCache
+            .filter(r => tagIds(r).includes(state.groupBy))
+            .map(r => r.routePk);
+        if (!routePks.length) return [];
+
+        const seq = ++state.stopFetchSeq;
+        const union = new Set();
+        // 小并发批处理：命中缓存的直接返回，未命中才发请求
+        for (let i = 0; i < routePks.length; i += ROUTE_STOPS_CONCURRENCY) {
+            const batch = routePks.slice(i, i + ROUTE_STOPS_CONCURRENCY);
+            const sets = await Promise.all(batch.map(pk => fetchRouteStopSet(pk).catch(() => new Set())));
+            if (seq !== state.stopFetchSeq) return undefined; // 期间用户又切了维度，丢弃这批结果
+            sets.forEach(s => s.forEach(id => union.add(id)));
+        }
+
+        // 用全量站点数据还原成展示对象（保持 stopName/坐标等字段完整）
+        return state.allStops.filter(s => union.has(s.id));
+    }
+
+    async function applyGroupFilter() {
+        if (!state.groupBy) {
+            state.groupStops = null;
+            deselect(); // 退出过滤后，之前选中的站点可能不在全量视图里，清掉选择更稳妥
+            $('searchInput').value = '';
+            await loadStops();
+            return;
+        }
+        try {
+            const list = await buildGroupStops();
+            if (list === undefined) return; // 被新请求取代
+            state.groupStops = list;
+            // 同步展示集：state.stops 是列表/地图的唯一取数来源（见 renderList、currentStopList）
+            state.stops = list.slice();
+            deselect();
+            renderList();
+            renderMarkers();
+            fitToStops();
+        } catch (err) {
+            state.groupStops = [];
+            state.stops = [];
+            renderList();
+            toast('按分组加载站点失败：' + err.message, true);
+        }
+    }
+
     function findSelected() {
         return state.allStops.find(s => s.id === state.selectedId)
             || state.stops.find(s => s.id === state.selectedId) || null;
     }
 
     // ---------- 渲染 ----------
-    // 当前展示的站点统一列表：全量模式取 state.stops，线路模式取各方向站点并集
+    // 当前展示的站点统一列表，优先级：
+    //   1) 选中了具体线路 → 该线路各方向全部停站（多班次去重，供地图圆点用）
+    //   2) 其余情况       → state.stops（分组维度生效时，applyGroupFilter/loadStops 已把它
+    //                        收窄为「该分组内的站点」，所以这里不需要再判断分组）
     function currentStopList() {
         if (state.routeFilter !== null && state.routeStops) {
             const seen = new Set(), out = [];
@@ -398,63 +675,209 @@
         return state.stops.map(s => ({ stopPk: s.id, lat: s.stopLat, lng: s.stopLon, stopName: s.stopName, stopId: s.stopId }));
     }
 
+    // ---------- 线路下拉（带色块） ----------
+    // 原生 <option> 不能放 HTML，所以真实选项渲染在自定义浮层里；#routeFilter 只作为
+    // 取值与 change 事件的载体，旧的筛选联动（applyRouteFilter 等）完全不用改。
+    let routeOptions = [];   // 当前下拉可选项（含空值项之外的线路，按渲染顺序）
+
+    // 'e22e1c' / '#E22E1C' / null -> '#E22E1C' / null
+    function normHex(v) {
+        if (!v) return null;
+        const s = String(v).trim().replace(/^#/, '');
+        return /^[0-9a-fA-F]{6}$/.test(s) ? '#' + s.toUpperCase() : null;
+    }
+
+    function routeOptionLabel(r) {
+        return ((r.routeShortName ? '[' + r.routeShortName + '] ' : '') + (r.routeLongName || r.routeGtfsId || '')).trim();
+    }
+
+    // 色块只用来标识颜色，线路名统一在右侧文字里出现（[简称] 全称），避免同一名字出现两遍。
+    // 无配色时渲染中性灰方块，保持每行左侧对齐。
+    function routeChip(r) {
+        const bg = normHex(r && r.routeColor);
+        return '<span class="route-chip' + (bg ? '' : ' muted') + '">'
+            + '<span class="rc-sw" style="background:' + (bg || '#d0d5dd') + '"></span>'
+            + '</span>';
+    }
+
+    // 空值项的文案（不分组=全部站点；分组=「<分组名> 全部线路」）
+    function routeEmptyLabel() {
+        return state.groupBy ? groupLabel(state.groupBy) + ' 全部线路' : '全部站点';
+    }
+
+    function renderRoutePicker() {
+        const sel = $('routeFilter');
+        const btn = $('rpBtn');
+        const pk = sel.value;
+
+        if (!pk) {
+            const text = routeOptions.length
+                ? routeEmptyLabel()
+                : (state.groupBy ? '该分组下暂无线路' : '暂无线路');
+            btn.innerHTML = '<span class="rp-name">' + esc(text) + '</span><span class="rp-caret">▾</span>';
+            btn.disabled = false;
+            return;
+        }
+        const r = routeOptions.find(x => String(x.routePk) === String(pk));
+        btn.innerHTML = (r ? routeChip(r) : '')
+            + '<span class="rp-name">' + esc(r ? routeOptionLabel(r) : pk) + '</span>'
+            + '<span class="rp-caret">▾</span>';
+        btn.disabled = false;
+    }
+
+    function renderRoutePanel() {
+        const cur = $('routeFilter').value;
+        const items = [];
+        // 空值项永远排第一，便于从某条线路回到「全部」
+        items.push('<div class="rp-item' + (cur ? '' : ' on') + '" data-pk="">'
+            + '<span class="rp-name">' + esc(routeOptions.length
+                ? routeEmptyLabel()
+                : (state.groupBy ? '该分组下暂无线路' : '暂无线路')) + '</span></div>');
+        routeOptions.forEach(r => {
+            items.push('<div class="rp-item' + (String(r.routePk) === String(cur) ? ' on' : '') + '" data-pk="' + r.routePk + '">'
+                + routeChip(r)
+                + '<span class="rp-name">' + esc(routeOptionLabel(r)) + '</span></div>');
+        });
+        $('rpPanel').innerHTML = items.join('');
+    }
+
+    // 统一入口：改 select 值并派发 change，让既有筛选联动照旧触发
+    function setRouteFilter(pk, fire) {
+        const sel = $('routeFilter');
+        sel.value = pk == null ? '' : String(pk);
+        renderRoutePicker();
+        if (fire) sel.dispatchEvent(new Event('change'));
+    }
+
+    $('rpBtn').addEventListener('click', () => {
+        const panel = $('rpPanel');
+        if (!panel.hidden) { panel.hidden = true; return; }
+        renderRoutePanel();
+        panel.hidden = false;
+        panel.querySelectorAll('.rp-item').forEach(it =>
+            it.addEventListener('click', () => {
+                panel.hidden = true;
+                setRouteFilter(it.dataset.pk, true);
+            })
+        );
+    });
+    document.addEventListener('click', e => {
+        if (!$('routePicker').contains(e.target)) $('rpPanel').hidden = true;
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') $('rpPanel').hidden = true;
+    });
+
+    // 列表角标：优先显示班次名（一条线路多个班次时，只有班次名能区分），
+    // 回退到 [线路简称·去/返]。同站被多个班次引用会得到多个角标。
     function refTags(stopPk) {
         const refs = state.usageMap[stopPk];
         if (!refs || !refs.length) return '<span class="ref-tag orphan" data-del="' + stopPk + '" title="未被任何班次引用，点击直接删除">未使用 ✕</span>';
-        return refs.map(r =>
-            '<span class="ref-tag">' + esc(r.routeShortName || '?') + '·' + (r.directionId === 1 ? '返' : '去') + '</span>'
-        ).join('');
+        return refs.map(r => {
+            const text = r.tripLabel
+                ? r.tripLabel
+                : (r.routeShortName || '?') + '·' + (r.directionId === 1 ? '返' : '去');
+            return '<span class="ref-tag" title="' + esc((r.routeShortName || '') + ' ' + (r.directionId === 1 ? '返程' : '去程')) + '">' + esc(text) + '</span>';
+        }).join('');
     }
 
     function renderList() {
         if (state.routeFilter !== null && state.routeStops) { renderRouteList(); return; }
+
+        // 选了分组维度就只渲染该分组的站点，其余一律不显示。
+        // 统一用 state.stops：loadStops 在分组模式下已把结果与分组集合取过交集，
+        // 用它可以同时满足「只看该分组」和「分组内搜索」两种场景。
+        const grouped = !!(state.groupBy && state.groupStops);
+        const list = state.stops;
+
         $('stopList').classList.remove('stacked');
-        $('stopCount').textContent = state.stops.length;
-        $('stopList').innerHTML = state.stops.length
-            ? state.stops.map(s =>
+        $('stopCount').textContent = list.length;
+        if (grouped) $('stopCount').title = '当前只显示「' + groupLabel(state.groupBy) + '」分组内的站点';
+        else $('stopCount').removeAttribute('title');
+
+        $('stopList').innerHTML = list.length
+            ? list.map(s =>
                 '<div class="item' + (s.id === state.selectedId ? ' sel' : '') + '" data-id="' + s.id + '">' +
                 '<span class="name" title="' + esc(s.stopName || '') + '">' + esc(s.stopName || '(未命名)') + ' ' + refTags(s.id) + '</span>' +
                 '<span class="coord">' + parseFloat(s.stopLat).toFixed(5) + ',' + parseFloat(s.stopLon).toFixed(5) + '</span></div>'
             ).join('')
-            : '<div class="empty">无匹配站点（新建请到线路描图页）</div>';
+            : (grouped
+                ? '<div class="empty">「' + esc(groupLabel(state.groupBy)) + '」分组下暂无站点<br><span class="empty-hint">新建请到线路描图页；想看全部请把分组维度选为「不分组」</span></div>'
+                : '<div class="empty">无匹配站点（新建请到线路描图页）</div>');
         bindListClicks();
     }
 
-    // 线路筛选模式：按方向分组的分组视图（方向标题附起终点信息）
-    // 单班次方向（tripPks.length===1）支持拖拽重排 stop_sequence；多班次方向顺序需逐班次维护，不开放拖拽
+    // 线路筛选模式：按方向 → 按班次分组（每个班次一块）。
+    // 一条线路多班次时这是唯一能看清各自走向的视角，班次内可拖拽调序、可逐站移除。
     function renderRouteList() {
         const v = state.routeStops;
-        const total = (v.directions || []).reduce((n, d) => n + (d.stops || []).length, 0);
+        const dirs = v.directions || [];
+        // 统计口径：各方向停站总数之和（同一站被 3 个班次停靠算 3 次）
+        const total = dirs.reduce((n, d) => n + (d.trips || []).reduce((m, t) => m + (t.stops || []).length, 0), 0);
         $('stopCount').textContent = total;
+        $('stopCount').title = '全部班次的停站总数（同一站被 3 个班次停靠算 3 次）';
+
         $('stopList').classList.add('stacked');
-        $('stopList').innerHTML = (v.directions || []).map(d => {
-            const stops = d.stops || [];
-            const singleTrip = (d.tripPks || []).length === 1;
-            // 起终点行：首末站名均非空且不同才展示（单站/缺名/同名兜底不显示第二行）
-            const first = stops[0] && stops[0].stopName;
-            const last = stops.length > 1 && stops[stops.length - 1].stopName;
-            const term = (first && last && first !== last)
-                ? '<div class="term">' + esc(first) + ' → ' + esc(last) + '</div>' : '';
-            // 拆块：每个方向 = 块外标题（dir-head）+ 独立 .list 块，组间由标题 margin 分隔
-            return '<div class="dir-head">'
-                + '<div>' + (d.directionId === 1 ? '返程站点' : '去程站点')
-                + ' · ' + (d.tripCount || 0) + ' 个班次 · ' + stops.length + ' 站'
-                + (singleTrip && stops.length > 1 ? ' <span style="font-weight:400;color:#9aa0a6">· 可拖拽调序</span>' : '')
-                + '</div>'
-                + term + '</div>'
-                + '<div class="list"' + (singleTrip ? ' data-trip-pk="' + d.tripPks[0] + '"' : '') + '>'
-                + (stops.length ? stops.map(s =>
-                    '<div class="item" data-id="' + s.stopPk + '"'
-                    + (singleTrip ? ' draggable="true" title="按住拖拽调整停靠顺序"' : '') + '>' +
-                    '<span class="name" title="' + esc(s.stopName || '') + '"><span class="seq">' + s.stopSequence + '</span> ' + esc(s.stopName || '(未命名)') + '</span>' +
-                    '<span class="coord">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span>' +
-                    (singleTrip ? '<span class="rm-btn" data-seq="' + s.stopSequence + '" data-name="' + esc(s.stopName || '') + '" title="从班次移除该站">✕</span>' : '') +
-                    '</div>'
-                ).join('') : '<div class="empty">该方向暂无停站</div>')
-                + '</div>';
-        }).join('') || '<div class="empty">该线路暂无停站数据</div>';
+        $('stopList').innerHTML = dirs.length
+            ? dirs.map(d => renderDirectionByTrip(d)).join('')
+            : '<div class="empty">该线路暂无停站数据</div>';
         bindListClicks();
         bindDnd();
+        bindTripFold();
+    }
+
+    const dirName = id => id === 1 ? '返程' : '去程';
+
+    // 按班次：方向标题 + 每个班次一个折叠块（标题 = 班次名 · 首末时刻 · 站数）
+    function renderDirectionByTrip(d) {
+        const trips = d.trips || [];
+        const head = '<div class="dir-head"><div>' + dirName(d.directionId)
+            + ' · ' + (d.tripCount || trips.length) + ' 个班次'
+            + (trips.length ? ' · 共 ' + trips.reduce((n, t) => n + (t.stops || []).length, 0) + ' 站次' : '')
+            + '</div></div>';
+
+        if (!trips.length) {
+            return head + '<div class="empty-box mini">该方向暂无班次，点上方「＋ 新建班次」创建一个</div>';
+        }
+
+        return head + trips.map(t => {
+            const stops = t.stops || [];
+            const folded = !!state.foldedTrips[t.tripPk];
+            const span = (t.firstDeparture && t.lastArrival)
+                ? hhmm(t.firstDeparture) + ' – ' + hhmm(t.lastArrival) : '';
+            const meta = [span, stops.length + ' 站'].filter(Boolean).join(' · ');
+            return '<div class="trip-block' + (folded ? ' folded' : '') + '">'
+                + '<div class="trip-head" data-trip-fold="' + t.tripPk + '">'
+                + '<span class="th-fold">' + (folded ? '▸' : '▾') + '</span>'
+                + '<span class="th-name" title="' + esc(t.tripId || '') + '">' + esc(t.label || ('班次 ' + t.tripPk)) + '</span>'
+                + '<span class="th-meta">' + esc(meta) + '</span></div>'
+                + '<div class="list trip-body" data-trip-pk="' + t.tripPk + '">'
+                + (stops.length ? stops.map((s, i) =>
+                    '<div class="item" data-id="' + s.stopPk + '" draggable="true" title="按住拖拽调整停靠顺序">'
+                    + '<span class="name" title="' + esc(s.stopName || '') + '"><span class="seq">' + s.stopSequence + '</span> ' + esc(s.stopName || '(未命名)') + '</span>'
+                    + '<span class="coord">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span>'
+                    + '<span class="rm-btn" data-seq="' + s.stopSequence + '" data-name="' + esc(s.stopName || '') + '" title="从该班次移除此站">✕</span>'
+                    + '</div>'
+                ).join('') : '<div class="empty">空班次，用「＋ 新增站点」往里加第一站</div>')
+                + '</div></div>';
+        }).join('');
+    }
+
+    // "07:25:00" -> "07:25"
+    function hhmm(t) {
+        return t ? String(t).slice(0, 5) : '';
+    }
+
+    // 班次块折叠/展开（只影响显示，不涉及数据）
+    function bindTripFold() {
+        $('stopList').querySelectorAll('[data-trip-fold]').forEach(el =>
+            el.addEventListener('click', () => {
+                const pk = parseInt(el.dataset.tripFold);
+                if (state.foldedTrips[pk]) delete state.foldedTrips[pk];
+                else state.foldedTrips[pk] = true;
+                renderList();
+            })
+        );
     }
 
     function bindListClicks() {
@@ -477,7 +900,7 @@
     }
 
     // ---------- 分组视图拖拽重排班次停站顺序（stop_times.stop_sequence） ----------
-    // 仅单班次方向块（.list[data-trip-pk]）可拖；台账全量列表无业务顺序概念，不开放拖拽
+    // 仅班次块（.list[data-trip-pk]）可拖；台账全量列表无业务顺序概念，不开放拖拽
     let dragId = null;
     let dragList = null;
 
@@ -562,12 +985,20 @@
         const tripPk = parseInt(list.dataset.tripPk);
         const pks = [...list.querySelectorAll('.item[draggable="true"]')]
             .map(el => parseInt(el.dataset.id));
-        const dir = (state.routeStops.directions || []).find(d => (d.tripPks || [])[0] === tripPk);
-        if (!dir) return;
+
+        // 乐观更新本地：按 tripPk 找到对应班次的停站数组重排
+        let target = null;
+        (state.routeStops.directions || []).forEach(d => {
+            const t = (d.trips || []).find(x => x.tripPk === tripPk);
+            if (t) target = t.stops;
+        });
+        if (!target) return;
         const byPk = {};
-        (dir.stops || []).forEach(s => { byPk[s.stopPk] = s; });
-        dir.stops = pks.map(pk => byPk[pk]).filter(Boolean);
-        dir.stops.forEach((s, i) => { s.stopSequence = i + 1; });
+        target.forEach(s => { byPk[s.stopPk] = s; });
+        const next = pks.map(pk => byPk[pk]).filter(Boolean);
+        target.length = 0;
+        target.push(...next);
+        next.forEach((s, i) => { s.stopSequence = i + 1; });
         renderList();
         state.reordering = true;
         $('stopList').classList.add('reordering');
@@ -697,6 +1128,8 @@
         $('btnCreate').textContent = off
             ? '＋ 选择线路后加站'
             : (state.creating ? '点击地图选点（Esc 取消）' : '＋ 新增站点');
+        // 「新建班次」只在选了具体线路时出现：班次必须挂在某条线路下
+        $('btnNewTrip').disabled = off;
     }
 
     function setCreating(on) {
@@ -711,8 +1144,86 @@
         setCreating(!state.creating);
     });
 
+    // ---------- 新建班次 ----------
+    // 班次必须挂在某条线路下，所以只能在线路筛选模式下创建（按钮在未选线路时置灰）。
+    // 建出来是空班次，停站要靠「＋ 新增站点」逐站追加，与既有加站流程一致。
+    $('btnNewTrip').addEventListener('click', () => {
+        if (state.routeFilter === null) return;
+        const r = (routesCache || []).find(x => x.routePk === state.routeFilter);
+        $('tripModalRoute').textContent = '所属线路：' + (r ? routeOptionLabel(r) : 'pk=' + state.routeFilter);
+        // 预填：班次名沿用「线路简称 + 序号」，班次ID给个 slug 骨架，用户可改
+        const base = (r && (r.routeShortName || r.routeLongName)) || 'trip';
+        const seq = nextTripSeq();
+        $('tmLabel').value = base + seq;
+        $('tmTripId').value = slug(base) + '-' + seq;
+        $('tmDirection').value = '0';
+        $('tmService').value = 'WEEKDAY';
+        $('tmHeadsign').value = '';
+        $('tripModal').style.display = '';
+        $('tmLabel').focus();
+        $('tmLabel').select();
+    });
+
+    function closeTripModal() { $('tripModal').style.display = 'none'; }
+
+    $('btnTmCancel').addEventListener('click', closeTripModal);
+
+    // 当前线路已有班次的最大序号 +1（班次名以数字结尾时取该数字，否则按个数+1）。
+    // 序号在整条线路内统一递增，不按方向各算各的：同一条线路上「霍营-昌平1/2/3」这类名字
+    // 是连号的自然编号，若按方向分组算序号，去程已有 3 个时新建返程又从 1 开始，会撞名。
+    function nextTripSeq() {
+        const labels = [];
+        ((state.routeStops || {}).directions || []).forEach(d => (d.tripLabels || []).forEach(l => labels.push(l)));
+        let max = labels.length;
+        labels.forEach(l => {
+            const m = String(l).match(/(\d+)\s*$/);
+            if (m) max = Math.max(max, parseInt(m[1]));
+        });
+        return max + 1;
+    }
+
+    // 中文线路名转班次ID骨架：保留字母数字，中文原样保留（GTFS 允许非 ASCII id，只要唯一）
+    function slug(s) {
+        return String(s).trim().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');
+    }
+
+    $('btnTmConfirm').addEventListener('click', async () => {
+        const label = $('tmLabel').value.trim();
+        const tripId = $('tmTripId').value.trim();
+        const serviceId = $('tmService').value.trim();
+        if (!label) { toast('班次名称不能为空', true); return; }
+        if (!tripId) { toast('班次ID不能为空', true); return; }
+        if (!serviceId) { toast('服务日历不能为空', true); return; }
+        const btn = $('btnTmConfirm');
+        btn.disabled = true;
+        try {
+            const created = await api(API.trips, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    routeId: state.routeFilter,
+                    tripId: tripId,
+                    serviceId: serviceId,
+                    directionId: parseInt($('tmDirection').value) || 0,
+                    tripShortName: label,
+                    tripHeadsign: $('tmHeadsign').value.trim() || null
+                })
+            });
+            closeTripModal();
+            toast('已创建班次：' + (created.tripShortName || created.tripId) + '（空班次，用「＋ 新增站点」加站）');
+            // 新建的班次默认展开，方便马上加站
+            delete state.foldedTrips[created.id];
+            await applyRouteFilter();
+            await loadUsageSummary();
+        } catch (err) {
+            toast('创建班次失败：' + err.message, true);
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
+            if ($('tripModal').style.display !== 'none') { closeTripModal(); return; }
             if ($('addModal').style.display !== 'none') { closeAddModal(); return; } // 关表单，留在选点模式
             if (state.creating) setCreating(false);
         }
@@ -726,13 +1237,14 @@
         $('addCoord').textContent = '选中位置：' + latlng.lat.toFixed(7) + ', ' + latlng.lng.toFixed(7);
         // 班次选项 = 各方向展开（label：方向 · 班次名）
         const dirs = state.routeStops.directions || [];
-        $('addTrip').innerHTML = dirs.map(d =>
+        const opts = dirs.map(d =>
             (d.tripPks || []).map((pk, i) =>
                 '<option value="' + pk + '">'
                 + (d.directionId === 1 ? '返程' : '去程') + ' · '
                 + esc((d.tripLabels || [])[i] || ('班次 ' + pk)) + '</option>'
             ).join('')
-        ).join('') || '<option value="">该线路暂无班次</option>';
+        ).join('');
+        $('addTrip').innerHTML = opts || '<option value="">该线路暂无班次（先点「＋ 新建班次」）</option>';
         $('addName').value = '';
         $('addArr').value = '';
         $('addDep').value = '';
@@ -755,7 +1267,7 @@
         if (!arr || !dep) { toast('请填写到达与发车时间', true); return; }
         if (arr > dep) { toast('到达时间不能晚于发车时间', true); return; }
         const tripPk = parseInt($('addTrip').value);
-        if (!tripPk) { toast('该线路暂无班次，请先在描图页创建班次', true); return; }
+        if (!tripPk) { toast('该线路暂无班次，请先点「＋ 新建班次」', true); return; }
         const desc = $('addDesc').value.trim();
         // ① 创建站点（含可选描述）
         let stop;
@@ -957,10 +1469,15 @@
     }
 
     // ---------- 初始化 ----------
-    loadRouteOptions();
-    loadUsageSummary();
-    loadStops();
+    // 顺序有依赖：loadStops 填充 allStops（分组过滤要靠它把 stopPk 还原成完整站点对象），
+    // 之后 loadRouteOptions 加载标签与线路缓存，最后才能按分组维度过滤。
     updateCreateBtn(); // 页面加载时未选线路，按钮应禁用
+    (async () => {
+        await loadStops();
+        await loadRouteOptions();
+        if (state.groupBy) await applyGroupFilter();
+        loadUsageSummary();
+    })();
 </script>
 </body>
 </html>

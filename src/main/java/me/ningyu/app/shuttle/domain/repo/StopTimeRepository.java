@@ -37,12 +37,15 @@ public interface StopTimeRepository extends JpaRepository<StopTime, Long>, Pagin
     List<StopTime> findByRouteIdFetchStopAndTrip(@Param("routeId") Long routeId);
 
     /**
-     * 全表停站引用投影（stopPk/routePk/线路简称/方向），用于站点引用摘要批量消歧。
+     * 全表停站引用投影（stopPk/routePk/线路简称/方向/班次），用于站点引用摘要批量消歧。
      * 内连接：无线路或无站点的停站记录自然排除。
+     * 按「线路+方向+班次」去重（见 StopService.getUsageSummary）：一条线路多班次时，
+     * 只按线路+方向去重会把三个班次折叠成一个角标，看不出站点到底被哪个班次引用。
      */
-    @Query("SELECT st.stop.id AS stopPk, r.id AS routePk, r.routeShortName AS routeShortName, t.directionId AS directionId " +
+    @Query("SELECT st.stop.id AS stopPk, r.id AS routePk, r.routeShortName AS routeShortName, " +
+            "t.directionId AS directionId, t.id AS tripPk, t.tripShortName AS tripShortName, t.tripId AS tripId " +
             "FROM stop_time st JOIN st.trip t JOIN t.route r " +
-            "ORDER BY r.routeShortName ASC, t.directionId ASC, st.stopSequence ASC")
+            "ORDER BY r.routeShortName ASC, t.directionId ASC, t.id ASC, st.stopSequence ASC")
     List<StopRefProjection> findAllStopRefs();
 
     interface StopRefProjection
@@ -54,5 +57,11 @@ public interface StopTimeRepository extends JpaRepository<StopTime, Long>, Pagin
         String getRouteShortName();
 
         Integer getDirectionId();
+
+        Long getTripPk();
+
+        String getTripShortName();
+
+        String getTripId();
     }
 }

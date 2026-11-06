@@ -134,6 +134,12 @@ public class TripService
         Trip trip = tripRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("班次不存在"));
 
+        // 改挂线路：班次的 stop_times 挂在自己身上，跟着 Trip 一起迁移，无需单独处理
+        if (request.getRoutePk() != null)
+        {
+            applyRouteIfChanged(trip, request.getRoutePk());
+        }
+
         if (request.getTripId() != null && !request.getTripId().isBlank()
                 && !request.getTripId().equals(trip.getTripId()))
         {
@@ -159,6 +165,28 @@ public class TripService
         }
 
         return tripRepository.save(trip);
+    }
+
+    /**
+     * 把班次改挂到另一条线路（合并线路时用，如霍营1/2/3 合为「霍营-昌平」）。
+     * 只校验目标线路存在；停站、时刻原样跟随班次，不重排、不合并。
+     * 调用方需保证目标线路与源线路业务语义一致（日志里留痕，便于回溯）。
+     */
+    private void applyRouteIfChanged(Trip trip, Long routePk)
+    {
+        Route current = trip.getRoute();
+        if (current != null && routePk.equals(current.getId()))
+        {
+            return;
+        }
+        Route target = routeRepository.findById(routePk)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "目标线路不存在: id=" + routePk));
+
+        log.info("班次改挂线路: tripPk={} tripId={} {} -> {}",
+                trip.getId(), trip.getTripId(),
+                current == null ? "null" : current.getRouteShortName(),
+                target.getRouteShortName());
+        trip.setRoute(target);
     }
 
     public void cancelTrip(Long id)

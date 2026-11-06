@@ -31,10 +31,53 @@
 
         .field { margin-bottom: 10px; }
         .field label { display: block; font-size: 12px; color: #5f6368; margin-bottom: 4px; }
+        /* 字段标签里的行内小按钮（如班次行的「＋ 新建」） */
+        .mini-inline {
+            float: right; margin-top: -2px; padding: 1px 7px; font-size: 11px;
+            border: 1px solid #d0d5dd; border-radius: 4px; background: #fff; cursor: pointer; color: #1a73e8;
+        }
+        .mini-inline:hover:not(:disabled) { background: #f0f4f9; }
+        .mini-inline:disabled { color: #9aa0a6; cursor: default; }
         .field select {
             width: 100%; padding: 7px 8px; font-size: 13px;
             border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
         }
+        /* 视觉隐藏但保留在 DOM 里，联动逻辑继续读它的 value */
+        .sr-only {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+        }
+        /* 线路选择器（带色块） */
+        .route-picker { position: relative; }
+        .rp-btn {
+            width: 100%; padding: 7px 8px; font-size: 13px; text-align: left;
+            border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
+            cursor: pointer; display: flex; align-items: center; gap: 6px;
+            font-family: inherit; color: #333;
+        }
+        .rp-btn:disabled { color: #9aa0a6; cursor: default; }
+        .rp-btn:focus-visible { outline: 2px solid #aecbfa; border-color: #1a73e8; }
+        .rp-btn .rp-caret { margin-left: auto; color: #9aa0a6; font-size: 10px; }
+        .rp-panel {
+            position: absolute; z-index: 1200; left: 0; right: 0; top: calc(100% + 4px);
+            max-height: 300px; overflow-y: auto; background: #fff;
+            border: 1px solid #d0d5dd; border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(0,0,0,.12); padding: 4px;
+        }
+        .rp-item {
+            display: flex; align-items: center; gap: 8px; padding: 4px 8px;
+            font-size: 12px; border-radius: 4px; cursor: pointer; color: #333;
+        }
+        .rp-item:hover { background: #f0f4f9; }
+        .rp-item.on { background: #e8f0fe; }
+        .rp-item .rp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* 线路色块：只表示颜色，不再重复显示线路简称（名称统一在右侧） */
+        .route-chip {
+            display: inline-flex; flex: none; align-self: stretch;
+            border: 1px solid rgba(0,0,0,.12); border-radius: 3px; overflow: hidden;
+        }
+        .route-chip .rc-sw { width: 14px; min-height: 15px; display: block; }
+        .route-chip.muted { border-color: #e0e3e8; }
         .group-title {
             font-size: 12px; font-weight: 600; color: #1a73e8;
             margin: 14px 0 6px; display: flex; justify-content: space-between; align-items: center;
@@ -97,11 +140,20 @@
         <div class="body">
             <div class="field">
                 <label>线路</label>
-                <select id="routeSelect"><option value="">加载中…</option></select>
+                <!-- 原生 select 不支持 HTML 选项，不能放色块；用自定义面板渲染，
+                     底下保留一个视觉隐藏的原生 select 作为唯一数据源（联动逻辑全部照旧） -->
+                <div class="route-picker" id="routePicker">
+                    <button type="button" class="rp-btn" id="rpBtn" disabled>加载中…</button>
+                    <div class="rp-panel" id="rpPanel" hidden></div>
+                </div>
+                <select id="routeSelect" class="sr-only" aria-hidden="true"><option value="">加载中…</option></select>
             </div>
             <div class="field">
-                <label>班次</label>
+                <label>班次 <button id="btnNewTrip" class="mini-inline" disabled title="为当前线路新建一个班次">＋ 新建</button></label>
                 <select id="tripSelect" disabled><option value="">请先选择线路</option></select>
+                <div id="tripEmpty" style="display:none;font-size:11px;color:#9aa0a6;margin-top:4px;line-height:1.6">
+                    该线路还没有班次。点上方「＋ 新建」建一个空班次，再到「站点维护」页给它加停站。
+                </div>
             </div>
             <div id="tripInfo"></div>
 
@@ -300,29 +352,151 @@
         }
     }
 
+    // ---------- 线路选择器（带色块） ----------
+    // 原生 <option> 不能放 HTML，所以用自定义面板展示「色块 + 「[简称] 全称」」；
+    // 真正的取值仍由隐藏的 #routeSelect 承担，下面的 setRouteValue 负责两边同步。
+    let routeList = [];
+
+    function normHex(v) {
+        if (!v) return null;
+        const s = String(v).trim().replace(/^#/, '');
+        return /^[0-9a-fA-F]{6}$/.test(s) ? '#' + s.toUpperCase() : null;
+    }
+
+    // 色块只用来标识颜色，线路名统一在右侧文字里出现（[简称] 全称），避免同一名字出现两遍。
+    // 无配色时渲染一个中性灰方块，保持每行左侧对齐；无名字的色块不渲染，不留空位。
+    function routeChip(r) {
+        const bg = normHex(r && r.routeColor);
+        return '<span class="route-chip' + (bg ? '' : ' muted') + '">'
+            + '<span class="rc-sw" style="background:' + (bg || '#d0d5dd') + '"></span>'
+            + '</span>';
+    }
+
+    function routeOptionLabel(r) {
+        return ((r.routeShortName ? '[' + r.routeShortName + '] ' : '') + (r.routeLongName || r.routeGtfsId || '')).trim();
+    }
+
+    function renderRouteButton() {
+        const sel = $('routeSelect');
+        const btn = $('rpBtn');
+        const pk = sel.value;
+        if (!pk) {
+            btn.innerHTML = '<span>' + (routeList.length ? '请选择线路' : '暂无线路') + '</span><span class="rp-caret">▾</span>';
+            btn.disabled = !routeList.length;
+            return;
+        }
+        const r = routeList.find(x => String(x.id) === String(pk));
+        btn.innerHTML = (r ? routeChip(r) : '')
+            + '<span class="rp-name">' + esc(r ? routeOptionLabel(r) : pk) + '</span>'
+            + '<span class="rp-caret">▾</span>';
+        btn.disabled = false;
+    }
+
+    function renderRoutePanel() {
+        const sel = $('routeSelect');
+        const cur = sel.value;
+        $('rpPanel').innerHTML = routeList.map(r =>
+            '<div class="rp-item' + (String(r.id) === String(cur) ? ' on' : '') + '" data-pk="' + r.id + '">'
+            + routeChip(r)
+            + '<span class="rp-name">' + esc(routeOptionLabel(r)) + '</span></div>'
+        ).join('') || '<div class="rp-item">暂无线路</div>';
+    }
+
+    // 统一入口：改 select 值并派发 change，让既有联动（loadTrips）照旧触发
+    function setRouteValue(pk, fire) {
+        const sel = $('routeSelect');
+        sel.value = pk == null ? '' : String(pk);
+        renderRouteButton();
+        if (fire) sel.dispatchEvent(new Event('change'));
+    }
+
+    $('rpBtn').addEventListener('click', () => {
+        const panel = $('rpPanel');
+        if (!panel.hidden) { panel.hidden = true; return; }
+        renderRoutePanel();
+        panel.hidden = false;
+        panel.querySelectorAll('.rp-item[data-pk]').forEach(it =>
+            it.addEventListener('click', () => {
+                panel.hidden = true;
+                setRouteValue(it.dataset.pk, true);
+            })
+        );
+    });
+    // 点面板外收起
+    document.addEventListener('click', e => {
+        if (!$('routePicker').contains(e.target)) $('rpPanel').hidden = true;
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') $('rpPanel').hidden = true;
+    });
+
     // ---------- 数据加载 ----------
     async function loadRoutes() {
-        const routes = await api(API.routes);
+        routeList = await api(API.routes) || [];
         const sel = $('routeSelect');
-        sel.innerHTML = '<option value="">请选择线路</option>' + routes.map(r =>
-            '<option value="' + r.id + '">' + (r.routeShortName ? '[' + r.routeShortName + '] ' : '') + r.routeLongName + '</option>'
+        sel.innerHTML = '<option value="">请选择线路</option>' + routeList.map(r =>
+            '<option value="' + r.id + '">' + esc(routeOptionLabel(r)) + '</option>'
         ).join('');
-        sel.disabled = false;
+        renderRouteButton();
     }
 
     async function loadTrips(routePk) {
         const sel = $('tripSelect');
-        if (!routePk) { sel.innerHTML = '<option value="">请先选择线路</option>'; sel.disabled = true; return; }
+        if (!routePk) {
+            sel.innerHTML = '<option value="">请先选择线路</option>';
+            sel.disabled = true;
+            $('btnNewTrip').disabled = true;
+            $('tripEmpty').style.display = 'none';
+            return;
+        }
         const trips = await api(API.tripsByRoute(routePk));
         // 优先用 tripShortName（如"霍营2线上班"），未设置时回退 tripId + 方向；短名本身含方向语义，不再叠加"（去程）"
-        sel.innerHTML = '<option value="">请选择班次</option>' + trips.map(t =>
-            '<option value="' + t.id + '">'
-            + (t.tripShortName
-                ? esc(t.tripShortName)
-                : t.tripId + '（' + (t.directionId === 1 ? '回程' : '去程') + '）')
-            + (t.shapeId ? ' · 已描图' : ' · 待描图') + '</option>'
-        ).join('');
-        sel.disabled = false;
+        sel.innerHTML = trips.length
+            ? '<option value="">请选择班次</option>' + trips.map(t =>
+                '<option value="' + t.id + '">'
+                + (t.tripShortName
+                    ? esc(t.tripShortName)
+                    : t.tripId + '（' + (t.directionId === 1 ? '回程' : '去程') + '）')
+                + (t.shapeId ? ' · 已描图' : ' · 待描图') + '</option>'
+            ).join('')
+            : '<option value="">该线路暂无班次</option>';
+        sel.disabled = !trips.length;
+        $('btnNewTrip').disabled = false;
+        // 没有班次时没法描图，直接把新建入口摆出来，省得用户找
+        $('tripEmpty').style.display = trips.length ? 'none' : '';
+    }
+
+    // 新建班次：描图页只负责建出空班次骨架，停站到站点维护页加
+    async function createTripHere() {
+        const routePk = $('routeSelect').value;
+        if (!routePk) return;
+        const r = (routeList || []).find(x => String(x.id) === String(routePk));
+        const base = (r && (r.routeShortName || r.routeLongName)) || 'trip';
+        const name = prompt('班次名称（如：' + base + '1）', base + '1');
+        if (name === null) return;
+        const label = name.trim();
+        if (!label) { toast('班次名称不能为空', true); return; }
+        const tripId = prompt('班次ID（全局唯一，导出用）', label.replace(/\s+/g, '-'));
+        if (tripId === null) return;
+        if (!tripId.trim()) { toast('班次ID不能为空', true); return; }
+        const serviceId = prompt('服务日历（默认 WEEKDAY）', 'WEEKDAY');
+        if (serviceId === null) return;
+        try {
+            const created = await api('/api/trips', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    routeId: parseInt(routePk),
+                    tripId: tripId.trim(),
+                    serviceId: serviceId.trim() || 'WEEKDAY',
+                    directionId: 0,
+                    tripShortName: label
+                })
+            });
+            toast('已创建班次：' + (created.tripShortName || created.tripId) + '（停站请到站点维护页添加）');
+            await loadTrips(routePk);
+            $('tripSelect').value = String(created.id);
+            await loadTripShape(created.id);
+        } catch (err) { toast('创建班次失败：' + err.message, true); }
     }
 
     async function loadTripShape(tripPk) {
@@ -553,10 +727,13 @@
     $('tripSelect').addEventListener('change', e => {
         if (e.target.value) loadTripShape(e.target.value).catch(err => toast('加载班次失败：' + err.message, true));
     });
+    $('btnNewTrip').addEventListener('click', createTripHere);
 
     // ---------- 初始化 ----------
     loadRoutes().then(() => autoSelectFromUrl()).catch(() => {
+        routeList = [];
         $('routeSelect').innerHTML = '<option value="">加载失败（后端未启动？）</option>';
+        renderRouteButton();
     });
 
     // 站点维护页引用面板跳转 ?tripPk=xxx：自动选中对应线路与班次
@@ -566,7 +743,7 @@
         try {
             const view = await api(API.tripShape(tripPk));
             if (!view || !view.routePk) return;
-            $('routeSelect').value = view.routePk;
+            setRouteValue(view.routePk, false);
             await loadTrips(view.routePk);
             $('tripSelect').value = tripPk;
             await loadTripShape(tripPk);

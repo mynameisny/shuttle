@@ -131,9 +131,11 @@ public class StopService
     }
 
     /**
-     * 批量站点引用摘要：一次投影查询全部停站，按站点分组、线路+方向去重。
+     * 批量站点引用摘要：一次投影查询全部停站，按站点分组、线路+方向+班次去重。
      * 用于站点台账列表项标注 [线路·方向] 角标（同名站消歧）与孤儿站点识别；
      * 无引用的站点不出现在结果中。
+     * 去重粒度带上班次：一条线路多班次（如霍营-昌平 1/2/3）时，只按线路+方向去重
+     * 会把三个班次折叠成一个角标，看不出站点被哪个班次引用。
      */
     @Nonnull
     public List<StopUsageSummaryView> getUsageSummary()
@@ -141,12 +143,16 @@ public class StopService
         Map<Long, Map<String, StopUsageSummaryView.Ref>> byStop = new LinkedHashMap<>();
         for (StopTimeRepository.StopRefProjection p : stopTimeRepository.findAllStopRefs())
         {
+            String label = p.getTripShortName() != null && !p.getTripShortName().isBlank()
+                    ? p.getTripShortName() : p.getTripId();
             byStop.computeIfAbsent(p.getStopPk(), k -> new LinkedHashMap<>())
-                    .putIfAbsent(p.getRoutePk() + "_" + p.getDirectionId(),
+                    .putIfAbsent(p.getRoutePk() + "_" + p.getDirectionId() + "_" + p.getTripPk(),
                             StopUsageSummaryView.Ref.builder()
                                     .routePk(p.getRoutePk())
                                     .routeShortName(p.getRouteShortName())
                                     .directionId(p.getDirectionId())
+                                    .tripPk(p.getTripPk())
+                                    .tripLabel(label)
                                     .build());
         }
         return byStop.entrySet().stream()

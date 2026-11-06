@@ -7,7 +7,7 @@
 
 在此之上按业务分组重编线路标识，使同族线路（霍营 1/2/3、雍和宫 1/2、东坝 A/B、涿州 1/2/3）相邻：
 
-- `route.route_id`：重编为连续 `1..44`
+- `route.route_id`：重编为连续 `1..44`（2026-11-06 11:00 追加 `45 八角园区3`，见文末「后续修正」）
 - `route.route_short_name`：由 `13线` 改为地名简称（如 `霍营1`）
 - `route.route_long_name`：统一为 `起点-终点` 格式，去掉空格与多余后缀
 - `route.route_sort_order`：按分组段位（11-21 / 22-29 / 31-37 / 41-45 / 51-56 / 61-63 / 71-74）
@@ -69,3 +69,106 @@
 - 引用 `route.route_id` 的 6 个外键（`attribution` / `fare_rule` / `route_network` / `transfer`×2 / `trip`）在迁移期间临时摘除后原样重建。
 - 迁移时 `trip`、`stop_time`、`fare_rule`、`attribution`、`transfer`、`shape`、`translation` 均为 0 行，无数据丢失风险。
 - 备份：`/tmp/shuttle_backup_20261106/route.json`、`route_network.json`（临时目录，重启后可能被清理）。
+
+## 后续修正（2026-11-06 11:00）
+
+用户指出原始 Excel 中「八角园区-昌平」「八角园区（2）-昌平」「八角园区（3）-昌平」是**三条从八角园区出发、终到昌平的班次**，不是开往八角办公区的线路。据此修正：
+
+| 新ID | 简称 | 全称 | 原全称 | 备注 |
+|---|---|---|---|---|
+| 32 | 八角园区1 | 八角园区-昌平 | 八角园区-昌平 | 还原 |
+| 33 | 八角园区2 | 八角园区（2）-昌平 | 八角园区-昌平2 | 补全角括号，与原表一致 |
+| 45 | 八角园区3 | 八角园区（3）-昌平 | — | **新建**，sort_order=76，待补站点/班次 |
+
+同时调整分组标签：32/33/45 三条从 `BAJIAO` 移到 `CHANGPING`（终点是昌平），方位维度保留 `LOCAL_SHUTTLE`。
+
+修正后分组：
+- CHANGPING 33 条（原 30 + 八角园区 1/2/3）
+- BAJIAO 4 条（天通苑北、昌平水屯、回龙观、通州北）
+- 两组零交叉，45 条线路全部有标签，`route_sort_order` 唯一，`pk == route_id`
+
+## 后续修正（2026-11-06 14:30）：霍营 1/2/3 合并为一条线路
+
+用户确认「霍营到昌平 3 条线合到同一个线路、作为三个班次」，且霍营3 的终点也是「昌平中石油科技园」（原 Excel 第 51 行漏录，已补）。
+
+### 变更
+- 保留 `route_id=8`（pk=8），简称/全称统一为 `霍营-昌平`，配色沿用原霍营1 的 `1CE273` / 字色 `000000`，`route_sort_order=18`
+- 三个班次全部挂到 pk=8，班次名称保留，便于回查原始表格行：
+  | trip pk | trip_id | 名称 | 停站数 |
+  |---|---|---|---|
+  | 34 | 8 | 霍营-昌平1 | 3 |
+  | 35 | 9 | 霍营-昌平2 | 3 |
+  | 53 | 10 | 霍营-昌平3 | 6 |
+- 删除空壳线路 pk=9（霍营2）、pk=10（霍营3）及其 `route_network` 标签
+- 编号回收：原 `route_id` 11..44 整体前移 1 → 10..43，空出来的 9 与 10 各被前一条线路顶替；线路总数 44 → 41
+
+### 编号变化（后段）
+| 原 route_id | 新 route_id | 简称 |
+|---|---|---|
+| 8 | 8 | 霍营-昌平（三班次） |
+| 9 | — | 已删除 |
+| 10 | — | 已删除 |
+| 11 | 10 | 北小街1 |
+| 32 | 31 | 八角园区 |
+| 34 | 33 | 昌平水屯 |
+| 44 | 43 | 涿州昌平4 |
+（11..44 全部 −1，其余不变）
+
+### 代码配套
+- `UpdateTripRequest` 新增可选字段 `routePk`；`TripService.updateTrip` 里新增 `applyRouteIfChanged`，只在 `routePk` 非 null 且与当前线路不同时改挂，目标线路不存在抛 404。班次的 `stop_time` 挂在 trip 上，随班次整体迁移，无需单独处理。
+
+### 迁移踩坑（重要）
+1. **JPA 会把临时命名空间的原值刷回数据库**：第一个脚本用 `conn.autocommit=False` 包装，`UPDATE ... SET route_id='__mig__N'` 之后调用 `conn.rollback()` 兜底时，MySQL 8 的 InnoDB 快照读让同一个连接看不到自己的批量改名结果，误判「仍有残留」而回滚 —— 但回滚的只是改名，`DELETE`/`UPDATE` 已提交，留下「route 少 2 条 + CASCADE 删掉孤儿标签」的残缺状态。结论：**改名脚本一律 autocommit，校验用新建连接**。
+2. **只迁 route 表不等于迁完**：`route_id` 是纯字符串外键，`trip` 和 `route_network` 里的 `route_id` 也要同步前移。本次 `trip` 表有 4 条（东坝 A/B、涿州昌平4）漏迁，`route_network` 全部漏迁，最后用 `WHERE route_id NOT IN (SELECT route_id FROM route)` 一次性补齐（天然幂等）。
+3. 外键重建顺序：先补子表数据再 ADD CONSTRAINT，否则 1452。
+
+---
+
+## 后续修正（2026-11-06 15:10）：UI 适配「一条线路多个班次」
+
+合并后暴露出两个使用问题：**页面建不出班次**、**线路视图看不出一条线路有几个班次**。
+
+### 澄清：创建班次的接口本来就有
+`POST /api/trips` 已在 `TripController` 里（复用 `TripService.createTrip`，校验 tripId 唯一 + 线路存在，`directionId` 默认 0），
+`CreateTripRequest` 字段齐全。实测 `curl -X POST /api/trips` 返回 201。
+真正的缺口在前端：`stops.html` / `map.html` 的 `API` 常量里都没有这个路径，页面上没有任何创建入口。
+
+### 后端
+- `RouteStopsView.DirectionStops` 新增 `trips`（`List<TripStops>`），每个班次携带自己的 `tripPk / tripId / label / headsign / firstDeparture / lastArrival / stops[]`，`stops` 内部按 `stop_sequence` 排好。
+  - 原有 `stops`（方向内并集）**保留**：地图打点、站点并集视图、引用面板都还在用它，破坏性改动没必要。
+  - `RouteService.buildTripStops()` 把「方向 → stopPk → 停站记录」反向按班次收拢再排序。单班次时结果与并集等价，多班次时才是真实形态。
+- `StopUsageSummaryView.Ref` 新增 `tripPk / tripLabel`，`StopTimeRepository.findAllStopRefs` 投影补上 `t.id / t.tripShortName / t.tripId`。
+  **去重粒度从「线路+方向」改成「线路+方向+班次」** —— 否则霍营-昌平 1/2/3 会被折叠成一个角标，看不出站点被哪个班次引用。
+
+### 前端 stops.html
+- 线路视图拆成两种：`按班次`（默认）/ `站点并集`，顶部小切换。
+  - 按班次：方向标题 + 每个班次一个可折叠块，标题显示「班次名 · 07:25–07:55 · 3 站」，班次内可拖拽调序、可逐站 ✕ 移除。
+  - 站点并集：原来的平铺逻辑，多班次共用站右侧标「N 班」。
+  - 原 `singleTrip` 判断只存在于并集视图（单班次方向仍可拖拽）；按班次视图每个块天然对应一个 trip，拖拽不再受班次数限制。
+- 「站点列表」标题右侧新增 `＋ 新建班次`（未选线路时置灰），弹窗填班次名 / 班次ID / 方向 / 服务日历 / 终点站名，建完是空班次，再用「＋ 新增站点」逐站加。
+  - 序号预填按整条线路递增（不按方向分算），避免去程已有 3 个时返程又从 1 开始撞名。
+- 列表角标 `refTags` 改为显示班次名（`tripLabel`），回退到 `[简称·去/返]`。
+- 统计口径跟随视图：按班次=停站总站次，并集=去重站点数。
+
+### 前端 map.html
+- 班次字段标签右侧加 `＋ 新建`（prompt 三步：名称 / ID / 服务日历），建完自动选中并加载描图页。
+- 线路下没有班次时 `tripSelect` 置灰并显示提示文案，而不是只给一个空下拉。
+
+### 验证
+```
+POST /api/trips  {routeId:8, tripId:"__tmp_test__", tripShortName:"霍营-昌平9"}  → 201 id=56
+POST /api/trips/56/stop-times ×2                                                  → seq 1,2
+PUT  /api/trips/56/stop-times/order [13,11]                                       → 204，视图顺序随之反转
+GET  /api/routes/8/stops                                                          → trips 数组 4 项，各自停站互不干扰
+GET  /api/stops/usage-summary                                                     → 站点 13 两条 ref，tripLabel 分别 "霍营-昌平2"/"霍营-昌平9"
+DELETE /api/trips/56                                                              → 204，恢复原状
+```
+
+## 后续修正（2026-11-06 15:30）：「站点并集」视图移除
+
+用户试用后拍板：站点列表**只按班次显示**，不需要并集视角。stops.html 中整套并集视图已拆除：
+- 切换按钮组（按班次/站点并集）、`state.routeView`、`renderDirectionUnion()`、视图切换监听器全部删除
+- 并集专用样式（`.view-switch` / `.shared-badge` / `.dir-head .term`）一并清理
+- 统计口径固定为"各班次停站总数之和"；拖拽乐观更新只走 trips 路径
+- 后端 `DirectionStops.stops`（方向并集）保留未动：地图打点、引用面板仍依赖
+- network 分组维度的"线路站点并集"（另一概念）不受影响

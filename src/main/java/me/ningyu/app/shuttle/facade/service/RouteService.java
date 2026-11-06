@@ -138,6 +138,8 @@ public class RouteService
                         .routeLongName(r.getRouteLongName())
                         .routeDesc(r.getRouteDesc())
                         .routeSortOrder(r.getRouteSortOrder())
+                        .routeColor(r.getRouteColor())
+                        .routeTextColor(r.getRouteTextColor())
                         .tags(tagMap.getOrDefault(r.getId(), List.of()))
                         .build())
                 .toList();
@@ -211,6 +213,7 @@ public class RouteService
                             .tripPks(tripPks)
                             .tripLabels(tripLabels)
                             .stops(stops)
+                            .trips(buildTripStops(stopMap))
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -222,5 +225,54 @@ public class RouteService
                 .routeLongName(route.getRouteLongName())
                 .directions(directions)
                 .build();
+    }
+
+    /**
+     * 把「方向内的停站记录」重组为「按班次分组的停站序列」。
+     * stopMap 是 方向 -> stopPk -> 该站的停站记录（同站多班次聚合），这里反向按班次收拢，
+     * 每个班次内部再按 stop_sequence 排序，得到它自己的完整停站序列。
+     * 一条线路只有一个班次时，结果与并集视图等价；多班次时才是唯一能看清各自走向的视角。
+     */
+    private List<RouteStopsView.TripStops> buildTripStops(Map<Long, List<StopTime>> stopMap)
+    {
+        Map<Long, List<StopTime>> byTrip = new LinkedHashMap<>();
+        stopMap.values().forEach(records -> records.forEach(st -> {
+            if (st.getTrip() != null)
+            {
+                byTrip.computeIfAbsent(st.getTrip().getId(), k -> new ArrayList<>()).add(st);
+            }
+        }));
+
+        return byTrip.entrySet().stream().map(entry -> {
+            List<StopTime> records = entry.getValue().stream()
+                    .sorted(Comparator.comparingInt(StopTime::getStopSequence))
+                    .collect(Collectors.toList());
+            Trip trip = records.get(0).getTrip();
+            List<RouteStopsView.StopItem> items = records.stream().map(st -> {
+                Stop stop = st.getStop();
+                return RouteStopsView.StopItem.builder()
+                        .stopPk(stop.getId())
+                        .stopId(stop.getStopId())
+                        .stopName(stop.getStopName())
+                        .lat(stop.getStopLat())
+                        .lng(stop.getStopLon())
+                        .stopSequence(st.getStopSequence())
+                        .tripCount(1)
+                        .build();
+            }).collect(Collectors.toList());
+
+            StopTime first = records.get(0);
+            StopTime last = records.get(records.size() - 1);
+            return RouteStopsView.TripStops.builder()
+                    .tripPk(trip.getId())
+                    .tripId(trip.getTripId())
+                    .label(trip.getTripShortName() != null && !trip.getTripShortName().isBlank()
+                            ? trip.getTripShortName() : trip.getTripId())
+                    .headsign(trip.getTripHeadsign())
+                    .firstDeparture(first.getDepartureTime())
+                    .lastArrival(last.getArrivalTime())
+                    .stops(items)
+                    .build();
+        }).collect(Collectors.toList());
     }
 }

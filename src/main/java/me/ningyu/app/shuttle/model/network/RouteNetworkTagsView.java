@@ -23,6 +23,10 @@ public class RouteNetworkTagsView
     private String routeDesc;
     /** 列表场景附带的展示序号（非标签查询时为 null） */
     private Integer routeSortOrder;
+    /** 线路背景色（6位16进制，无值时前端按默认灰处理） */
+    private String routeColor;
+    /** 线路文字色（6位16进制） */
+    private String routeTextColor;
     private List<Tag> tags;
 
     @Getter
