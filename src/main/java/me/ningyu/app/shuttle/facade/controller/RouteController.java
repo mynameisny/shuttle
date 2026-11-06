@@ -99,9 +99,15 @@ public class RouteController
     }
 
     @GetMapping
-    @Operation(summary = "获取线路列表", description = "获取所有线路列表，可按所属机构筛选")
-    public ResponseEntity<List<Route>> getAll(@RequestParam(required = false) Long agencyId)
+    @Operation(summary = "获取线路列表", description = "获取所有线路列表，可按所属机构筛选；withTags=true 时附带网络标签（route_networks 多标签）")
+    public ResponseEntity<?> getAll(
+            @RequestParam(required = false) Long agencyId,
+            @RequestParam(required = false, defaultValue = "false") boolean withTags)
     {
+        if (withTags)
+        {
+            return ResponseEntity.ok(routeService.getAllRoutesWithTags(agencyId));
+        }
         if (agencyId != null)
         {
             List<Route> routes = routeService.getRoutesByAgencyId(agencyId);

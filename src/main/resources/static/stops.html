@@ -315,33 +315,40 @@
         } catch (err) { toast('加载站点失败：' + err.message, true); }
     }
 
-    // 线路筛选下拉
+    // 线路筛选下拉：按「目的地」维度分组（route_networks 多标签，一条线路可挂多个标签）
     async function loadRouteOptions() {
         try {
-            const routes = await api(API.routes) || [];
-            // 后端已按 route_sort_order 返回（同 network_id 分组相邻），前端按 networkId 折成 optgroup 便于查找
-            const netNames = {
-                CP_NORTH: '昌平园区 · 北向',
-                CP_EAST: '昌平园区 · 东向',
-                CP_CENTER: '昌平园区 · 城区西向',
-                CP_LOCAL: '昌平园区 · 周边短驳',
-                BJ_OCT: '八角办公区',
-                ZZ_OCT: '涿州 → 八角',
-                ZZ_CP: '涿州 → 昌平'
+            const routes = await api(API.routes + '?withTags=true') || [];
+            const DEST_ORDER = ['CHANGPING', 'BAJIAO', 'ZHUOZHOU_TO_CP', 'ZHUOZHOU_TO_BJ'];
+            const DEST_LABEL = {
+                CHANGPING: '昌平办公区',
+                BAJIAO: '八角办公区',
+                ZHUOZHOU_TO_CP: '涿州 → 昌平',
+                ZHUOZHOU_TO_BJ: '涿州 → 八角'
             };
-            const opt = r => '<option value="' + r.id + '">' +
-                (r.routeShortName ? '[' + r.routeShortName + '] ' : '') + (r.routeLongName || r.routeId) + '</option>';
-            const groups = new Map();
+            // 方位标签用于选项后缀，帮助在同一目的地内快速区分
+            const BEARING = {
+                NORTH: '北向',
+                EAST: '东向',
+                WEST_CENTER: '城区西向',
+                LOCAL_SHUTTLE: '短驳'
+            };
+            const tagIds = r => (r.tags || []).map(t => t.networkId);
+            const opt = r => {
+                const b = tagIds(r).map(id => BEARING[id]).filter(Boolean).join('/');
+                const name = (r.routeShortName ? '[' + r.routeShortName + '] ' : '') + (r.routeLongName || r.routeGtfsId);
+                return '<option value="' + r.routePk + '">' + name + (b ? '（' + b + '）' : '') + '</option>';
+            };
+            const groups = new Map(DEST_ORDER.map(k => [k, []]));
             const loose = [];
             routes.forEach(r => {
-                if (r.networkId && netNames[r.networkId]) {
-                    if (!groups.has(r.networkId)) groups.set(r.networkId, []);
-                    groups.get(r.networkId).push(r);
-                } else { loose.push(r); }
+                const dest = tagIds(r).find(id => DEST_LABEL[id]);
+                if (dest) { groups.get(dest).push(r); } else { loose.push(r); }
             });
             let html = '<option value="">全部站点</option>';
-            groups.forEach((list, net) => {
-                html += '<optgroup label="' + netNames[net] + '">' + list.map(opt).join('') + '</optgroup>';
+            groups.forEach((list, dest) => {
+                if (!list.length) return;
+                html += '<optgroup label="' + DEST_LABEL[dest] + '">' + list.map(opt).join('') + '</optgroup>';
             });
             if (loose.length) html += '<optgroup label="未分组">' + loose.map(opt).join('') + '</optgroup>';
             $('routeFilter').innerHTML = html;

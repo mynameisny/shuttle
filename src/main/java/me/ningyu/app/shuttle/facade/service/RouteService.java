@@ -15,6 +15,7 @@ import me.ningyu.app.shuttle.domain.repo.TripRepository;
 import me.ningyu.app.shuttle.model.route.CreateRouteRequest;
 import me.ningyu.app.shuttle.model.route.RouteStopsView;
 import me.ningyu.app.shuttle.model.route.UpdateRouteRequest;
+import me.ningyu.app.shuttle.model.network.RouteNetworkTagsView;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +37,7 @@ public class RouteService
     private final AgencyRepository agencyRepository;
     private final StopTimeRepository stopTimeRepository;
     private final TripRepository tripRepository;
+    private final NetworkService networkService;
 
     @Nonnull
     public Route createRoute(CreateRouteRequest request)
@@ -110,8 +112,35 @@ public class RouteService
     @Nonnull
     public List<Route> getAllRoutes()
     {
-        // 按 route_sort_order 升序，保证业务含义相近的线路（同 network_id 分组）相邻
+        // 按 route_sort_order 升序，保证业务含义相近的线路分组相邻
         return routeRepository.findAllByOrderByRouteSortOrderAsc();
+    }
+
+    /**
+     * 线路列表 + 网络标签（多标签，对应 GTFS route_networks.txt）。
+     * 一次批量查出全部标签，避免前端逐条请求造成 N+1。
+     */
+    @Nonnull
+    public List<RouteNetworkTagsView> getAllRoutesWithTags(Long agencyId)
+    {
+        List<Route> routes = agencyId != null
+                ? routeRepository.findByAgencyIdOrderByRouteSortOrderAsc(agencyId)
+                : routeRepository.findAllByOrderByRouteSortOrderAsc();
+
+        Map<Long, List<RouteNetworkTagsView.Tag>> tagMap =
+                networkService.getTagsGroupedByRoute(routes.stream().map(Route::getId).toList());
+
+        return routes.stream()
+                .map(r -> RouteNetworkTagsView.builder()
+                        .routePk(r.getId())
+                        .routeGtfsId(r.getRouteId())
+                        .routeShortName(r.getRouteShortName())
+                        .routeLongName(r.getRouteLongName())
+                        .routeDesc(r.getRouteDesc())
+                        .routeSortOrder(r.getRouteSortOrder())
+                        .tags(tagMap.getOrDefault(r.getId(), List.of()))
+                        .build())
+                .toList();
     }
 
     @Nonnull
