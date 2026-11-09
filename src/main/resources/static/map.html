@@ -286,6 +286,7 @@
     //（末点精确落在站点坐标上，保证 30m 覆盖校验）；否则精确直线接入
     async function addStopVertex(s) {
         if (!parseLatLng(s.lat, s.lng)) { toast('该站点暂无坐标，请先在站点台账定位后再接入画线', true); return; }
+        map.panTo([s.lat, s.lng]); // 视角平滑移到站点位置，点完不用再手动拖地图找它
         if ($('followRoadMode').checked && state.editPoints.length) {
             await followRoad({ lat: s.lat, lng: s.lng }, s.stopName);
         } else {
