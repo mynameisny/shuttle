@@ -8,7 +8,30 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
-        #app { display: flex; height: 100%; }
+        #app { display: flex; flex-direction: column; height: 100%; }
+
+        /* ---------- 顶部导航栏（两页共用的统一外壳） ---------- */
+        .appbar {
+            display: flex; align-items: center; justify-content: space-between;
+            height: 52px; padding: 0 20px; flex-shrink: 0;
+            background: #fff; border-bottom: 1px solid #e0e3e8;
+            box-shadow: 0 1px 2px rgba(0,0,0,.04);
+        }
+        .appbar-brand { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 600; color: #202124; }
+        .appbar-brand .logo {
+            width: 28px; height: 28px; border-radius: 7px;
+            background: linear-gradient(135deg, #1a73e8, #4f8ff7);
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 700;
+        }
+        .appbar-nav { display: flex; gap: 4px; }
+        .appbar-tab {
+            padding: 7px 15px; font-size: 13px; color: #5f6368; text-decoration: none;
+            border-radius: 7px; transition: background .15s, color .15s;
+        }
+        .appbar-tab:hover { background: #f1f3f4; color: #202124; }
+        .appbar-tab.active { background: #e8f0fe; color: #1a73e8; font-weight: 600; }
+        #main { flex: 1; display: flex; overflow: hidden; }
 
         /* ---------- 左侧面板 ---------- */
         #panel {
@@ -131,13 +154,16 @@
 </head>
 <body>
 <div id="app">
-    <div id="panel">
-        <header>
-            <h1>班车线路描图</h1>
-            <p>地图手工选点（站点）· 描线（几何形状）</p>
-            <a class="nav-link" href="stops.html">站点维护 →</a>
-        </header>
-        <div class="body">
+    <header class="appbar">
+        <div class="appbar-brand"><span class="logo">班</span><span>班车调度管理</span></div>
+        <nav class="appbar-nav">
+            <a class="appbar-tab" href="stops.html">站点维护</a>
+            <a class="appbar-tab active" href="map.html">线路描图</a>
+        </nav>
+    </header>
+    <div id="main">
+        <div id="panel">
+            <div class="body">
             <div class="field">
                 <label>线路</label>
                 <!-- 原生 select 不支持 HTML 选项，不能放色块；用自定义面板渲染，
@@ -186,8 +212,9 @@
                 7. 保存后形状写入 GTFS shape 表并绑定班次，里程自动累计。
             </div>
         </div>
+        </div>
+        <div id="map"></div>
     </div>
-    <div id="map"></div>
 </div>
 <div id="toast"></div>
 
