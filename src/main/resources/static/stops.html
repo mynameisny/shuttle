@@ -221,6 +221,15 @@
         .empty-box.mini { padding: 8px; font-size: 11px; }
 
         /* ---------- 地图地名搜索控件 ---------- */
+        /* 搜索框与缩放按钮放同一水平行（topleft 角落改为横向排列） */
+        .leaflet-top.leaflet-left {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 0 0 10px;
+        }
+        .leaflet-top.leaflet-left .leaflet-control { margin: 0; }
         .leaflet-control.geo-ctl { width: 250px; padding: 0; background: transparent; border: none; box-shadow: none; position: relative; }
         .geo-ctl .geo-input {
             width: 100%; box-sizing: border-box; padding: 7px 10px;
