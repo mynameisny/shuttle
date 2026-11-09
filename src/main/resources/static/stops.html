@@ -226,7 +226,7 @@
     <div id="panel">
         <header>
             <h1>站点维护</h1>
-            <p>全站点台账 · 搜索 · 坐标校正</p>
+            <p>按线路维护站点 · 坐标校正</p>
             <a class="nav-link" href="map.html">线路描图 →</a>
         </header>
         <div class="body">
@@ -241,12 +241,12 @@
                     <button type="button" class="rp-btn" id="rpBtn" disabled>加载中…</button>
                     <div class="rp-panel" id="rpPanel" hidden></div>
                 </div>
-                <select id="routeFilter" class="sr-only" aria-hidden="true"><option value="">全部站点</option></select>
+                <select id="routeFilter" class="sr-only" aria-hidden="true"><option value="">请选择线路</option></select>
             </div>
 
             <div class="field">
                 <label>搜索站点</label>
-                <input type="text" id="searchInput" placeholder="输入站点名称关键字…" autocomplete="off">
+                <input type="text" id="searchInput" placeholder="选择线路后管理站点" autocomplete="off" disabled>
             </div>
 
             <div class="group-title"><span>站点列表 <span class="badge" id="stopCount">0</span></span><span id="listActions"><button id="btnNewTrip" class="mini-btn" disabled>＋ 新建班次</button><button id="btnCreate" class="mini-btn">＋ 新建站点</button></span></div>
@@ -283,13 +283,12 @@
 
             <div id="hint">
                 使用说明：<br>
-                1. 站点为全局资源：修改坐标会影响所有引用它的班次，请谨慎操作。<br>
-                2. 列表项角标显示引用该站的线路与方向（同名去程/返程站点靠此区分），"未使用"表示无任何班次引用。<br>
-                3. 顶部可按线路筛选，列表按「班次」分组显示（每个班次一块，可折叠，班次内可拖拽调序）。「＋ 新建班次」可为当前线路建一条新班次（空班次），再用「＋ 新增站点」逐站加入。<br>
-                4. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；保存后立即生效。<br>
-                5. 编辑区下方为引用该站点的班次明细（点击跳转描线页）；选中站点后地图自动弹出「时刻维护」浮层，可逐班次维护到/发时刻与时间精度（近似/精确）。<br>
-                6. 点击「新增站点」进入选点模式（Esc 取消），点击地图后填写站名与到/发时间（描述可选），站点将追加到所选班次停站末尾（可拖拽调整顺序）；删除站点须先解除班次引用：在分组视图点击站点右侧 ✕ 从班次移除，再到台账删除站点。<br>
-                7. (0,0) 占位站点（Excel 导入的未定位站）不上图也不参与视野缩放，在编辑区填入坐标后即上图；地图无有效站点时默认显示北京。
+                1. 请先在「按线路筛选」选择一条线路，列表按「班次」分组显示（每个班次一块，可折叠，班次内可拖拽调序）。<br>
+                2. 站点为全局资源：修改坐标会影响所有引用它的班次，请谨慎操作。<br>
+                3. 点击列表项或地图橙色圆点选中站点，蓝色圆点可拖拽微调位置；也可点「地图选点」后在地图上点击定位，保存后立即生效。<br>
+                4. 选中站点后地图自动弹出「时刻维护」浮层，可维护当前班次的到/发时刻与时间精度（近似/精确）。<br>
+                5. 点击「新增站点」进入选点模式（Esc 取消），点击地图后填写站名与到/发时间（描述可选），站点将追加到所选班次停站末尾；移除站点：在班次块内点站点右侧 ✕ 即从该班次移除。<br>
+                6. (0,0) 占位站点（Excel 导入的未定位站）不上图也不参与视野缩放，选点补坐标后即上图。
             </div>
         </div>
     </div>
@@ -422,7 +421,7 @@
     $('routeFilter').addEventListener('change', e => {
         state.routeFilter = e.target.value ? parseInt(e.target.value) : null;
         state.foldedTrips = {}; // 换线路后班次折叠状态不再适用
-        $('searchInput').disabled = state.routeFilter !== null;
+        $('searchInput').disabled = true; // 搜索随全局台账一并停用
         if (state.routeFilter !== null) $('searchInput').value = '';
         if (state.creating) setCreating(false); // 切线路退出选点模式
         updateCreateBtn();
@@ -515,7 +514,7 @@
         // 隐藏的原生 select 仍按原来的结构生成，取值/派发 change 的旧逻辑完全复用
         let html = '';
         if (list) {
-            const emptyLabel = state.groupBy ? groupLabel(state.groupBy) + ' 全部线路' : '全部站点';
+            const emptyLabel = state.groupBy ? groupLabel(state.groupBy) + ' 全部线路' : '请选择线路';
             html = '<option value="">' + esc(emptyLabel) + '</option>'
                 + list.map(r => '<option value="' + r.routePk + '">' + esc(routeOptionLabel(r)) + '</option>').join('');
         } else {
@@ -532,7 +531,7 @@
             // 原选中线路已不在当前分组里（或已不存在），回到「未筛选」
             state.routeFilter = null;
             $('routeFilter').value = '';
-            $('searchInput').disabled = false;
+            $('searchInput').disabled = true;
             updateCreateBtn();
         }
         renderRoutePicker();
@@ -556,7 +555,7 @@
         if (state.routeFilter !== null) {
             state.routeFilter = null;
             $('routeFilter').value = '';
-            $('searchInput').disabled = false;
+            $('searchInput').disabled = true;
             updateCreateBtn();
         }
         if (state.creating) setCreating(false);
@@ -676,7 +675,7 @@
             }));
             return out;
         }
-        return state.stops.map(s => ({ stopPk: s.id, lat: s.stopLat, lng: s.stopLon, stopName: s.stopName, stopId: s.stopId }));
+        return []; // 未选线路不上图，避免全局站点散落在地图上
     }
 
     // 保存站点后同步「按班次」视图的数据源（state.routeStops）：
@@ -722,9 +721,9 @@
             + '</span>';
     }
 
-    // 空值项的文案（不分组=全部站点；分组=「<分组名> 全部线路」）
+    // 空值项的文案（不分组=请选择线路；分组=「<分组名> 全部线路」）
     function routeEmptyLabel() {
-        return state.groupBy ? groupLabel(state.groupBy) + ' 全部线路' : '全部站点';
+        return state.groupBy ? groupLabel(state.groupBy) + ' 全部线路' : '请选择线路';
     }
 
     function renderRoutePicker() {
@@ -804,29 +803,19 @@
     }
 
     function renderList() {
-        if (state.routeFilter !== null && state.routeStops) { renderRouteList(); return; }
-
-        // 选了分组维度就只渲染该分组的站点，其余一律不显示。
-        // 统一用 state.stops：loadStops 在分组模式下已把结果与分组集合取过交集，
-        // 用它可以同时满足「只看该分组」和「分组内搜索」两种场景。
-        const grouped = !!(state.groupBy && state.groupStops);
-        const list = state.stops;
-
-        $('stopList').classList.remove('stacked');
-        $('stopCount').textContent = list.length;
-        if (grouped) $('stopCount').title = '当前只显示「' + groupLabel(state.groupBy) + '」分组内的站点';
-        else $('stopCount').removeAttribute('title');
-
-        $('stopList').innerHTML = list.length
-            ? list.map(s =>
-                '<div class="item' + (s.id === state.selectedId ? ' sel' : '') + '" data-id="' + s.id + '">' +
-                '<span class="name" title="' + esc(s.stopName || '') + '">' + esc(s.stopName || '(未命名)') + ' ' + refTags(s.id) + '</span>' +
-                '<span class="coord">' + parseFloat(s.stopLat).toFixed(5) + ',' + parseFloat(s.stopLon).toFixed(5) + '</span></div>'
-            ).join('')
-            : (grouped
-                ? '<div class="empty">「' + esc(groupLabel(state.groupBy)) + '」分组下暂无站点<br><span class="empty-hint">新建请到线路描图页；想看全部请把分组维度选为「不分组」</span></div>'
-                : '<div class="empty">无匹配站点（新建请到线路描图页）</div>');
-        bindListClicks();
+        if (state.routeFilter === null) {
+            // 未选线路：不再提供全局站点台账，强制通过线路进入，避免脱离线路误改站点
+            $('stopList').classList.remove('stacked');
+            $('stopCount').textContent = '0';
+            $('stopCount').removeAttribute('title');
+            $('stopList').innerHTML = '<div class="empty">请先在「按线路筛选」选择一条线路，再管理其站点<br><span class="empty-hint">站点维护一律挂在具体线路下进行，避免脱离线路误改</span></div>';
+            return;
+        }
+        if (state.routeStops) { renderRouteList(); return; }
+        // 已选线路但班次数据尚未加载（加载中/异常兜底）
+        $('stopList').classList.add('stacked');
+        $('stopCount').textContent = '0';
+        $('stopList').innerHTML = '<div class="empty">加载中…</div>';
     }
 
     // 线路筛选模式：按方向 → 按班次分组（每个班次一块）。
