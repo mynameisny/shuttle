@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班车线路 · 班车调度管理</title>
+    <meta name="nav" content="routes.list">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        .route-chip {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 30px; height: 22px; padding: 0 7px;
+            border-radius: 5px; font-size: 11.5px; font-weight: 650;
+            color: #fff; font-variant-numeric: tabular-nums;
+        }
+        .color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; vertical-align: middle; }
+        .stat-strip { display: flex; align-items: center; padding: 0 18px; border-bottom: 1px solid var(--c-border); overflow-x: auto; }
+        .stat-strip .fs-item {
+            display: flex; flex-direction: column; gap: 1px;
+            padding: 12px 20px 12px 0; margin-right: 20px;
+            border-right: 1px solid #f1f3f6; white-space: nowrap;
+        }
+        .stat-strip .fs-item:last-child { border-right: none; }
+        .stat-strip .fs-label { font-size: 11px; color: var(--c-text-3); }
+        .stat-strip .fs-value { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">班车线路</h1>
+                    <p class="page-desc">GTFS 线路台账 · 站点与运行方向维护入口</p>
+                </div>
+                <div class="page-actions">
+                    <label class="search-wrap">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        <input type="text" class="search" id="searchInput" placeholder="搜索线路名称 / 编号…" style="width:250px">
+                    </label>
+                    <a class="btn" href="stops.html">站点维护</a>
+                    <a class="btn btn-primary" href="map.html">线路描图</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="stat-strip" id="statStrip"></div>
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th style="width:74px">线路号</th>
+                            <th>线路名称</th>
+                            <th>起点标注</th>
+                            <th>类型</th>
+                            <th>颜色</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    let routes = [];
+
+    async function load() {
+        try {
+            routes = await api('/api/routes') || [];
+            renderStrip();
+            render();
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function renderStrip() {
+        const total = routes.length;
+        const withColor = routes.filter(r => r.routeColor).length;
+        $('statStrip').innerHTML =
+            '<div class="fs-item"><span class="fs-label">线路总数</span><span class="fs-value">' + total + '</span></div>' +
+            '<div class="fs-item"><span class="fs-label">已设线路色</span><span class="fs-value">' + withColor + '</span></div>' +
+            '<div class="fs-item"><span class="fs-label">线路类型</span><span class="fs-value" style="font-size:13px">BUS 公交</span></div>';
+    }
+
+    function sortKey(r) {
+        const n = parseInt(r.routeId);
+        return isNaN(n) ? 9999 : n;
+    }
+
+    function render() {
+        const kw = $('searchInput').value.trim().toLowerCase();
+        const list = routes
+            .filter(r => {
+                if (!kw) return true;
+                return ((r.routeLongName || '') + ' ' + (r.routeShortName || '') + ' ' + r.routeId).toLowerCase().includes(kw);
+            })
+            .sort((a, b) => sortKey(a) - sortKey(b));
+
+        const tbody = $('tbody');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">' +
+                '<div class="em-title">没有匹配的线路</div><div class="em-desc">换个关键词试试</div></div></td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = list.map(r => {
+            const color = r.routeColor ? '#' + String(r.routeColor).replace('#', '') : '#9aa3b0';
+            const name = r.routeLongName || r.routeShortName || ('线路 ' + r.routeId);
+            return '<tr>' +
+                '<td><span class="route-chip" style="background:' + esc(color) + '">' + esc(r.routeId) + '</span></td>' +
+                '<td class="strong">' + esc(name) + '</td>' +
+                '<td>' + (r.routeShortName ? esc(r.routeShortName) : '<span class="muted">—</span>') + '</td>' +
+                '<td><span class="pill no-dot pill-neutral">' + esc(r.routeType || 'BUS') + '</span></td>' +
+                '<td><span class="color-dot" style="background:' + esc(color) + '"></span>' +
+                ' <span class="mono muted" style="font-size:11.5px">' + esc(r.routeColor || '—') + '</span></td>' +
+                '<td class="col-actions">' +
+                '<a class="btn btn-sm" href="stops.html?routePk=' + r.id + '">站点</a> ' +
+                '<a class="btn btn-sm" href="map.html?routePk=' + r.id + '">描图</a></td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    $('searchInput').addEventListener('input', render);
+    load();
+</script>
+</body>
+</html>

@@ -3,35 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>班车线路描图 - Shuttle 管理端</title>
+    <title>运行方向 · 班车调度管理</title>
+    <meta name="nav" content="routes.direction">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="css/app.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+        /* 页面自身布局：#app 填满右侧主区（侧边栏由 app.css + layout.js 提供） */
         #app { display: flex; flex-direction: column; height: 100%; }
-
-        /* ---------- 顶部导航栏（两页共用的统一外壳） ---------- */
-        .appbar {
-            display: flex; align-items: center; justify-content: space-between;
-            height: 52px; padding: 0 20px; flex-shrink: 0;
-            background: #fff; border-bottom: 1px solid #e0e3e8;
-            box-shadow: 0 1px 2px rgba(0,0,0,.04);
-        }
-        .appbar-brand { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 600; color: #202124; }
-        .appbar-brand .logo {
-            width: 28px; height: 28px; border-radius: 7px;
-            background: linear-gradient(135deg, #1a73e8, #4f8ff7);
-            color: #fff; display: flex; align-items: center; justify-content: center;
-            font-size: 15px; font-weight: 700;
-        }
-        .appbar-nav { display: flex; gap: 4px; }
-        .appbar-tab {
-            padding: 7px 15px; font-size: 13px; color: #5f6368; text-decoration: none;
-            border-radius: 7px; transition: background .15s, color .15s;
-        }
-        .appbar-tab:hover { background: #f1f3f4; color: #202124; }
-        .appbar-tab.active { background: #e8f0fe; color: #1a73e8; font-weight: 600; }
-        #main { flex: 1; display: flex; overflow: hidden; }
+        #main { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 
         /* ---------- 左侧面板 ---------- */
         #panel {
@@ -153,16 +134,10 @@
     </style>
 </head>
 <body>
+<div class="app-shell">
+<aside class="sidebar" id="sidebar"></aside>
+<div class="main-area">
 <div id="app">
-    <header class="appbar">
-        <div class="appbar-brand"><span class="logo">班</span><span>班车调度管理</span></div>
-        <nav class="appbar-nav">
-            <a class="appbar-tab" href="stops.html">站点维护</a>
-            <a class="appbar-tab active" href="map.html">线路描图</a>
-            <a class="appbar-tab" href="vehicles.html">车辆</a>
-            <a class="appbar-tab" href="drivers.html">司机</a>
-        </nav>
-    </header>
     <div id="main">
         <div id="panel">
             <div class="body">
@@ -217,11 +192,17 @@
         </div>
         <div id="map"></div>
     </div>
-</div>
+</div><!-- /#app -->
+</div><!-- /.main-area -->
+</div><!-- /.app-shell -->
 <div id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+</script>
 <script>
     const API = {
         routes: '/api/routes',
@@ -767,17 +748,26 @@
     });
 
     // 站点维护页引用面板跳转 ?tripPk=xxx：自动选中对应线路与班次
+    // 线路台账点「描图」跳转 ?routePk=xxx：自动选中该线路（不指定班次）
     async function autoSelectFromUrl() {
-        const tripPk = new URLSearchParams(location.search).get('tripPk');
-        if (!tripPk) return;
-        try {
-            const view = await api(API.tripShape(tripPk));
-            if (!view || !view.routePk) return;
-            setRouteValue(view.routePk, false);
-            await loadTrips(view.routePk);
-            $('tripSelect').value = tripPk;
-            await loadTripShape(tripPk);
-        } catch (err) { toast('自动定位班次失败：' + err.message, true); }
+        const params = new URLSearchParams(location.search);
+        const tripPk = params.get('tripPk');
+        if (tripPk) {
+            try {
+                const view = await api(API.tripShape(tripPk));
+                if (!view || !view.routePk) return;
+                setRouteValue(view.routePk, false);
+                await loadTrips(view.routePk);
+                $('tripSelect').value = tripPk;
+                await loadTripShape(tripPk);
+            } catch (err) { toast('自动定位班次失败：' + err.message, true); }
+            return;
+        }
+        // 注意：/api/routes 返回的是 GTFS Route 实体，主键字段名为 id（不是 routePk）
+        const routePk = params.get('routePk');
+        if (routePk && routeList.some(r => String(r.id) === String(routePk))) {
+            setRouteValue(routePk, true);
+        }
     }
 </script>
 </body>

@@ -3,130 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>车辆维护 - 班车调度管理</title>
+    <title>车辆档案 · 班车调度管理</title>
+    <meta name="nav" content="vehicles.archives">
+    <link rel="stylesheet" href="css/app.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
-        #app { display: flex; flex-direction: column; height: 100%; background: #f5f6f8; }
-
-        /* ---------- 顶部导航栏 ---------- */
-        .appbar {
-            display: flex; align-items: center; justify-content: space-between;
-            height: 52px; padding: 0 20px; flex-shrink: 0;
-            background: #fff; border-bottom: 1px solid #e0e3e8;
-            box-shadow: 0 1px 2px rgba(0,0,0,.04);
+        /* 页面特异性样式：仅车辆页使用的部分 */
+        .fleet-summary {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 0 18px;
+            border-bottom: 1px solid var(--c-border);
+            overflow-x: auto;
         }
-        .appbar-brand { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 600; color: #202124; }
-        .appbar-brand .logo {
-            width: 28px; height: 28px; border-radius: 7px;
-            background: linear-gradient(135deg, #1a73e8, #4f8ff7);
-            color: #fff; display: flex; align-items: center; justify-content: center;
-            font-size: 15px; font-weight: 700;
+        .fleet-summary .fs-item {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            padding: 12px 20px 12px 0;
+            margin-right: 20px;
+            border-right: 1px solid #f1f3f6;
+            white-space: nowrap;
         }
-        .appbar-nav { display: flex; gap: 4px; }
-        .appbar-tab {
-            padding: 7px 15px; font-size: 13px; color: #5f6368; text-decoration: none;
-            border-radius: 7px; transition: background .15s, color .15s;
-        }
-        .appbar-tab:hover { background: #f1f3f4; color: #202124; }
-        .appbar-tab.active { background: #e8f0fe; color: #1a73e8; font-weight: 600; }
-
-        /* ---------- 内容区 ---------- */
-        #main { flex: 1; overflow: auto; padding: 24px 32px; }
-        .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-        .toolbar h2 { font-size: 18px; font-weight: 600; color: #202124; }
-        .toolbar .sub { font-size: 12px; color: #9aa0a6; margin-top: 2px; }
-        .toolbar-right { display: flex; align-items: center; gap: 10px; }
-        .search { padding: 7px 10px; font-size: 13px; border: 1px solid #d0d5dd; border-radius: 6px; background: #fff; width: 220px; }
-        .search:focus { outline: 2px solid #aecbfa; border-color: #1a73e8; }
-        button {
-            padding: 7px 14px; font-size: 13px; border: 1px solid #d0d5dd; border-radius: 6px;
-            background: #fff; color: #333; cursor: pointer; font-family: inherit;
-        }
-        button:hover { background: #f1f3f4; }
-        button.primary { background: #1a73e8; border-color: #1a73e8; color: #fff; }
-        button.primary:hover { background: #1765cc; }
-        button.danger { color: #d93025; border-color: #f1c7c3; }
-        button.danger:hover { background: #fce8e6; }
-        button.mini { padding: 4px 10px; font-size: 12px; }
-
-        /* ---------- 表格 ---------- */
-        .card { background: #fff; border: 1px solid #e0e3e8; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        thead th {
-            text-align: left; padding: 11px 14px; background: #fafbfc; color: #5f6368;
-            font-weight: 600; font-size: 12px; border-bottom: 1px solid #e0e3e8; white-space: nowrap;
-        }
-        tbody td { padding: 11px 14px; border-bottom: 1px solid #f0f2f5; color: #333; }
-        tbody tr:hover { background: #f8fafd; }
-        tbody tr:last-child td { border-bottom: none; }
-        .plate { font-weight: 600; color: #174ea6; }
-        .muted { color: #9aa0a6; }
-        .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; background: #eef3fd; color: #174ea6; }
-        .tag.coach { background: #e6f4ea; color: #137333; }
-        .tag.mini-bus { background: #fef7e0; color: #b06000; }
-        .tag.status-ok { background: #e6f4ea; color: #137333; }
-        .tag.status-maintain { background: #fef7e0; color: #b06000; }
-        .tag.status-out { background: #fce8e6; color: #c5221f; }
-        .empty { padding: 40px; text-align: center; color: #9aa0a6; }
-
-        /* ---------- 弹窗 ---------- */
-        .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-        .modal { width: 440px; background: #fff; border-radius: 12px; padding: 20px 22px; box-shadow: 0 12px 40px rgba(0,0,0,.2); }
-        .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #202124; }
-        .field { margin-bottom: 12px; }
-        .field label { display: block; font-size: 12px; color: #5f6368; margin-bottom: 4px; }
-        .field input, .field select {
-            width: 100%; padding: 7px 9px; font-size: 13px; border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
-        }
-        .field input:focus, .field select:focus { outline: 2px solid #aecbfa; border-color: #1a73e8; }
-        .field-row { display: flex; gap: 10px; }
-        .field-row .field { flex: 1; }
-        .modal .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
-
-        #toast {
-            position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
-            background: #202124; color: #fff; font-size: 13px; padding: 9px 18px;
-            border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 9999;
-        }
-        #toast.show { opacity: .95; }
-        #toast.err { background: #b3261e; }
+        .fleet-summary .fs-item:last-child { border-right: none; }
+        .fleet-summary .fs-label { font-size: 11px; color: var(--c-text-3); }
+        .fleet-summary .fs-value { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
+        .plate-cell { font-weight: 620; letter-spacing: .02em; }
+        .expiry-soon { color: var(--c-warn); font-weight: 600; }
+        .expiry-over { color: var(--c-danger); font-weight: 600; }
     </style>
 </head>
 <body>
-<div id="app">
-    <header class="appbar">
-        <div class="appbar-brand"><span class="logo">班</span><span>班车调度管理</span></div>
-        <nav class="appbar-nav">
-            <a class="appbar-tab" href="stops.html">站点维护</a>
-            <a class="appbar-tab" href="map.html">线路描图</a>
-            <a class="appbar-tab active" href="vehicles.html">车辆</a>
-            <a class="appbar-tab" href="drivers.html">司机</a>
-        </nav>
-    </header>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page" id="page">
 
-    <div id="main">
-        <div class="toolbar">
-            <div>
-                <h2>车辆维护</h2>
-                <div class="sub">车牌、品牌型号、座位、能源类型、状态与保险年检台账</div>
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">车辆档案</h1>
+                    <p class="page-desc">车牌、品牌型号、座位、能源类型、状态与保险年检台账</p>
+                </div>
+                <div class="page-actions">
+                    <label class="search-wrap">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        <input type="text" class="search" id="searchInput" placeholder="搜索车牌 / 品牌 / 供应商…" style="width:250px">
+                    </label>
+                    <button class="btn btn-primary" id="btnAdd">
+                        <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
+                        新增车辆
+                    </button>
+                </div>
             </div>
-            <div class="toolbar-right">
-                <input type="text" class="search" id="searchInput" placeholder="搜索车牌 / 品牌 / 供应商…">
-                <button id="btnAdd" class="primary">＋ 新增车辆</button>
+
+            <div class="card">
+                <div class="fleet-summary" id="fleetSummary"></div>
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>车牌号</th>
+                            <th>品牌 / 型号</th>
+                            <th>车型</th>
+                            <th>座位</th>
+                            <th>能源</th>
+                            <th>状态</th>
+                            <th>供应商</th>
+                            <th>保险到期</th>
+                            <th>年检到期</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-        <div class="card">
-            <table>
-                <thead>
-                    <tr>
-                        <th>车牌号</th><th>品牌/型号</th><th>车型</th><th>座位数</th>
-                        <th>能源</th><th>状态</th><th>供应商</th>
-                        <th>保险到期</th><th>年检到期</th><th style="width:130px">操作</th>
-                    </tr>
-                </thead>
-                <tbody id="tbody"></tbody>
-            </table>
+
         </div>
     </div>
 </div>
@@ -134,24 +87,25 @@
 <div id="modal" class="modal-mask" style="display:none">
     <div class="modal">
         <h3 id="modalTitle">新增车辆</h3>
+        <p class="modal-desc">车牌号唯一，保存后可在列表与工作台统计中生效</p>
         <div class="field">
-            <label>车牌号 *</label>
-            <input type="text" id="fPlate" maxlength="20" placeholder="如 京B12345D">
+            <label>车牌号<span class="req">*</span></label>
+            <input type="text" class="input" id="fPlate" maxlength="20" placeholder="如 京B12345D">
         </div>
         <div class="field-row">
             <div class="field">
-                <label>品牌/型号</label>
-                <input type="text" id="fBrand" maxlength="50" placeholder="如 宇通">
+                <label>品牌 / 型号</label>
+                <input type="text" class="input" id="fBrand" maxlength="50" placeholder="如 宇通 ZK6122">
             </div>
             <div class="field">
                 <label>座位数</label>
-                <input type="number" id="fSeat" min="1" max="200" placeholder="如 48">
+                <input type="number" class="input" id="fSeat" min="1" max="200" placeholder="如 48">
             </div>
         </div>
         <div class="field-row">
             <div class="field">
                 <label>车型</label>
-                <select id="fType">
+                <select class="select" id="fType">
                     <option value="大巴">大巴</option>
                     <option value="中巴">中巴</option>
                     <option value="考斯特">考斯特</option>
@@ -159,7 +113,7 @@
             </div>
             <div class="field">
                 <label>能源类型</label>
-                <select id="fEnergy">
+                <select class="select" id="fEnergy">
                     <option value="">未填写</option>
                     <option value="燃油">燃油</option>
                     <option value="纯电">纯电</option>
@@ -170,7 +124,7 @@
         <div class="field-row">
             <div class="field">
                 <label>车辆状态</label>
-                <select id="fStatus">
+                <select class="select" id="fStatus">
                     <option value="运营中">运营中</option>
                     <option value="维修">维修</option>
                     <option value="停运">停运</option>
@@ -178,29 +132,32 @@
             </div>
             <div class="field">
                 <label>供应商</label>
-                <input type="text" id="fSupplier" maxlength="50" placeholder="如 新朗途 / 驰锐">
+                <input type="text" class="input" id="fSupplier" maxlength="50" placeholder="如 新朗途 / 驰锐">
             </div>
         </div>
         <div class="field-row">
             <div class="field">
                 <label>保险到期日</label>
-                <input type="date" id="fInsurance">
+                <input type="date" class="input" id="fInsurance">
             </div>
             <div class="field">
                 <label>年检到期日</label>
-                <input type="date" id="fInspection">
+                <input type="date" class="input" id="fInspection">
             </div>
         </div>
         <div class="btn-row">
-            <button id="btnCancel">取消</button>
-            <button id="btnSave" class="primary">保存</button>
+            <button class="btn" id="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSave">保存</button>
         </div>
     </div>
 </div>
 
 <div id="toast"></div>
 <script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
 <script>
+    initShell();
+
     const API = { vehicles: '/api/vehicles' };
     let vehicles = [];
     let editingId = null;
@@ -208,15 +165,44 @@
     async function load() {
         try {
             vehicles = await api(API.vehicles) || [];
+            renderSummary();
             render();
         } catch (err) { toast('加载失败：' + err.message, true); }
     }
 
-    function typeClass(t) {
-        return t === '大巴' ? 'coach' : t === '中巴' ? 'mini-bus' : '';
+    function typePill(t) {
+        const cls = t === '大巴' ? 'pill-info' : t === '中巴' ? 'pill-warn' : 'pill-neutral';
+        return '<span class="pill no-dot ' + cls + '">' + esc(t || '-') + '</span>';
     }
-    function statusClass(s) {
-        return s === '维修' ? 'status-maintain' : s === '停运' ? 'status-out' : 'status-ok';
+    function statusPill(s) {
+        const cls = s === '维修' ? 'pill-warn' : s === '停运' ? 'pill-danger' : 'pill-ok';
+        return '<span class="pill ' + cls + '">' + esc(s || '运营中') + '</span>';
+    }
+
+    // 到期日着色：逾期红、60 天内橙
+    function expiryCell(d) {
+        if (!d) return '<span class="muted">—</span>';
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const dt = new Date(d + 'T00:00:00');
+        const days = Math.round((dt - today) / 86400000);
+        let cls = '';
+        if (days < 0) cls = 'expiry-over';
+        else if (days <= 60) cls = 'expiry-soon';
+        return '<span class="mono ' + cls + '">' + esc(d) + '</span>';
+    }
+
+    function renderSummary() {
+        const total = vehicles.length;
+        const running = vehicles.filter(v => (v.status || '运营中') === '运营中').length;
+        const maintain = vehicles.filter(v => v.status === '维修').length;
+        const out = vehicles.filter(v => v.status === '停运').length;
+        const seats = vehicles.reduce((s, v) => s + (v.seatCount || 0), 0);
+        $('fleetSummary').innerHTML =
+            '<div class="fs-item"><span class="fs-label">车辆总数</span><span class="fs-value">' + total + '</span></div>' +
+            '<div class="fs-item"><span class="fs-label">运营中</span><span class="fs-value" style="color:var(--c-ok)">' + running + '</span></div>' +
+            '<div class="fs-item"><span class="fs-label">维修</span><span class="fs-value" style="color:var(--c-warn)">' + maintain + '</span></div>' +
+            '<div class="fs-item"><span class="fs-label">停运</span><span class="fs-value" style="color:var(--c-danger)">' + out + '</span></div>' +
+            '<div class="fs-item"><span class="fs-label">总座位</span><span class="fs-value">' + seats + '</span></div>';
     }
 
     function render() {
@@ -227,22 +213,26 @@
         });
         const tbody = $('tbody');
         if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="10" class="empty">暂无车辆数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10">' +
+                '<div class="empty-state"><div class="em-title">没有匹配的车辆</div>' +
+                '<div class="em-desc">换个关键词，或点击右上角「新增车辆」录入</div></div></td></tr>';
             return;
         }
         tbody.innerHTML = list.map(v =>
             '<tr>' +
-            '<td class="plate">' + esc(v.plateNumber) + '</td>' +
-            '<td>' + esc(v.brandModel || '-') + '</td>' +
-            '<td><span class="tag ' + typeClass(v.vehicleType) + '">' + esc(v.vehicleType || '-') + '</span></td>' +
-            '<td>' + (v.seatCount != null ? v.seatCount : '-') + '</td>' +
-            '<td>' + esc(v.energyType || '-') + '</td>' +
-            '<td><span class="tag ' + statusClass(v.status) + '">' + esc(v.status || '运营中') + '</span></td>' +
-            '<td>' + esc(v.supplier || '-') + '</td>' +
-            '<td>' + (v.insuranceExpiry || '-') + '</td>' +
-            '<td>' + (v.inspectionExpiry || '-') + '</td>' +
-            '<td><button class="mini" data-edit="' + v.id + '">编辑</button> ' +
-            '<button class="mini danger" data-del="' + v.id + '">删除</button></td>' +
+            '<td><div class="cell-stack"><span class="plate-cell">' + esc(v.plateNumber) + '</span>' +
+            '<span class="sub">ID ' + v.id + '</span></div></td>' +
+            '<td>' + (v.brandModel ? esc(v.brandModel) : '<span class="muted">未填写</span>') + '</td>' +
+            '<td>' + typePill(v.vehicleType) + '</td>' +
+            '<td class="mono">' + (v.seatCount != null ? v.seatCount : '<span class="muted">—</span>') + '</td>' +
+            '<td>' + (v.energyType ? esc(v.energyType) : '<span class="muted">—</span>') + '</td>' +
+            '<td>' + statusPill(v.status) + '</td>' +
+            '<td>' + (v.supplier ? esc(v.supplier) : '<span class="muted">—</span>') + '</td>' +
+            '<td>' + expiryCell(v.insuranceExpiry) + '</td>' +
+            '<td>' + expiryCell(v.inspectionExpiry) + '</td>' +
+            '<td class="col-actions">' +
+            '<button class="btn btn-sm" data-edit="' + v.id + '">编辑</button> ' +
+            '<button class="btn btn-sm btn-danger" data-del="' + v.id + '">删除</button></td>' +
             '</tr>'
         ).join('');
         tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));

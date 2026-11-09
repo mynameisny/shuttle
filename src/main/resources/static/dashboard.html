@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作台 · 班车调度管理</title>
+    <meta name="nav" content="dashboard">
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        .dash-row { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; }
+        @media (max-width: 1100px) { .dash-row { grid-template-columns: 1fr; } }
+
+        /* 分布行：标签 + 数值 + 进度条 */
+        .dist-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+        .dist-row + .dist-row { border-top: 1px solid #f4f6f8; }
+        .dist-row .dr-label { flex-shrink: 0; font-size: 12.5px; color: var(--c-text-2); min-width: 62px; }
+        .dist-row .dr-bar { flex: 1; min-width: 0; display: block; }
+        .dist-row .dr-val { width: 46px; text-align: right; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+        .dist-row .dr-pct { width: 42px; text-align: right; font-size: 11.5px; color: var(--c-text-3); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+        /* 快捷入口 */
+        .quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+        .quick-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 13px; border: 1px solid var(--c-border);
+            border-radius: var(--radius-sm); text-decoration: none; color: var(--c-text);
+            background: #fff; transition: border-color .14s, box-shadow .14s;
+        }
+        .quick-item:hover { border-color: #cdeee9; box-shadow: var(--shadow-1); }
+        .quick-item .qi-ico {
+            width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+            background: var(--c-primary-soft); color: var(--c-primary-ink);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .quick-item .qi-ico .ico { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+        .quick-item .qi-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+        .quick-item .qi-name { font-size: 12.5px; font-weight: 550; }
+        .quick-item .qi-sub { font-size: 11px; color: var(--c-text-3); }
+
+        /* 线路概览列表 */
+        .route-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 0; border-bottom: 1px solid #f4f6f8;
+        }
+        .route-item:last-child { border-bottom: none; }
+        .route-item .ri-badge {
+            width: 34px; height: 26px; border-radius: 5px; flex-shrink: 0;
+            background: #f1f3f5; color: var(--c-text-2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 650; font-variant-numeric: tabular-nums;
+        }
+        .route-item .ri-main { flex: 1; min-width: 0; }
+        .route-item .ri-name { font-size: 12.5px; font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .route-item .ri-meta { font-size: 11px; color: var(--c-text-3); margin-top: 2px; }
+
+        /* 骨架屏 */
+        .skel {
+            background: linear-gradient(90deg, #f1f3f5 25%, #e9ecf0 37%, #f1f3f5 63%);
+            background-size: 400% 100%;
+            animation: skel 1.3s ease infinite;
+            border-radius: 4px;
+            color: transparent;
+        }
+        @keyframes skel { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">工作台</h1>
+                    <p class="page-desc" id="todayDesc">车队规模、人员与运营数据总览</p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn" href="vehicles.html">车辆档案</a>
+                    <a class="btn" href="stops.html">站点维护</a>
+                    <a class="btn btn-primary" href="map.html">线路描图</a>
+                </div>
+            </div>
+
+            <!-- 指标卡 -->
+            <div class="stat-grid" id="statGrid">
+                <div class="stat-card"><div class="stat-top"><span class="stat-label">车辆总数</span></div><div class="stat-value skel">000</div><div class="stat-foot">加载中…</div></div>
+                <div class="stat-card"><div class="stat-top"><span class="stat-label">司机人数</span></div><div class="stat-value skel">000</div><div class="stat-foot">加载中…</div></div>
+                <div class="stat-card"><div class="stat-top"><span class="stat-label">班车线路</span></div><div class="stat-value skel">000</div><div class="stat-foot">加载中…</div></div>
+                <div class="stat-card"><div class="stat-top"><span class="stat-label">站点数量</span></div><div class="stat-value skel">000</div><div class="stat-foot">加载中…</div></div>
+            </div>
+
+            <div class="dash-row">
+                <!-- 左：车辆状态分布 + 线路概览 -->
+                <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+                    <div class="card">
+                        <div class="card-head">
+                            <div>
+                                <div class="card-title">车辆状态分布</div>
+                                <div class="card-sub">按运营状态统计的在册车辆</div>
+                            </div>
+                            <a class="btn btn-sm" href="vehicles.html">明细</a>
+                        </div>
+                        <div class="card-body" id="vehicleDist" style="padding-top:8px;padding-bottom:10px">
+                            <div style="height:60px" class="empty-state">加载中…</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head">
+                            <div>
+                                <div class="card-title">线路概览</div>
+                                <div class="card-sub">按班次数量排序的运营线路</div>
+                            </div>
+                            <a class="btn btn-sm" href="routes.html">全部线路</a>
+                        </div>
+                        <div class="card-body" id="routeList" style="padding-top:4px;padding-bottom:4px">
+                            <div style="height:60px" class="empty-state">加载中…</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右：快捷入口 + 到期提醒 -->
+                <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-title">快捷入口</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="quick-grid">
+                                <a class="quick-item" href="vehicles.html">
+                                    <span class="qi-ico"><svg class="ico" viewBox="0 0 20 20"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h7A2.5 2.5 0 0 1 16 5.5V14a1 1 0 0 1-1 1h-1.2a1 1 0 0 1-1-1v-.6H7.2V14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 9h12"/></svg></span>
+                                    <span class="qi-txt"><span class="qi-name">车辆档案</span><span class="qi-sub">台账与状态</span></span>
+                                </a>
+                                <a class="quick-item" href="drivers.html">
+                                    <span class="qi-ico"><svg class="ico" viewBox="0 0 20 20"><circle cx="10" cy="6.2" r="3.1"/><path d="M4 17.2c0-2.8 2.7-4.6 6-4.6s6 1.8 6 4.6"/></svg></span>
+                                    <span class="qi-txt"><span class="qi-name">司机档案</span><span class="qi-sub">人员与电话</span></span>
+                                </a>
+                                <a class="quick-item" href="stops.html">
+                                    <span class="qi-ico"><svg class="ico" viewBox="0 0 20 20"><path d="M10 17.4s5.4-5 5.4-9a5.4 5.4 0 1 0-10.8 0c0 4 5.4 9 5.4 9z"/><circle cx="10" cy="8.2" r="2"/></svg></span>
+                                    <span class="qi-txt"><span class="qi-name">站点维护</span><span class="qi-sub">坐标与时刻</span></span>
+                                </a>
+                                <a class="quick-item" href="map.html">
+                                    <span class="qi-ico"><svg class="ico" viewBox="0 0 20 20"><circle cx="5" cy="5" r="2"/><circle cx="15" cy="15" r="2"/><path d="M5 7v3.5A2.5 2.5 0 0 0 7.5 13H12a2.5 2.5 0 0 1 2.5 2.5V13"/></svg></span>
+                                    <span class="qi-txt"><span class="qi-name">线路描图</span><span class="qi-sub">运行方向</span></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head">
+                            <div>
+                                <div class="card-title">保险 / 年检到期提醒</div>
+                                <div class="card-sub">已逾期或 60 天内到期的车辆</div>
+                            </div>
+                        </div>
+                        <div class="card-body" id="expiryList" style="padding-top:6px;padding-bottom:6px">
+                            <div style="height:60px" class="empty-state">加载中…</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head"><div class="card-title">数据完整性</div></div>
+                        <div class="card-body" id="qualityBox" style="padding-top:8px">
+                            <div style="height:50px" class="empty-state">加载中…</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    const state = { vehicles: [], drivers: [], routes: [], stops: null };
+
+    // 今天的日期文案
+    (function () {
+        const d = new Date();
+        const wd = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()];
+        $('todayDesc').textContent = d.getFullYear() + ' 年 ' + (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日 · ' + wd + ' · 车队规模、人员与运营数据总览';
+    })();
+
+    function pct(a, b) { return b ? Math.round(a / b * 100) : 0; }
+
+    async function loadAll() {
+        const [v, d, r] = await Promise.allSettled([
+            api('/api/vehicles'),
+            api('/api/drivers'),
+            api('/api/routes')
+        ]);
+        state.vehicles = v.status === 'fulfilled' ? (v.value || []) : [];
+        state.drivers = d.status === 'fulfilled' ? (d.value || []) : [];
+        state.routes = r.status === 'fulfilled' ? (r.value || []) : [];
+
+        // 站点数：usage-summary 返回已挂到班次的站点引用，用它统计唯一站点
+        try {
+            const usage = await api('/api/stops/usage-summary');
+            if (Array.isArray(usage)) state.stops = new Set(usage.map(u => u.stopPk)).size;
+        } catch (e) { state.stops = null; }
+
+        renderStats();
+        renderVehicleDist();
+        renderRoutes();
+        renderExpiry();
+        renderQuality();
+    }
+
+    function renderStats() {
+        const vs = state.vehicles;
+        const running = vs.filter(x => (x.status || '运营中') === '运营中').length;
+        const totalSeats = vs.reduce((s, x) => s + (x.seatCount || 0), 0);
+        const dTotal = state.drivers.length;
+        const rTotal = state.routes.length;
+        const sTotal = state.stops;
+
+        $('statGrid').innerHTML = '' +
+            statCard('车辆总数', vs.length, '台', 'bus',
+                '<span class="up">' + running + '</span> 台运营中 · ' + pct(running, vs.length) + '% 可用',
+                true) +
+            statCard('司机人数', dTotal, '人', 'user',
+                '车辆 / 司机 = ' + (dTotal ? (vs.length / dTotal).toFixed(2) : '—') + ' 台/人') +
+            statCard('班车线路', rTotal, '条', 'route',
+                '平均每线 ' + (rTotal ? (vs.length / rTotal).toFixed(1) : '—') + ' 台车') +
+            statCard('站点数量', sTotal == null ? '—' : sTotal, '个', 'pin',
+                sTotal == null ? '统计不可用' : '已排入班次的唯一站点');
+    }
+
+    function statCard(label, value, unit, icon, foot, accent) {
+        return '<div class="stat-card' + (accent ? ' accent' : '') + '">' +
+            '<div class="stat-top"><span class="stat-label">' + iconSvg(icon) + esc(label) + '</span>' +
+            '<span class="stat-help" title="数据来自实时接口">?</span></div>' +
+            '<div class="stat-value">' + value + '<span class="unit">' + unit + '</span></div>' +
+            '<div class="stat-foot">' + foot + '</div></div>';
+    }
+
+    function distRow(label, n, total, tone) {
+        const p = pct(n, total);
+        const pillCls = tone === 'danger' ? 'pill-danger' : tone === 'warn' ? 'pill-warn' : 'pill-ok';
+        return '<div class="dist-row">' +
+            '<span class="dr-label"><span class="pill no-dot ' + pillCls + '">' + esc(label) + '</span></span>' +
+            '<span class="dr-bar"><span class="bar ' + (tone || '') + '"><i style="width:' + p + '%"></i></span></span>' +
+            '<span class="dr-val">' + n + '</span>' +
+            '<span class="dr-pct">' + p + '%</span></div>';
+    }
+
+    function renderVehicleDist() {
+        const vs = state.vehicles;
+        if (!vs.length) {
+            $('vehicleDist').innerHTML = '<div class="empty-state"><div class="em-title">暂无车辆</div><div class="em-desc">先到车辆档案录入车辆</div></div>';
+            return;
+        }
+        const total = vs.length;
+        const running = vs.filter(x => (x.status || '运营中') === '运营中').length;
+        const maintain = vs.filter(x => x.status === '维修').length;
+        const stopped = vs.filter(x => x.status === '停运').length;
+        const other = total - running - maintain - stopped;
+
+        // 车型分布
+        const types = {};
+        vs.forEach(x => { const t = x.vehicleType || '未分类'; types[t] = (types[t] || 0) + 1; });
+
+        let html = '';
+        html += distRow('运营中', running, total, '');
+        html += distRow('维修', maintain, total, 'warn');
+        if (stopped) html += distRow('停运', stopped, total, 'danger');
+        if (other > 0) html += distRow('其他', other, total, 'warn');
+        html += '<div style="margin-top:12px;padding-top:11px;border-top:1px solid #f1f3f6">' +
+            '<div style="font-size:11.5px;color:var(--c-text-3);margin-bottom:6px">车型构成</div>' +
+            '<div style="display:flex;flex-wrap:wrap;gap:7px">' +
+            Object.keys(types).sort((a, b) => types[b] - types[a]).map(t =>
+                '<span class="pill no-dot pill-neutral">' + esc(t) + ' · ' + types[t] + '</span>'
+            ).join('') + '</div></div>';
+        $('vehicleDist').innerHTML = html;
+    }
+
+    function renderRoutes() {
+        const rs = state.routes;
+        if (!rs.length) {
+            $('routeList').innerHTML = '<div class="empty-state"><div class="em-title">暂无线路</div></div>';
+            return;
+        }
+        // 按 routeId 数字排序，取前 8 条
+        const sorted = rs.slice().sort((a, b) => {
+            const na = parseInt(a.routeId), nb = parseInt(b.routeId);
+            if (isNaN(na) || isNaN(nb)) return String(a.routeId).localeCompare(String(b.routeId));
+            return na - nb;
+        }).slice(0, 8);
+
+        $('routeList').innerHTML = sorted.map(r => {
+            const name = r.routeLongName || r.routeShortName || ('线路 ' + r.routeId);
+            const short = r.routeShortName || '';
+            return '<div class="route-item">' +
+                '<span class="ri-badge">' + esc(String(short).replace(/[^0-9]/g, '') || String(r.routeId).slice(-2)) + '</span>' +
+                '<div class="ri-main"><div class="ri-name" title="' + esc(name) + '">' + esc(name) + '</div>' +
+                '<div class="ri-meta">' + (r.networkId ? '网络 ' + esc(r.networkId) + ' · ' : '') + '线路号 ' + esc(r.routeId) + '</div></div>' +
+                '<span class="pill no-dot pill-info">' + esc(short || '—') + '</span>' +
+                '</div>';
+        }).join('');
+    }
+
+    function renderExpiry() {
+        const vs = state.vehicles;
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const rows = [];
+        vs.forEach(v => {
+            [['保险', v.insuranceExpiry], ['年检', v.inspectionExpiry]].forEach(([kind, date]) => {
+                if (!date) return;
+                const days = Math.round((new Date(date + 'T00:00:00') - today) / 86400000);
+                if (days <= 60) rows.push({ plate: v.plateNumber, kind, date, days });
+            });
+        });
+        rows.sort((a, b) => a.days - b.days);
+
+        if (!rows.length) {
+            $('expiryList').innerHTML = '<div class="empty-state" style="padding:26px 12px">' +
+                '<div class="em-title" style="color:var(--c-ok)">近期无到期项</div>' +
+                '<div class="em-desc">保险与年检到期日在 60 天以上的车辆不会列出</div></div>';
+            return;
+        }
+        $('expiryList').innerHTML = rows.slice(0, 6).map(r => {
+            const overdue = r.days < 0;
+            const pill = overdue
+                ? '<span class="pill pill-danger">逾期 ' + Math.abs(r.days) + ' 天</span>'
+                : '<span class="pill pill-warn">' + r.days + ' 天后</span>';
+            return '<div class="route-item" style="padding:9px 0">' +
+                '<span class="ri-badge" style="width:auto;padding:0 7px;background:' + (overdue ? 'var(--c-danger-soft)' : 'var(--c-warn-soft)') + ';color:' + (overdue ? 'var(--c-danger)' : 'var(--c-warn)') + '">' + esc(r.kind) + '</span>' +
+                '<div class="ri-main"><div class="ri-name">' + esc(r.plate) + '</div>' +
+                '<div class="ri-meta mono">到期日 ' + esc(r.date) + '</div></div>' + pill + '</div>';
+        }).join('') +
+            (rows.length > 6 ? '<div style="padding:9px 0 3px;font-size:11.5px;color:var(--c-text-3)">另有 ' + (rows.length - 6) + ' 项待处理，见车辆档案</div>' : '');
+    }
+
+    function renderQuality() {
+        const vs = state.vehicles, ds = state.drivers;
+        if (!vs.length && !ds.length) {
+            $('qualityBox').innerHTML = '<div class="empty-state" style="padding:20px 0"><div class="em-desc">暂无数据</div></div>';
+            return;
+        }
+        const noBrand = vs.filter(v => !v.brandModel).length;
+        const noEnergy = vs.filter(v => !v.energyType).length;
+        const noDates = vs.filter(v => !v.insuranceExpiry || !v.inspectionExpiry).length;
+        const noPhone = ds.filter(d => !d.phone).length;
+
+        const items = [
+            ['车辆缺品牌型号', noBrand, vs.length],
+            ['车辆缺能源类型', noEnergy, vs.length],
+            ['车辆缺保险/年检日期', noDates, vs.length],
+            ['司机缺手机号', noPhone, ds.length]
+        ];
+        $('qualityBox').innerHTML = items.map(([label, n, total]) => {
+            const ok = n === 0;
+            return '<div class="dist-row" style="padding:7px 0">' +
+                '<span class="dr-label" style="width:auto;flex:1">' + esc(label) + '</span>' +
+                '<span class="pill ' + (ok ? 'pill-ok' : 'pill-warn') + '">' + (ok ? '完整' : n + ' 条待补') + '</span></div>';
+        }).join('');
+    }
+
+    loadAll().catch(e => toast('加载失败：' + e.message, true));
+</script>
+</body>
+</html>
