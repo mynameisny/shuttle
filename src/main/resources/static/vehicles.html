@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>司机载具 - 班车调度管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+        #app { display: flex; flex-direction: column; height: 100%; background: #f5f6f8; }
+
+        /* ---------- 顶部导航栏（与站点维护/线路描图共用的统一外壳） ---------- */
+        .appbar {
+            display: flex; align-items: center; justify-content: space-between;
+            height: 52px; padding: 0 20px; flex-shrink: 0;
+            background: #fff; border-bottom: 1px solid #e0e3e8;
+            box-shadow: 0 1px 2px rgba(0,0,0,.04);
+        }
+        .appbar-brand { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 600; color: #202124; }
+        .appbar-brand .logo {
+            width: 28px; height: 28px; border-radius: 7px;
+            background: linear-gradient(135deg, #1a73e8, #4f8ff7);
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 700;
+        }
+        .appbar-nav { display: flex; gap: 4px; }
+        .appbar-tab {
+            padding: 7px 15px; font-size: 13px; color: #5f6368; text-decoration: none;
+            border-radius: 7px; transition: background .15s, color .15s;
+        }
+        .appbar-tab:hover { background: #f1f3f4; color: #202124; }
+        .appbar-tab.active { background: #e8f0fe; color: #1a73e8; font-weight: 600; }
+
+        /* ---------- 内容区 ---------- */
+        #main { flex: 1; overflow: auto; padding: 24px 32px; }
+        .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .toolbar h2 { font-size: 18px; font-weight: 600; color: #202124; }
+        .toolbar .sub { font-size: 12px; color: #9aa0a6; margin-top: 2px; }
+        .toolbar-right { display: flex; align-items: center; gap: 10px; }
+        .search { padding: 7px 10px; font-size: 13px; border: 1px solid #d0d5dd; border-radius: 6px; background: #fff; width: 220px; }
+        .search:focus { outline: 2px solid #aecbfa; border-color: #1a73e8; }
+        button {
+            padding: 7px 14px; font-size: 13px; border: 1px solid #d0d5dd; border-radius: 6px;
+            background: #fff; color: #333; cursor: pointer; font-family: inherit;
+        }
+        button:hover { background: #f1f3f4; }
+        button.primary { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+        button.primary:hover { background: #1765cc; }
+        button.danger { color: #d93025; border-color: #f1c7c3; }
+        button.danger:hover { background: #fce8e6; }
+        button.mini { padding: 4px 10px; font-size: 12px; }
+
+        /* ---------- 表格 ---------- */
+        .card { background: #fff; border: 1px solid #e0e3e8; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead th {
+            text-align: left; padding: 11px 14px; background: #fafbfc; color: #5f6368;
+            font-weight: 600; font-size: 12px; border-bottom: 1px solid #e0e3e8; white-space: nowrap;
+        }
+        tbody td { padding: 11px 14px; border-bottom: 1px solid #f0f2f5; color: #333; }
+        tbody tr:hover { background: #f8fafd; }
+        tbody tr:last-child td { border-bottom: none; }
+        .plate { font-weight: 600; color: #174ea6; }
+        .muted { color: #9aa0a6; }
+        .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; background: #eef3fd; color: #174ea6; }
+        .tag.coach { background: #e6f4ea; color: #137333; }
+        .tag.mini-bus { background: #fef7e0; color: #b06000; }
+        .empty { padding: 40px; text-align: center; color: #9aa0a6; }
+
+        /* ---------- 弹窗 ---------- */
+        .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .modal { width: 420px; background: #fff; border-radius: 12px; padding: 20px 22px; box-shadow: 0 12px 40px rgba(0,0,0,.2); }
+        .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #202124; }
+        .field { margin-bottom: 12px; }
+        .field label { display: block; font-size: 12px; color: #5f6368; margin-bottom: 4px; }
+        .field input, .field select {
+            width: 100%; padding: 7px 9px; font-size: 13px; border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
+        }
+        .field input:focus, .field select:focus { outline: 2px solid #aecbfa; border-color: #1a73e8; }
+        .field-row { display: flex; gap: 10px; }
+        .field-row .field { flex: 1; }
+        .modal .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+        #toast {
+            position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+            background: #202124; color: #fff; font-size: 13px; padding: 9px 18px;
+            border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 9999;
+        }
+        #toast.show { opacity: .95; }
+        #toast.err { background: #b3261e; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <header class="appbar">
+        <div class="appbar-brand"><span class="logo">班</span><span>班车调度管理</span></div>
+        <nav class="appbar-nav">
+            <a class="appbar-tab" href="stops.html">站点维护</a>
+            <a class="appbar-tab" href="map.html">线路描图</a>
+            <a class="appbar-tab active" href="vehicles.html">司机载具</a>
+        </nav>
+    </header>
+
+    <div id="main">
+        <div class="toolbar">
+            <div>
+                <h2>司机与载具</h2>
+                <div class="sub">车牌、座位、车型、司机与班车管理员台账</div>
+            </div>
+            <div class="toolbar-right">
+                <input type="text" class="search" id="searchInput" placeholder="搜索车牌 / 司机 / 供应商…">
+                <button id="btnAdd" class="primary">＋ 新增载具</button>
+            </div>
+        </div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>车牌号</th><th>车型</th><th>座位数</th>
+                        <th>司机</th><th>司机手机</th>
+                        <th>班车管理员</th><th>管理员电话</th>
+                        <th>供应商</th><th style="width:130px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="modalTitle">新增载具</h3>
+        <div class="field">
+            <label>车牌号 *</label>
+            <input type="text" id="fPlate" maxlength="20" placeholder="如 京B12345D">
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>车型</label>
+                <select id="fType">
+                    <option value="大巴">大巴</option>
+                    <option value="中巴">中巴</option>
+                    <option value="考斯特">考斯特</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>座位数</label>
+                <input type="number" id="fSeat" min="1" max="200" placeholder="如 48">
+            </div>
+        </div>
+        <div class="field">
+            <label>司机</label>
+            <select id="fDriver"><option value="">未分配司机</option></select>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>班车管理员</label>
+                <input type="text" id="fAdmin" maxlength="50">
+            </div>
+            <div class="field">
+                <label>管理员电话</label>
+                <input type="text" id="fAdminPhone" maxlength="20">
+            </div>
+        </div>
+        <div class="field">
+            <label>供应商</label>
+            <input type="text" id="fSupplier" maxlength="50" placeholder="如 新朗途 / 驰锐">
+        </div>
+        <div class="btn-row">
+            <button id="btnCancel">取消</button>
+            <button id="btnSave" class="primary">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script>
+    const API = { vehicles: '/api/vehicles', drivers: '/api/drivers' };
+
+    let vehicles = [];
+    let drivers = [];
+    let editingId = null;   // null = 新增
+
+    const $ = id => document.getElementById(id);
+
+    async function load() {
+        try {
+            const [v, d] = await Promise.all([api(API.vehicles), api(API.drivers)]);
+            vehicles = v || [];
+            drivers = d || [];
+            render();
+        } catch (err) {
+            toast('加载失败：' + err.message, true);
+        }
+    }
+
+    function typeClass(t) {
+        return t === '大巴' ? 'coach' : t === '中巴' ? 'mini-bus' : '';
+    }
+
+    function render() {
+        const kw = $('searchInput').value.trim().toLowerCase();
+        const list = vehicles.filter(v => {
+            if (!kw) return true;
+            return (v.plateNumber + ' ' + (v.driverName || '') + ' ' + (v.supplier || '') + ' ' + (v.adminName || '')).toLowerCase().includes(kw);
+        });
+        const tbody = $('tbody');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="9" class="empty">暂无载具数据</td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(v =>
+            '<tr>' +
+            '<td class="plate">' + esc(v.plateNumber) + '</td>' +
+            '<td><span class="tag ' + typeClass(v.vehicleType) + '">' + esc(v.vehicleType || '-') + '</span></td>' +
+            '<td>' + (v.seatCount != null ? v.seatCount : '-') + '</td>' +
+            '<td>' + esc(v.driverName || '<span class="muted">未分配</span>') + '</td>' +
+            '<td class="muted">' + esc(v.driverPhone || '-') + '</td>' +
+            '<td>' + esc(v.adminName || '-') + '</td>' +
+            '<td class="muted">' + esc(v.adminPhone || '-') + '</td>' +
+            '<td>' + esc(v.supplier || '-') + '</td>' +
+            '<td><button class="mini" data-edit="' + v.id + '">编辑</button> ' +
+            '<button class="mini danger" data-del="' + v.id + '">删除</button></td>' +
+            '</tr>'
+        ).join('');
+        tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    function fillDriverOptions(selectedId) {
+        $('fDriver').innerHTML = '<option value="">未分配司机</option>' + drivers.map(d =>
+            '<option value="' + d.id + '"' + (d.id === selectedId ? ' selected' : '') + '>' +
+            esc(d.name || d.id) + (d.phone ? ' · ' + esc(d.phone) : '') + '</option>'
+        ).join('');
+    }
+
+    function openModal(id) {
+        editingId = id || null;
+        $('modalTitle').textContent = id ? '编辑载具' : '新增载具';
+        const v = id ? vehicles.find(x => x.id === id) : null;
+        $('fPlate').value = v ? v.plateNumber : '';
+        $('fType').value = v && v.vehicleType ? v.vehicleType : '大巴';
+        $('fSeat').value = v && v.seatCount != null ? v.seatCount : '';
+        $('fAdmin').value = v ? (v.adminName || '') : '';
+        $('fAdminPhone').value = v ? (v.adminPhone || '') : '';
+        $('fSupplier').value = v ? (v.supplier || '') : '';
+        fillDriverOptions(v ? v.driverId : null);
+        $('modal').style.display = '';
+        $('fPlate').focus();
+    }
+
+    function closeModal() { $('modal').style.display = 'none'; }
+
+    async function save() {
+        const plate = $('fPlate').value.trim();
+        if (!plate) { toast('车牌号不能为空', true); return; }
+        const body = {
+            plateNumber: plate,
+            seatCount: $('fSeat').value ? parseInt($('fSeat').value) : null,
+            vehicleType: $('fType').value,
+            supplier: $('fSupplier').value.trim() || null,
+            adminName: $('fAdmin').value.trim() || null,
+            adminPhone: $('fAdminPhone').value.trim() || null,
+            driverId: $('fDriver').value ? parseInt($('fDriver').value) : null
+        };
+        try {
+            if (editingId) {
+                await api(API.vehicles + '/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                toast('已更新：' + plate);
+            } else {
+                await api(API.vehicles, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                toast('已新增：' + plate);
+            }
+            closeModal();
+            await load();
+        } catch (err) { toast('保存失败：' + err.message, true); }
+    }
+
+    async function remove(id) {
+        const v = vehicles.find(x => x.id === id);
+        if (!v) return;
+        if (!confirm('确定删除载具「' + v.plateNumber + '」？此操作不可恢复。')) return;
+        try {
+            await api(API.vehicles + '/' + id, { method: 'DELETE' });
+            toast('已删除：' + v.plateNumber);
+            await load();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
+    $('searchInput').addEventListener('input', render);
+    $('btnAdd').addEventListener('click', () => openModal(null));
+    $('btnCancel').addEventListener('click', closeModal);
+    $('btnSave').addEventListener('click', save);
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
+
+    load();
+</script>
+</body>
+</html>
