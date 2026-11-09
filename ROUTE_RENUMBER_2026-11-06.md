@@ -172,3 +172,33 @@ DELETE /api/trips/56                                                            
 - 统计口径固定为"各班次停站总数之和"；拖拽乐观更新只走 trips 路径
 - 后端 `DirectionStops.stops`（方向并集）保留未动：地图打点、引用面板仍依赖
 - network 分组维度的"线路站点并集"（另一概念）不受影响
+
+## 后续修正（2026-11-06 17:10）：发车方位标签片区化 + route_network 数据修复
+
+### 1. 标签改名（networks.txt 三条，network_name 仅存库、代码零引用）
+
+网络分组下拉里「东向发车 / 北向发车 / 城区西向发车」三个名字观感奇怪："向"字含混（指向哪一侧发车还是往哪个方向开不明），三名格式不统一（2 个"X向发车"+ 1 个"城区X向发车"），且"城区西向发车"名不副实——其成员实为城中 / 西南混合的兜底组。用户选定**片区化命名**：
+
+| network_id | 旧名 | 新名 |
+|---|---|---|
+| NORTH | 北向发车 | 城北片区 |
+| EAST | 东向发车 | 城东片区 |
+| WEST_CENTER | 城区西向发车 | 城西南片区 |
+
+### 2. route_network 两处数据质量修复（14:30 重编号 shift 边界 bug 的遗留）
+
+- **重复行**：(43, ZHUOZHOU_TO_CP)、(43, INTERCITY) 各重复 1 行（86 行 → 去重后 84）。成因：shift 把 route_id 后移一位时目标 id 已有同名标签，新旧行并存。
+- **30 / 31 标签错位**：重编号把「天通苑北-八角」挪到 30、「八角园区-昌平」挪到 31，但 route_network 没跟着迁——30 错挂 CHANGPING+LOCAL_SHUTTLE、31 错挂 BAJIAO+LOCAL_SHUTTLE+NORTH。修复后 **30={BAJIAO}、31={CHANGPING}**。
+
+### 3. 执行结果（pymysql autocommit，修复前全表 JSON 备份至 /tmp/shuttle_backup_20261106_tags.json）
+
+```
+86 → 去重-2 → 30摘CHANGPING/LOCAL_SHUTTLE-2 → 31摘BAJIAO/LOCAL_SHUTTLE/NORTH-3 → 30挂BAJIAO+1 = 80
+最终 rows=80 / distinct=80，members: CHANGPING=29 BAJIAO=5 LOCAL_SHUTTLE=4 NORTH=10
+CHANGPING∩BAJIAO 交叉=0，缺标签线路=0
+ALTER TABLE route_network ADD UNIQUE KEY uk_route_network (route_id, network_id)  ← 防重复行复发
+```
+
+注：唯一索引的引入同时改变了原来的多标签自由度——同一线路今后不允许重复挂同一标签（本就是脏数据），多标签（一线路挂多个不同标签）不受影响。
+
+效果验证需启动应用后查看线路下拉的 network 分组标题（原「北向发车」等分组将显示新片区名）。
