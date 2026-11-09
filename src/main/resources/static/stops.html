@@ -270,8 +270,9 @@
                         <input type="number" id="editLng" step="0.0000001" min="-180" max="180">
                     </div>
                 </div>
-                <div class="tip">拖动地图上的蓝色圆点调整位置，坐标自动回填；也可直接输入经纬度。</div>
+                <div class="tip">拖动地图上的蓝色圆点调整位置；或点「地图选点」后在地图上点击定位，坐标自动回填；也可直接输入经纬度。</div>
                 <div class="btn-row">
+                    <button id="btnPick" type="button">地图选点</button>
                     <button id="btnSave" class="primary">保存修改</button>
                     <button id="btnDelete" class="danger">删除站点</button>
                     <button id="btnCancel">取消选择</button>
@@ -403,6 +404,8 @@
         selectedId: null, // 选中站点数据库主键
         selectedTripPk: null, // 选中站点时的班次上下文（按班次视图点击=该班次主键，台账视图=null）
         creating: false,  // 新建站点选点模式
+        picking: false,   // 编辑站点「地图选点」模式
+        pickMarker: null, // 选点后的临时预览标记（保存/取消后清除）
         foldedTrips: {},  // 线路视图里被收起的班次（tripPk -> true），切换线路时清空
         reordering: false,// 停站顺序保存中（锁：PUT 完成前禁止再次拖拽，防连续操作竞态）
         normalLayer: L.layerGroup().addTo(map), // 普通站点橙色圆点
@@ -1084,7 +1087,15 @@
         $('editLng').value = parseFloat(stop.stopLon).toFixed(7);
         renderList();     // 刷新列表高亮
         renderMarkers();  // 橙点换蓝点
-        map.panTo([parseFloat(stop.stopLat), parseFloat(stop.stopLon)]);
+        clearPickMarker();
+        const ll = parseLatLng(stop.stopLat, stop.stopLon);
+        if (ll) {
+            map.panTo(ll);
+        } else {
+            // (0,0) 占位站无坐标：不回落到赤道海上，保持北京默认视野并引导选点
+            map.setView(MAP_DEFAULT_VIEW.center, MAP_DEFAULT_VIEW.zoom);
+            toast('该站点暂无坐标，点「地图选点」在地图上定位');
+        }
         loadUsage(id);        // 引用面板（影响面）
         openStopTimePopup(stop); // 时刻维护浮层（须在 renderMarkers 之后，蓝点已就位）
     }
@@ -1092,6 +1103,8 @@
     function deselect() {
         state.selectedId = null;
         state.selectedTripPk = null;
+        setPicking(false);
+        clearPickMarker();
         $('editEmpty').style.display = '';
         $('editArea').style.display = 'none';
         $('usageCount').textContent = 0;
@@ -1123,8 +1136,10 @@
             const j = state.stops.findIndex(s => s.id === stop.id);
             if (j >= 0) state.stops[j] = updated;
             renderList();
+            clearPickMarker();
             refreshSelMarker();
-            map.panTo([parseFloat(updated.stopLat), parseFloat(updated.stopLon)]);
+            const nl = parseLatLng(updated.stopLat, updated.stopLon);
+            if (nl) map.panTo(nl);
             toast('已保存：' + updated.stopName);
         } catch (err) { toast('保存失败：' + err.message, true); }
     });
@@ -1151,6 +1166,30 @@
         if (state.routeFilter === null) return; // disabled 兜底
         setCreating(!state.creating);
     });
+
+    // ---------- 编辑站点「地图选点」：点击地图定位，坐标回填经纬度输入框 ----------
+    function setPicking(on) {
+        state.picking = on;
+        const btn = $('btnPick');
+        if (btn) btn.classList.toggle('picking', on);
+        map.getContainer().style.cursor = on ? 'crosshair' : '';
+        if (on) toast('在地图上点击站点位置（Esc 取消）');
+    }
+
+    $('btnPick').addEventListener('click', () => setPicking(!state.picking));
+
+    // 清除选点预览标记（保存/取消/切换站点时调用）
+    function clearPickMarker() {
+        if (state.pickMarker) { map.removeLayer(state.pickMarker); state.pickMarker = null; }
+    }
+
+    // 在地图点击处放一个橙色预览圈，供确认新位置
+    function refreshPickMarker(latlng) {
+        clearPickMarker();
+        state.pickMarker = L.circleMarker(latlng, {
+            radius: 8, color: '#e8710a', weight: 3, fillColor: '#fff', fillOpacity: 1
+        }).addTo(map);
+    }
 
     // ---------- 新建班次 ----------
     // 班次必须挂在某条线路下，所以只能在线路筛选模式下创建（按钮在未选线路时置灰）。
@@ -1234,6 +1273,7 @@
             if ($('tripModal').style.display !== 'none') { closeTripModal(); return; }
             if ($('addModal').style.display !== 'none') { closeAddModal(); return; } // 关表单，留在选点模式
             if (state.creating) setCreating(false);
+            if (state.picking) setPicking(false);
         }
     });
 
@@ -1310,8 +1350,13 @@
     });
 
     map.on('click', e => {
-        if (!state.creating) return;
-        openAddModal(e.latlng);
+        if (state.creating) { openAddModal(e.latlng); return; }
+        if (state.picking) {
+            setPicking(false);
+            $('editLat').value = e.latlng.lat.toFixed(7);
+            $('editLng').value = e.latlng.lng.toFixed(7);
+            refreshPickMarker(e.latlng);
+        }
     });
 
     // ---------- 「未使用」角标一键删除（台账列表快捷入口，免去先选中再找删除按钮） ----------
