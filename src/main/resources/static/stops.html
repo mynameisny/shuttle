@@ -401,6 +401,7 @@
         groupStops: null,
         stopFetchSeq: 0,  // 分组过滤请求的序号，用于丢弃乱序返回的旧响应（快速切换维度时）
         selectedId: null, // 选中站点数据库主键
+        selectedTripPk: null, // 选中站点时的班次上下文（按班次视图点击=该班次主键，台账视图=null）
         creating: false,  // 新建站点选点模式
         foldedTrips: {},  // 线路视图里被收起的班次（tripPk -> true），切换线路时清空
         reordering: false,// 停站顺序保存中（锁：PUT 完成前禁止再次拖拽，防连续操作竞态）
@@ -882,7 +883,12 @@
 
     function bindListClicks() {
         $('stopList').querySelectorAll('.item').forEach(el =>
-            el.addEventListener('click', () => selectStop(parseInt(el.dataset.id)))
+            el.addEventListener('click', () => {
+                // 按班次视图里，站点项挂在 .list[data-trip-pk] 块内，向上取班次上下文；
+                // 台账视图无该祖先，tripPk 为 null（弹窗仍显示全量影响面）
+                const list = el.closest('.list[data-trip-pk]');
+                selectStop(parseInt(el.dataset.id), list ? parseInt(list.dataset.tripPk) : null);
+            })
         );
         $('stopList').querySelectorAll('.rm-btn').forEach(el =>
             el.addEventListener('click', e => {
@@ -1058,8 +1064,9 @@
     }
 
     // ---------- 选中与编辑 ----------
-    function selectStop(id) {
+    function selectStop(id, tripPk) {
         state.selectedId = id;
+        state.selectedTripPk = tripPk || null;
         const stop = findSelected();
         if (!stop) {
             // 本地台账数据未同步（如新建站点尚未进入 allStops）：按需拉取单个站点后重新选中
@@ -1084,6 +1091,7 @@
 
     function deselect() {
         state.selectedId = null;
+        state.selectedTripPk = null;
         $('editEmpty').style.display = '';
         $('editArea').style.display = 'none';
         $('usageCount').textContent = 0;
@@ -1388,15 +1396,28 @@
 
     async function openStopTimePopup(stop) {
         if (!state.selMarker) return;
+        const tripPk = state.selectedTripPk;  // 快照班次上下文，避免 await 期间被改
+        const stopId = stop.id;
         let usage = [];
         try {
-            usage = await api(API.stopUsage(stop.id)) || [];
+            usage = await api(API.stopUsage(stopId)) || [];
         } catch (err) { /* 拉取失败不阻塞浮层，正文显示空态 */ }
 
+        // 竞态防护：await 期间用户可能已改选其他站点，此时放弃本次弹层（新选中会自行弹出）
+        if (state.selectedId !== stopId) return;
+
+        // 按班次视图下，只展示该站点在当前班次里的那一条停站记录（到/发时刻唯一确定）
+        const scoped = tripPk != null;
+        if (scoped) {
+            usage = usage.filter(u => u.tripPk === tripPk);
+        }
+
         const box = el('div', 'stop-time-popup');
-        box.appendChild(el('div', 'stp-title', '时刻维护 · ' + (stop.stopName || stop.stopId)));
+        box.appendChild(el('div', 'stp-title',
+            (scoped ? '到发时刻 · ' : '时刻维护 · ') + (stop.stopName || stop.stopId)));
         if (!usage.length) {
-            box.appendChild(el('div', 'stp-empty', '暂无班次引用此站点（可在「线路描图」页为班次添加停站）'));
+            box.appendChild(el('div', 'stp-empty',
+                scoped ? '该班次未停靠此站点' : '暂无班次引用此站点（可在「线路描图」页为班次添加停站）'));
         }
         usage.forEach(u => box.appendChild(buildStopTimeBlock(u)));
         state.selMarker.bindPopup(box, { maxWidth: 340, minWidth: 270, closeButton: true }).openPopup();
