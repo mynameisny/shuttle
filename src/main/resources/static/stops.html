@@ -219,6 +219,23 @@
         .trip-block.folded .trip-head { border-radius: 6px; }
         .trip-block .list { border-radius: 0 0 6px 6px; border-top: none; max-height: 300px; }
         .empty-box.mini { padding: 8px; font-size: 11px; }
+
+        /* ---------- 地图地名搜索控件 ---------- */
+        .leaflet-control.geo-ctl { width: 250px; padding: 0; background: transparent; border: none; box-shadow: none; position: relative; }
+        .geo-ctl .geo-input {
+            width: 100%; box-sizing: border-box; padding: 7px 10px;
+            border: 1px solid #d0d7de; border-radius: 6px; font-size: 12px;
+            background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .geo-results {
+            position: absolute; top: 100%; left: 0; right: 0; margin-top: 3px;
+            background: #fff; border: 1px solid #d0d7de; border-radius: 6px;
+            box-shadow: 0 6px 20px rgba(0,0,0,.18); max-height: 260px; overflow-y: auto; z-index: 1000;
+        }
+        .geo-item { padding: 8px 10px; font-size: 12px; color: #333; cursor: pointer; border-bottom: 1px solid #eef0f3; line-height: 1.45; }
+        .geo-item:hover { background: #eef3fd; }
+        .geo-item:last-child { border-bottom: none; }
+        .geo-empty { padding: 8px 10px; font-size: 12px; color: #9aa0a6; }
     </style>
 </head>
 <body>
@@ -1199,6 +1216,76 @@
         }).addTo(map);
     }
 
+    // 选点结果回填（地图点击 / 搜索定位共用）：退出选点模式，坐标写入输入框并放预览圈
+    function pickLocation(lat, lng) {
+        setPicking(false);
+        $('editLat').value = lat.toFixed(7);
+        $('editLng').value = lng.toFixed(7);
+        refreshPickMarker([lat, lng]);
+    }
+
+    // ---------- 地图地名搜索（辅助选点定位，Nominatim WGS-84） ----------
+    let geoTimer = null;
+    let geoMarker = null;
+
+    function clearGeoMarker() {
+        if (geoMarker) { map.removeLayer(geoMarker); geoMarker = null; }
+    }
+
+    function flyToGeo(lat, lon, displayName) {
+        map.setView([lat, lon], 16);
+        if (state.picking) {
+            pickLocation(lat, lon); // 选点模式下，搜索结果直接作为选点坐标
+        } else {
+            clearGeoMarker();
+            geoMarker = L.marker([lat, lon]).addTo(map)
+                .bindPopup(displayName || '定位点').openPopup();
+        }
+    }
+
+    function addGeocodeControl() {
+        const ctl = L.control({ position: 'topleft' });
+        ctl.onAdd = () => {
+            const div = L.DomUtil.create('div', 'geo-ctl');
+            div.innerHTML = '<input type="text" class="geo-input" placeholder="搜索地名定位…" autocomplete="off">'
+                + '<div class="geo-results" hidden></div>';
+            L.DomEvent.disableClickPropagation(div);
+            L.DomEvent.disableScrollPropagation(div);
+            return div;
+        };
+        ctl.addTo(map);
+        const root = ctl.getContainer();
+        const input = root.querySelector('.geo-input');
+        const results = root.querySelector('.geo-results');
+        input.addEventListener('input', () => {
+            clearTimeout(geoTimer);
+            const q = input.value.trim();
+            if (!q) { results.hidden = true; return; }
+            geoTimer = setTimeout(async () => {
+                try {
+                    const list = await geocode(q);
+                    if (!list.length) {
+                        results.innerHTML = '<div class="geo-empty">无结果</div>';
+                        results.hidden = false;
+                        return;
+                    }
+                    results.innerHTML = list.map((r, i) =>
+                        '<div class="geo-item" data-i="' + i + '">' + esc(r.displayName) + '</div>').join('');
+                    results.hidden = false;
+                    results.querySelectorAll('.geo-item').forEach(el => el.addEventListener('click', () => {
+                        const r = list[parseInt(el.dataset.i)];
+                        results.hidden = true;
+                        input.value = r.displayName;
+                        flyToGeo(r.lat, r.lon, r.displayName);
+                    }));
+                } catch (err) {
+                    results.innerHTML = '<div class="geo-empty">搜索失败：' + esc(err.message) + '</div>';
+                    results.hidden = false;
+                }
+            }, 500);
+        });
+    }
+
     // ---------- 新建班次 ----------
     // 班次必须挂在某条线路下，所以只能在线路筛选模式下创建（按钮在未选线路时置灰）。
     // 建出来是空班次，停站要靠「＋ 新增站点」逐站追加，与既有加站流程一致。
@@ -1359,12 +1446,7 @@
 
     map.on('click', e => {
         if (state.creating) { openAddModal(e.latlng); return; }
-        if (state.picking) {
-            setPicking(false);
-            $('editLat').value = e.latlng.lat.toFixed(7);
-            $('editLng').value = e.latlng.lng.toFixed(7);
-            refreshPickMarker(e.latlng);
-        }
+        if (state.picking) pickLocation(e.latlng.lat, e.latlng.lng);
     });
 
     // ---------- 「未使用」角标一键删除（台账列表快捷入口，免去先选中再找删除按钮） ----------
@@ -1546,6 +1628,7 @@
     // 顺序有依赖：loadStops 填充 allStops（分组过滤要靠它把 stopPk 还原成完整站点对象），
     // 之后 loadRouteOptions 加载标签与线路缓存，最后才能按分组维度过滤。
     updateCreateBtn(); // 页面加载时未选线路，按钮应禁用
+    addGeocodeControl(); // 地图地名搜索控件（辅助选点定位）
     (async () => {
         await loadStops();
         await loadRouteOptions();

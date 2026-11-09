@@ -71,3 +71,18 @@ function createMap(elementId, opts) {
     L.control.layers(basemaps, null, { position: 'bottomright' }).addTo(map);
     return { map, basemaps };
 }
+
+// 地名地理编码（Photon/komoot，基于 OSM 数据，WGS-84，与 OSM 底图同坐标系、无需 key、国内可直连）。
+// 返回 [{ lat, lon, displayName }]；网络异常/无结果时抛错或返回空数组。
+async function geocode(query) {
+    const url = 'https://photon.komoot.io/api/?limit=6&q=' + encodeURIComponent(query);
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('地理编码失败 HTTP ' + resp.status);
+    const data = await resp.json();
+    return (data.features || []).map(f => {
+        const c = (f.geometry && f.geometry.coordinates) || [];
+        const p = f.properties || {};
+        const name = [p.name, p.city, p.state, p.country].filter(Boolean).join(' · ');
+        return { lat: c[1], lon: c[0], displayName: name || query };
+    });
+}
