@@ -9,7 +9,7 @@
         html, body { height: 100%; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
         #app { display: flex; flex-direction: column; height: 100%; background: #f5f6f8; }
 
-        /* ---------- 顶部导航栏（与站点维护/线路描图共用的统一外壳） ---------- */
+        /* ---------- 顶部导航栏 ---------- */
         .appbar {
             display: flex; align-items: center; justify-content: space-between;
             height: 52px; padding: 0 20px; flex-shrink: 0;
@@ -65,11 +65,14 @@
         .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; background: #eef3fd; color: #174ea6; }
         .tag.coach { background: #e6f4ea; color: #137333; }
         .tag.mini-bus { background: #fef7e0; color: #b06000; }
+        .tag.status-ok { background: #e6f4ea; color: #137333; }
+        .tag.status-maintain { background: #fef7e0; color: #b06000; }
+        .tag.status-out { background: #fce8e6; color: #c5221f; }
         .empty { padding: 40px; text-align: center; color: #9aa0a6; }
 
         /* ---------- 弹窗 ---------- */
         .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-        .modal { width: 420px; background: #fff; border-radius: 12px; padding: 20px 22px; box-shadow: 0 12px 40px rgba(0,0,0,.2); }
+        .modal { width: 440px; background: #fff; border-radius: 12px; padding: 20px 22px; box-shadow: 0 12px 40px rgba(0,0,0,.2); }
         .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #202124; }
         .field { margin-bottom: 12px; }
         .field label { display: block; font-size: 12px; color: #5f6368; margin-bottom: 4px; }
@@ -106,21 +109,20 @@
         <div class="toolbar">
             <div>
                 <h2>车辆维护</h2>
-                <div class="sub">车牌、座位数、车型、供应商与班车管理员台账</div>
+                <div class="sub">车牌、品牌型号、座位、能源类型、状态与保险年检台账</div>
             </div>
             <div class="toolbar-right">
-                <input type="text" class="search" id="searchInput" placeholder="搜索车牌 / 司机 / 供应商…">
-                <button id="btnAdd" class="primary">＋ 新增载具</button>
+                <input type="text" class="search" id="searchInput" placeholder="搜索车牌 / 品牌 / 供应商…">
+                <button id="btnAdd" class="primary">＋ 新增车辆</button>
             </div>
         </div>
         <div class="card">
             <table>
                 <thead>
                     <tr>
-                        <th>车牌号</th><th>车型</th><th>座位数</th>
-                        <th>司机</th><th>司机手机</th>
-                        <th>班车管理员</th><th>管理员电话</th>
-                        <th>供应商</th><th style="width:130px">操作</th>
+                        <th>车牌号</th><th>品牌/型号</th><th>车型</th><th>座位数</th>
+                        <th>能源</th><th>状态</th><th>供应商</th>
+                        <th>保险到期</th><th>年检到期</th><th style="width:130px">操作</th>
                     </tr>
                 </thead>
                 <tbody id="tbody"></tbody>
@@ -131,10 +133,20 @@
 
 <div id="modal" class="modal-mask" style="display:none">
     <div class="modal">
-        <h3 id="modalTitle">新增载具</h3>
+        <h3 id="modalTitle">新增车辆</h3>
         <div class="field">
             <label>车牌号 *</label>
             <input type="text" id="fPlate" maxlength="20" placeholder="如 京B12345D">
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>品牌/型号</label>
+                <input type="text" id="fBrand" maxlength="50" placeholder="如 宇通">
+            </div>
+            <div class="field">
+                <label>座位数</label>
+                <input type="number" id="fSeat" min="1" max="200" placeholder="如 48">
+            </div>
         </div>
         <div class="field-row">
             <div class="field">
@@ -146,27 +158,38 @@
                 </select>
             </div>
             <div class="field">
-                <label>座位数</label>
-                <input type="number" id="fSeat" min="1" max="200" placeholder="如 48">
+                <label>能源类型</label>
+                <select id="fEnergy">
+                    <option value="">未填写</option>
+                    <option value="燃油">燃油</option>
+                    <option value="纯电">纯电</option>
+                    <option value="混动">混动</option>
+                </select>
             </div>
-        </div>
-        <div class="field">
-            <label>司机</label>
-            <select id="fDriver"><option value="">未分配司机</option></select>
         </div>
         <div class="field-row">
             <div class="field">
-                <label>班车管理员</label>
-                <input type="text" id="fAdmin" maxlength="50">
+                <label>车辆状态</label>
+                <select id="fStatus">
+                    <option value="运营中">运营中</option>
+                    <option value="维修">维修</option>
+                    <option value="停运">停运</option>
+                </select>
             </div>
             <div class="field">
-                <label>管理员电话</label>
-                <input type="text" id="fAdminPhone" maxlength="20">
+                <label>供应商</label>
+                <input type="text" id="fSupplier" maxlength="50" placeholder="如 新朗途 / 驰锐">
             </div>
         </div>
-        <div class="field">
-            <label>供应商</label>
-            <input type="text" id="fSupplier" maxlength="50" placeholder="如 新朗途 / 驰锐">
+        <div class="field-row">
+            <div class="field">
+                <label>保险到期日</label>
+                <input type="date" id="fInsurance">
+            </div>
+            <div class="field">
+                <label>年检到期日</label>
+                <input type="date" id="fInspection">
+            </div>
         </div>
         <div class="btn-row">
             <button id="btnCancel">取消</button>
@@ -178,48 +201,46 @@
 <div id="toast"></div>
 <script src="js/map-common.js"></script>
 <script>
-    const API = { vehicles: '/api/vehicles', drivers: '/api/drivers' };
-
+    const API = { vehicles: '/api/vehicles' };
     let vehicles = [];
-    let drivers = [];
-    let editingId = null;   // null = 新增
+    let editingId = null;
 
     async function load() {
         try {
-            const [v, d] = await Promise.all([api(API.vehicles), api(API.drivers)]);
-            vehicles = v || [];
-            drivers = d || [];
+            vehicles = await api(API.vehicles) || [];
             render();
-        } catch (err) {
-            toast('加载失败：' + err.message, true);
-        }
+        } catch (err) { toast('加载失败：' + err.message, true); }
     }
 
     function typeClass(t) {
         return t === '大巴' ? 'coach' : t === '中巴' ? 'mini-bus' : '';
+    }
+    function statusClass(s) {
+        return s === '维修' ? 'status-maintain' : s === '停运' ? 'status-out' : 'status-ok';
     }
 
     function render() {
         const kw = $('searchInput').value.trim().toLowerCase();
         const list = vehicles.filter(v => {
             if (!kw) return true;
-            return (v.plateNumber + ' ' + (v.driverName || '') + ' ' + (v.supplier || '') + ' ' + (v.adminName || '')).toLowerCase().includes(kw);
+            return (v.plateNumber + ' ' + (v.brandModel || '') + ' ' + (v.supplier || '')).toLowerCase().includes(kw);
         });
         const tbody = $('tbody');
         if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="9" class="empty">暂无载具数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="empty">暂无车辆数据</td></tr>';
             return;
         }
         tbody.innerHTML = list.map(v =>
             '<tr>' +
             '<td class="plate">' + esc(v.plateNumber) + '</td>' +
+            '<td>' + esc(v.brandModel || '-') + '</td>' +
             '<td><span class="tag ' + typeClass(v.vehicleType) + '">' + esc(v.vehicleType || '-') + '</span></td>' +
             '<td>' + (v.seatCount != null ? v.seatCount : '-') + '</td>' +
-            '<td>' + esc(v.driverName || '<span class="muted">未分配</span>') + '</td>' +
-            '<td class="muted">' + esc(v.driverPhone || '-') + '</td>' +
-            '<td>' + esc(v.adminName || '-') + '</td>' +
-            '<td class="muted">' + esc(v.adminPhone || '-') + '</td>' +
+            '<td>' + esc(v.energyType || '-') + '</td>' +
+            '<td><span class="tag ' + statusClass(v.status) + '">' + esc(v.status || '运营中') + '</span></td>' +
             '<td>' + esc(v.supplier || '-') + '</td>' +
+            '<td>' + (v.insuranceExpiry || '-') + '</td>' +
+            '<td>' + (v.inspectionExpiry || '-') + '</td>' +
             '<td><button class="mini" data-edit="' + v.id + '">编辑</button> ' +
             '<button class="mini danger" data-del="' + v.id + '">删除</button></td>' +
             '</tr>'
@@ -228,24 +249,19 @@
         tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
     }
 
-    function fillDriverOptions(selectedId) {
-        $('fDriver').innerHTML = '<option value="">未分配司机</option>' + drivers.map(d =>
-            '<option value="' + d.id + '"' + (d.id === selectedId ? ' selected' : '') + '>' +
-            esc(d.name || d.id) + (d.phone ? ' · ' + esc(d.phone) : '') + '</option>'
-        ).join('');
-    }
-
     function openModal(id) {
         editingId = id || null;
-        $('modalTitle').textContent = id ? '编辑载具' : '新增载具';
+        $('modalTitle').textContent = id ? '编辑车辆' : '新增车辆';
         const v = id ? vehicles.find(x => x.id === id) : null;
         $('fPlate').value = v ? v.plateNumber : '';
-        $('fType').value = v && v.vehicleType ? v.vehicleType : '大巴';
+        $('fBrand').value = v ? (v.brandModel || '') : '';
         $('fSeat').value = v && v.seatCount != null ? v.seatCount : '';
-        $('fAdmin').value = v ? (v.adminName || '') : '';
-        $('fAdminPhone').value = v ? (v.adminPhone || '') : '';
+        $('fType').value = v && v.vehicleType ? v.vehicleType : '大巴';
+        $('fEnergy').value = v && v.energyType ? v.energyType : '';
+        $('fStatus').value = v && v.status ? v.status : '运营中';
         $('fSupplier').value = v ? (v.supplier || '') : '';
-        fillDriverOptions(v ? v.driverId : null);
+        $('fInsurance').value = v ? (v.insuranceExpiry || '') : '';
+        $('fInspection').value = v ? (v.inspectionExpiry || '') : '';
         $('modal').style.display = '';
         $('fPlate').focus();
     }
@@ -257,12 +273,14 @@
         if (!plate) { toast('车牌号不能为空', true); return; }
         const body = {
             plateNumber: plate,
+            brandModel: $('fBrand').value.trim() || null,
             seatCount: $('fSeat').value ? parseInt($('fSeat').value) : null,
             vehicleType: $('fType').value,
+            energyType: $('fEnergy').value || null,
+            status: $('fStatus').value || '运营中',
             supplier: $('fSupplier').value.trim() || null,
-            adminName: $('fAdmin').value.trim() || null,
-            adminPhone: $('fAdminPhone').value.trim() || null,
-            driverId: $('fDriver').value ? parseInt($('fDriver').value) : null
+            insuranceExpiry: $('fInsurance').value || null,
+            inspectionExpiry: $('fInspection').value || null
         };
         try {
             if (editingId) {
@@ -280,7 +298,7 @@
     async function remove(id) {
         const v = vehicles.find(x => x.id === id);
         if (!v) return;
-        if (!confirm('确定删除载具「' + v.plateNumber + '」？此操作不可恢复。')) return;
+        if (!confirm('确定删除车辆「' + v.plateNumber + '」？此操作不可恢复。')) return;
         try {
             await api(API.vehicles + '/' + id, { method: 'DELETE' });
             toast('已删除：' + v.plateNumber);

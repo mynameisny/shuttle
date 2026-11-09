@@ -8,6 +8,4 @@ import org.springframework.stereotype.Repository;
 public interface VehicleRepository extends JpaRepository<Vehicle, Long>
 {
     boolean existsByPlateNumber(String plateNumber);
-
-    boolean existsByDriverId(Long driverId);
 }

@@ -9,9 +9,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 /**
- * 载具新增/更新请求（管理端司机载具维护页）。
- * 司机通过 driverId 关联（可为空，表示暂未分配司机）。
+ * 载具新增/更新请求（管理端车辆维护页）。
  */
 @Getter
 @Setter
@@ -24,20 +25,25 @@ public class VehicleUpsertRequest
     @Size(max = 20, message = "车牌号长度不能超过20")
     private String plateNumber;
 
+    @Size(max = 50, message = "品牌/型号长度不能超过50")
+    private String brandModel;
+
     @Positive(message = "座位数须为正整数")
     private Integer seatCount;
 
     @Size(max = 20, message = "车型长度不能超过20")
     private String vehicleType;
 
+    @Size(max = 20, message = "能源类型长度不能超过20")
+    private String energyType;
+
+    @Size(max = 20, message = "车辆状态长度不能超过20")
+    private String status;
+
     @Size(max = 50, message = "供应商长度不能超过50")
     private String supplier;
 
-    @Size(max = 50, message = "班车管理员长度不能超过50")
-    private String adminName;
+    private LocalDate insuranceExpiry;
 
-    @Size(max = 20, message = "管理员电话长度不能超过20")
-    private String adminPhone;
-
-    private Long driverId;
+    private LocalDate inspectionExpiry;
 }

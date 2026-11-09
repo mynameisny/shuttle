@@ -3,7 +3,6 @@ package me.ningyu.app.shuttle.facade.service;
 import lombok.RequiredArgsConstructor;
 import me.ningyu.app.shuttle.domain.entity.extension.Driver;
 import me.ningyu.app.shuttle.domain.repo.DriverRepository;
-import me.ningyu.app.shuttle.domain.repo.VehicleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +13,6 @@ import java.util.List;
 public class DriverService
 {
     private final DriverRepository driverRepository;
-    private final VehicleRepository vehicleRepository;
 
     @Transactional(readOnly = true)
     public List<Driver> getAll()
@@ -44,10 +42,6 @@ public class DriverService
     @Transactional
     public void delete(Long id)
     {
-        if (vehicleRepository.existsByDriverId(id))
-        {
-            throw new IllegalStateException("该司机仍关联车辆，请先解除关联再删除");
-        }
         driverRepository.deleteById(id);
     }
 }

@@ -1,9 +1,7 @@
 package me.ningyu.app.shuttle.facade.service;
 
 import lombok.RequiredArgsConstructor;
-import me.ningyu.app.shuttle.domain.entity.extension.Driver;
 import me.ningyu.app.shuttle.domain.entity.extension.Vehicle;
-import me.ningyu.app.shuttle.domain.repo.DriverRepository;
 import me.ningyu.app.shuttle.domain.repo.VehicleRepository;
 import me.ningyu.app.shuttle.model.fleet.VehicleUpsertRequest;
 import me.ningyu.app.shuttle.model.fleet.VehicleView;
@@ -18,7 +16,6 @@ import java.util.stream.Collectors;
 public class VehicleService
 {
     private final VehicleRepository vehicleRepository;
-    private final DriverRepository driverRepository;
 
     @Transactional(readOnly = true)
     public List<VehicleView> getAll()
@@ -35,15 +32,7 @@ public class VehicleService
         {
             throw new IllegalArgumentException("车牌号已存在: " + req.getPlateNumber());
         }
-        Vehicle v = Vehicle.builder()
-                .plateNumber(req.getPlateNumber())
-                .seatCount(req.getSeatCount())
-                .vehicleType(req.getVehicleType())
-                .supplier(req.getSupplier())
-                .adminName(req.getAdminName())
-                .adminPhone(req.getAdminPhone())
-                .driver(resolveDriver(req.getDriverId()))
-                .build();
+        Vehicle v = apply(new Vehicle(), req);
         return VehicleView.of(vehicleRepository.save(v));
     }
 
@@ -52,13 +41,7 @@ public class VehicleService
     {
         Vehicle v = vehicleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("载具不存在: id=" + id));
-        v.setPlateNumber(req.getPlateNumber());
-        v.setSeatCount(req.getSeatCount());
-        v.setVehicleType(req.getVehicleType());
-        v.setSupplier(req.getSupplier());
-        v.setAdminName(req.getAdminName());
-        v.setAdminPhone(req.getAdminPhone());
-        v.setDriver(resolveDriver(req.getDriverId()));
+        apply(v, req);
         return VehicleView.of(v);
     }
 
@@ -70,10 +53,17 @@ public class VehicleService
         vehicleRepository.delete(v);
     }
 
-    private Driver resolveDriver(Long driverId)
+    private Vehicle apply(Vehicle v, VehicleUpsertRequest req)
     {
-        if (driverId == null) return null;
-        return driverRepository.findById(driverId)
-                .orElseThrow(() -> new IllegalArgumentException("司机不存在: id=" + driverId));
+        v.setPlateNumber(req.getPlateNumber());
+        v.setBrandModel(req.getBrandModel());
+        v.setSeatCount(req.getSeatCount());
+        v.setVehicleType(req.getVehicleType());
+        v.setEnergyType(req.getEnergyType());
+        v.setStatus(req.getStatus());
+        v.setSupplier(req.getSupplier());
+        v.setInsuranceExpiry(req.getInsuranceExpiry());
+        v.setInspectionExpiry(req.getInspectionExpiry());
+        return v;
     }
 }

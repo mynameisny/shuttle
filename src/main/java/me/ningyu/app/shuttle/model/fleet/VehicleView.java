@@ -5,12 +5,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.ningyu.app.shuttle.domain.entity.extension.Driver;
 import me.ningyu.app.shuttle.domain.entity.extension.Vehicle;
 
+import java.time.LocalDate;
+
 /**
- * 载具视图：把司机信息展平（driverId/driverName/driverPhone），
- * 避免前端直接面对 Vehicle.driver 的懒加载关联。
+ * 载具视图：车辆台账的扁平化展示对象。
  */
 @Getter
 @Setter
@@ -21,29 +21,28 @@ public class VehicleView
 {
     private Long id;
     private String plateNumber;
+    private String brandModel;
     private Integer seatCount;
     private String vehicleType;
+    private String energyType;
+    private String status;
     private String supplier;
-    private String adminName;
-    private String adminPhone;
-    private Long driverId;
-    private String driverName;
-    private String driverPhone;
+    private LocalDate insuranceExpiry;
+    private LocalDate inspectionExpiry;
 
     public static VehicleView of(Vehicle v)
     {
-        Driver d = v.getDriver();
         return VehicleView.builder()
                 .id(v.getId())
                 .plateNumber(v.getPlateNumber())
+                .brandModel(v.getBrandModel())
                 .seatCount(v.getSeatCount())
                 .vehicleType(v.getVehicleType())
+                .energyType(v.getEnergyType())
+                .status(v.getStatus())
                 .supplier(v.getSupplier())
-                .adminName(v.getAdminName())
-                .adminPhone(v.getAdminPhone())
-                .driverId(d != null ? d.getId() : null)
-                .driverName(d != null ? d.getName() : null)
-                .driverPhone(d != null ? d.getPhone() : null)
+                .insuranceExpiry(v.getInsuranceExpiry())
+                .inspectionExpiry(v.getInspectionExpiry())
                 .build();
     }
 }
