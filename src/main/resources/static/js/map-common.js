@@ -68,7 +68,19 @@ function createMap(elementId, opts) {
         })
     };
     basemaps['OSM 标准'].addTo(map);
-    L.control.layers(basemaps, null, { position: 'bottomright' }).addTo(map);
+    L.control.layers(basemaps, null, { position: 'topright' }).addTo(map);
+    // 鹰眼图（小地图预览）：右下角缩略地图，标出当前视野在全局的位置，
+    // 选点/描图时快速判断自己在北京的哪个方位。依赖 leaflet-minimap 插件。
+    if (window.L && L.Control && L.Control.MiniMap) {
+        new L.Control.MiniMap(basemaps['OSM 标准'], {
+            toggleDisplay: true,
+            minimized: false,
+            position: 'bottomright',
+            zoomLevelOffset: -5,
+            width: 150,
+            height: 150
+        }).addTo(map);
+    }
     return { map, basemaps };
 }
 
