@@ -679,6 +679,24 @@
         return state.stops.map(s => ({ stopPk: s.id, lat: s.stopLat, lng: s.stopLon, stopName: s.stopName, stopId: s.stopId }));
     }
 
+    // 保存站点后同步「按班次」视图的数据源（state.routeStops）：
+    // 其 stop 对象用 lat/lng 字段（区别于台账的 stopLat/stopLon），且同时存在于
+    // 方向并集 directions[].stops 与每个班次 directions[].trips[].stops 两处，都要更新。
+    function syncRouteStops(stopPk, updated) {
+        if (!state.routeStops) return;
+        const patch = s => {
+            if (s.stopPk === stopPk) {
+                s.lat = updated.stopLat;
+                s.lng = updated.stopLon;
+                s.stopName = updated.stopName;
+            }
+        };
+        (state.routeStops.directions || []).forEach(d => {
+            (d.stops || []).forEach(patch);
+            (d.trips || []).forEach(t => (t.stops || []).forEach(patch));
+        });
+    }
+
     // ---------- 线路下拉（带色块） ----------
     // 原生 <option> 不能放 HTML，所以真实选项渲染在自定义浮层里；#routeFilter 只作为
     // 取值与 change 事件的载体，旧的筛选联动（applyRouteFilter 等）完全不用改。
@@ -1135,6 +1153,7 @@
             if (i >= 0) state.allStops[i] = updated;
             const j = state.stops.findIndex(s => s.id === stop.id);
             if (j >= 0) state.stops[j] = updated;
+            syncRouteStops(stop.id, updated); // 按班次视图的数据源也要同步，否则列表坐标不更新
             renderList();
             clearPickMarker();
             refreshSelMarker();
