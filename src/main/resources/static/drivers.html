@@ -150,8 +150,6 @@
     let vehicles = [];
     let editingId = null;
 
-    const $ = id => document.getElementById(id);
-
     async function load() {
         try {
             const [d, v] = await Promise.all([api(API.drivers), api(API.vehicles)]);

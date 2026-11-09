@@ -184,8 +184,6 @@
     let drivers = [];
     let editingId = null;   // null = 新增
 
-    const $ = id => document.getElementById(id);
-
     async function load() {
         try {
             const [v, d] = await Promise.all([api(API.vehicles), api(API.drivers)]);
