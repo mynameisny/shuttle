@@ -202,3 +202,35 @@ ALTER TABLE route_network ADD UNIQUE KEY uk_route_network (route_id, network_id)
 注：唯一索引的引入同时改变了原来的多标签自由度——同一线路今后不允许重复挂同一标签（本就是脏数据），多标签（一线路挂多个不同标签）不受影响。
 
 效果验证需启动应用后查看线路下拉的 network 分组标题（原「北向发车」等分组将显示新片区名）。
+
+## 后续修正（2026-11-09 09:30）：班次挂载错位修复（trip.route_id 系统性后移一位）
+
+重编号的又一处遗留（与 15:30 的 route_network 修复同源）：**route 表名字更新到新编号，但 trip.route_id 没有跟着迁移**，几乎每条线路名下的班次都是"前一条线路"的班次。用户在 UI 发现「东坝支线-昌平」的班次出现在 route 18（雍和宫-昌平1）名下，顺藤查实全链。
+
+### 影响面（修复前）
+- 52 班次中 **36 个错挂**：route 10（北小街-昌平）、33（昌平水屯-八角）被挤空，route 43 挤了 2 个班次，错位链贯穿 10~43（如 11(管庄)←北小街班次、17(东坝支线)←东坝班次、28(高教园)←南邵班次、38(涿州-八角2)←涿州-八角1班次）
+- 未受影响：route 8 霍营三班次（合并时重建）、route 31 八角园区1/2/3（（2）（3）并入时导入）等 16 条
+
+### 修复方式
+按班次 `trip_headsign` 语义匹配 `route_long_name` 自动重挂：归一化去（N）括号段 / 去"线"字尾，**base 一致 + 线路带序号则班次序号必须对号**（防"雍和宫-昌平1"误配"雍和宫-昌平2"）。36 条全部自动解析，0 条人工裁决。
+
+```
+UPDATE trip SET route_id=<目标>, last_modified_by='ningyu-fix-shift' WHERE id=? AND route_id=?  ×36
+```
+
+- `WHERE id=? AND route_id=?` 带旧值条件，防并发期间 route_id 漂移
+- 停站（stop_time）挂在班次上自动跟随，无需改动
+- trip_id 未动：GTFS 中 trip_id 是独立命名空间，与 route_id 数字对应只是导入惯例，改它需级联 stop_time 外键
+
+### 修复后校验
+```
+语义错挂=0；班次总数 52；route 10/33 各回归 1 班次；route 43 回归 1 班次；无班次线路=[]；
+last_modified_by='ningyu-fix-shift' 标记 36 行；5 秒间隔复验稳定
+```
+
+### 过程中的两个教训
+1. **pymysql 必须显式 `autocommit=True`**：v1 脚本漏写，36 条 UPDATE 在 `close()` 时整体回滚（rowcount=1 只代表事务内成功）。此前 fix_network_tags.py 带 autocommit 的写法是正确范式。
+2. **校验匹配不能只做 base 比对**：loose 匹配曾把「雍和宫-昌平1」挂在「雍和宫-昌平2」误判为正确（6 个假阴性），一度误导为"部分 UPDATE 生效/存在并发写者"。带序号线路必须序号对号。
+
+### 待办（同源嫌疑）
+route_network 的标签可能同样存在 shift 遗留（如 route 18 挂 EAST 城东片区对"雍和宫"是否合适存疑、27 挂 LOCAL_SHUTTLE 待业务确认）——上次仅修复了 30/31 与 (43) 重复行，建议后续对照线路名全量审计。
