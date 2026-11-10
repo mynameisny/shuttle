@@ -192,20 +192,22 @@ function buildSidebar(mount, activeKey) {
 
     mount.innerHTML = html;
 
-    // 折叠/展开：按钮在侧边栏底部，任何状态下都可见可点（折叠后靠它恢复展开）
-    const shell = mount.closest('.app-shell');
-    if (localStorage.getItem(SB_KEY) === '1') shell.classList.add('collapsed');
+    // 折叠/展开：按钮在侧边栏底部，任何状态下都可见可点（折叠后靠它恢复展开）。
+    // 状态 class 挂在 <html>（sb-collapsed），与各页 <head> 的防闪烁内联脚本共用，
+    // 保证刷新/跳转时首帧即折叠，不出现"先展开再缩回"的 FOUC。
+    const root = document.documentElement;
+    if (localStorage.getItem(SB_KEY) === '1') root.classList.add('sb-collapsed');
     const btn = mount.querySelector('#sbCollapse');
     if (btn) {
         const syncTitle = () => {
-            btn.title = shell.classList.contains('collapsed') ? '展开侧边栏' : '收起侧边栏';
+            btn.title = root.classList.contains('sb-collapsed') ? '展开侧边栏' : '收起侧边栏';
         };
         syncTitle();
         btn.addEventListener('click', e => {
             e.preventDefault();
             e.stopPropagation();
-            shell.classList.toggle('collapsed');
-            localStorage.setItem(SB_KEY, shell.classList.contains('collapsed') ? '1' : '0');
+            const collapsed = root.classList.toggle('sb-collapsed');
+            localStorage.setItem(SB_KEY, collapsed ? '1' : '0');
             syncTitle();
         });
     }
