@@ -59,7 +59,10 @@
 
         /* 防窥打码：身份证号/驾驶证编号默认打码，点眼睛切换显示 */
         .mask-wrap { display: inline-flex; align-items: center; gap: 6px; }
-        .mask-txt { font-variant-numeric: tabular-nums; }
+        .mask-txt {
+            font-variant-numeric: tabular-nums;
+            min-width: 18ch;   /* 固定占位=18位号码宽度，切换显示/打码时列宽不跳动 */
+        }
         .mask-toggle {
             display: inline-flex; align-items: center; justify-content: center;
             width: 22px; height: 22px; border: none; background: transparent;
