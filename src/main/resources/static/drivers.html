@@ -20,21 +20,19 @@
         .driver-summary .fs-item:last-child { border-right: none; }
         .driver-summary .fs-label { font-size: 11px; color: var(--c-text-3); }
         .driver-summary .fs-value { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
-        .avatar {
-            width: 30px; height: 30px; border-radius: 50%;
-            background: var(--c-primary-soft); color: var(--c-primary-ink);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12.5px; font-weight: 650; flex-shrink: 0;
-        }
         .name-cell { display: flex; align-items: center; gap: 10px; }
-        /* 性别配色胶囊：男=蓝、女=粉 */
-        .gender-pill {
-            display: inline-flex; align-items: center;
-            padding: 2px 10px; border-radius: 999px;
-            font-size: 12px; font-weight: 600; line-height: 1.5;
+        /* 性别图标：姓名前的圆形标识，男=蓝(箭头)、女=粉(圆圈) */
+        .gender-ico {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+        }
+        .gender-ico svg {
+            width: 13px; height: 13px; fill: none; stroke: currentColor;
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
         }
         .gender-m { background: var(--c-info-soft); color: var(--c-info); }
         .gender-f { background: #fdeef4; color: #d63384; }
+        .gender-none { background: #f1f3f5; color: var(--c-text-3); }
 
         /* 列设置下拉面板 */
         .cols-wrap { position: relative; }
@@ -210,10 +208,12 @@
         return esc(String(s).replace('T', ' ').slice(0, 16));
     }
 
-    function genderPill(g) {
-        if (g === '男') return '<span class="gender-pill gender-m">男</span>';
-        if (g === '女') return '<span class="gender-pill gender-f">女</span>';
-        return '<span class="muted">—</span>';
+    function genderIcon(g) {
+        const male = '<svg viewBox="0 0 24 24"><circle cx="10" cy="14" r="5.5"/><path d="M14.5 9.5L19 5M19 5h-4M19 5v4"/></svg>';
+        const female = '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5.5"/><path d="M12 13.5V20M9 17h6"/></svg>';
+        if (g === '男') return '<span class="gender-ico gender-m" title="男">' + male + '</span>';
+        if (g === '女') return '<span class="gender-ico gender-f" title="女">' + female + '</span>';
+        return '<span class="gender-ico gender-none" title="未填写">—</span>';
     }
 
     function driverStatusPill(s) {
@@ -249,10 +249,9 @@
     // ===== 列配置：key 用于持久化；required 固定；cell(d) 返回整格 <td> =====
     const COLUMNS = [
         { key: 'name', label: '司机姓名', required: true, cell: d =>
-            '<td><div class="name-cell"><span class="avatar">' + esc((d.name || '?').trim().charAt(0)) + '</span>' +
+            '<td><div class="name-cell">' + genderIcon(d.gender) +
             '<div class="cell-stack"><span class="strong">' + esc(d.name) + '</span>' +
             '<span class="sub">ID ' + d.id + '</span></div></div></td>' },
-        { key: 'gender', label: '性别', cell: d => '<td>' + genderPill(d.gender) + '</td>' },
         { key: 'phone', label: '手机号', cell: d =>
             '<td class="mono">' + (d.phone ? esc(d.phone) : '<span class="muted">未填写</span>') + '</td>' },
         { key: 'status', label: '状态', cell: d => '<td>' + driverStatusPill(d.status) + '</td>' },
