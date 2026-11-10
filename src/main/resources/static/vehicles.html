@@ -264,8 +264,13 @@
     ];
 
     const COL_KEY = 'shuttle.vehicles.hiddenCols';
+    // 首次访问默认隐藏：VIN/发动机号、保险到期、年检到期（次要信息默认收起，可勾选展开）
+    const DEFAULT_HIDDEN = ['vin', 'insuranceExpiry', 'inspectionExpiry'];
     let hiddenCols = [];
-    try { hiddenCols = JSON.parse(localStorage.getItem(COL_KEY) || '[]'); } catch (e) { hiddenCols = []; }
+    try {
+        const stored = localStorage.getItem(COL_KEY);
+        hiddenCols = stored ? JSON.parse(stored) : DEFAULT_HIDDEN.slice();
+    } catch (e) { hiddenCols = DEFAULT_HIDDEN.slice(); }
 
     function visibleColumns() {
         return COLUMNS.filter(c => c.required || hiddenCols.indexOf(c.key) === -1);
