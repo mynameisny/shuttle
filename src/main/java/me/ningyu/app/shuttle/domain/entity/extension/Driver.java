@@ -3,6 +3,7 @@ package me.ningyu.app.shuttle.domain.entity.extension;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,6 +35,7 @@ public class Driver extends AbstractAuditable
     /**
      * 司机手机号。
      */
+    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确（应为 11 位手机号）")
     @Column(name = "phone", columnDefinition = "VARCHAR(20) COMMENT '司机手机号'")
     private String phone;
 
@@ -47,6 +49,7 @@ public class Driver extends AbstractAuditable
     /**
      * 身份证号。
      */
+    @Pattern(regexp = "^\\d{17}[\\dXx]$", message = "身份证号格式不正确（应为 18 位，末位可为 X）")
     @Column(name = "id_card_number", columnDefinition = "VARCHAR(18) COMMENT '身份证号'")
     private String idCardNumber;
 

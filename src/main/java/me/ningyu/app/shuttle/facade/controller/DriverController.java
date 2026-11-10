@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.ningyu.app.shuttle.domain.entity.extension.Driver;
 import me.ningyu.app.shuttle.facade.service.DriverService;
@@ -37,7 +38,7 @@ public class DriverController
 
     @PostMapping
     @Operation(summary = "新增司机")
-    public ResponseEntity<Driver> create(@RequestBody Driver driver)
+    public ResponseEntity<Driver> create(@Valid @RequestBody Driver driver)
     {
         return ResponseEntity.ok(driverService.create(driver));
     }
@@ -46,7 +47,7 @@ public class DriverController
     @Operation(summary = "更新司机")
     public ResponseEntity<Driver> update(
             @Parameter(description = "司机主键") @PathVariable Long id,
-            @RequestBody Driver driver)
+            @Valid @RequestBody Driver driver)
     {
         return ResponseEntity.ok(driverService.update(id, driver));
     }
