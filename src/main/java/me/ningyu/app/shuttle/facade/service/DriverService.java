@@ -31,6 +31,7 @@ public class DriverService
                 .gender(req.getGender())
                 .licenseClass(req.getLicenseClass())
                 .licenseNumber(req.getLicenseNumber())
+                .avatarUrl(req.getAvatarUrl())
                 .build());
     }
 
@@ -46,6 +47,7 @@ public class DriverService
         d.setGender(req.getGender());
         d.setLicenseClass(req.getLicenseClass());
         d.setLicenseNumber(req.getLicenseNumber());
+        d.setAvatarUrl(req.getAvatarUrl());
         return driverRepository.save(d);
     }
 

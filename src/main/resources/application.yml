@@ -14,12 +14,22 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   mvc:
     apiversion:
       use:
         header: X-API-Version
       default: v1
 
+app:
+  upload:
+    dir: ${UPLOAD_DIR:./data/uploads}
+    max-width: 1024
+    max-height: 1024
+    quality: 0.8
 
 springdoc:
   swagger-ui:

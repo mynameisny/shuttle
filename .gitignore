@@ -29,6 +29,9 @@ hs_err_pid*
 .DS_Store
 */.DS_Store
 
+# 运行时上传文件（图片等，不纳入版本库）
+/data/uploads/
+
 # Local development configuration
 src/main/resources/application-local.yml 
 /target/

@@ -70,4 +70,10 @@ public class Driver extends AbstractAuditable
      */
     @Column(name = "license_number", columnDefinition = "VARCHAR(30) COMMENT '驾驶证编号'")
     private String licenseNumber;
+
+    /**
+     * 司机头像 URL（相对路径，如 /uploads/avatars/2026/11/xxx.jpg）。
+     */
+    @Column(name = "avatar_url", columnDefinition = "VARCHAR(255) COMMENT '司机头像 URL'")
+    private String avatarUrl;
 }
