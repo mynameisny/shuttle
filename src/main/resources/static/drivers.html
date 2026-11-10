@@ -213,11 +213,14 @@
         return '****';
     }
     function maskedCell(v) {
-        if (!v) return '<span class="muted">—</span>';
+        const eyeSvg = '<svg class="ico" viewBox="0 0 20 20"><path d="M1.8 10S5.2 5 10 5s8.2 5 8.2 5-3.4 5-8.2 5-8.2-5-8.2-5z"/><circle cx="10" cy="10" r="2.6"/></svg>';
+        // 空值也渲染同样的 mask-txt + 隐藏眼睛占位，保证列宽在"全空 → 首次有数据"时不变
+        if (!v) {
+            return '<span class="mask-wrap"><span class="mask-txt mono muted">—</span>' +
+                '<span class="mask-toggle" aria-hidden="true" style="visibility:hidden">' + eyeSvg + '</span></span>';
+        }
         return '<span class="mask-wrap"><span class="mask-txt mono">' + esc(maskText(v)) + '</span>' +
-            '<button type="button" class="mask-toggle" data-full="' + esc(v) + '" title="显示/隐藏">' +
-            '<svg class="ico" viewBox="0 0 20 20"><path d="M1.8 10S5.2 5 10 5s8.2 5 8.2 5-3.4 5-8.2 5-8.2-5-8.2-5z"/><circle cx="10" cy="10" r="2.6"/></svg>' +
-            '</button></span>';
+            '<button type="button" class="mask-toggle" data-full="' + esc(v) + '" title="显示/隐藏">' + eyeSvg + '</button></span>';
     }
 
     // ===== 列配置：key 用于持久化；required 固定；cell(d) 返回整格 <td> =====
@@ -240,8 +243,8 @@
     ];
 
     const COL_KEY = 'shuttle.drivers.hiddenCols';
-    // 默认隐藏：准驾车型、驾驶证编号（次要信息，可勾选展开）
-    const DEFAULT_HIDDEN = ['licenseClass', 'licenseNumber'];
+    // 默认隐藏：准驾车型、驾驶证编号、录入时间（次要信息，可勾选展开）
+    const DEFAULT_HIDDEN = ['licenseClass', 'licenseNumber', 'createdDate'];
     let hiddenCols = [];
     try {
         const stored = localStorage.getItem(COL_KEY);
