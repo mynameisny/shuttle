@@ -139,8 +139,6 @@ function buildSidebar(mount, activeKey) {
         '  <span class="logo">班</span>' +
         '  <span class="brand-text"><span class="brand-name">班车调度管理</span>' +
         '  <span class="brand-sub">Shuttle Ops</span></span>' +
-        '  <button class="sb-collapse" id="sbCollapse" type="button" title="收起侧边栏" aria-label="收起侧边栏">' +
-        iconSvg('chevronLeft') + '</button>' +
         '</a>' +
         '<nav class="sb-nav">';
 
@@ -160,11 +158,13 @@ function buildSidebar(mount, activeKey) {
                     '<a class="' + parentCls + '" href="' + parentHref + '"' +
                     ' title="' + _e(it.name) + '" data-nav="' + it.key + '">' +
                     iconSvg(it.icon) + '<span class="txt">' + _e(it.name) + '</span></a>';
-                // 二级项：当前模块的子项展开显示
+                // 二级项：当前模块的子项展开显示。
+                // sb-sub 类用于折叠态整体隐藏——二级项没有图标，折叠后只剩 64px 空条，
+                // 与其留下空白残影，不如折叠态直接收起二级层（主流 SaaS 后台行为）。
                 if (isGroupActive) {
                     it.children.forEach(c => {
                         const href = c.ready && c.href ? c.href : ('placeholder.html?m=' + encodeURIComponent(c.key));
-                        const cls = 'sb-item' + (activeKey === c.key ? ' active' : '') + (c.ready ? '' : ' disabled');
+                        const cls = 'sb-item sb-sub' + (activeKey === c.key ? ' active' : '') + (c.ready ? '' : ' disabled');
                         html +=
                             '<a class="' + cls + '" href="' + href + '" title="' + _e(c.name) + '" data-nav="' + c.key + '"' +
                             ' style="padding-left:34px;font-size:12.5px">' +
@@ -184,20 +184,29 @@ function buildSidebar(mount, activeKey) {
     });
 
     html += '</nav>' +
+        '<div class="sb-toggle-wrap">' +
+        '<button class="sb-toggle" id="sbCollapse" type="button" title="收起侧边栏" aria-label="收起/展开侧边栏">' +
+        iconSvg('chevronLeft') + '<span class="txt">收起侧边栏</span></button>' +
+        '</div>' +
         '<div class="sb-foot">数据源 GTFS · 本地台账</div>';
 
     mount.innerHTML = html;
 
-    // 折叠
+    // 折叠/展开：按钮在侧边栏底部，任何状态下都可见可点（折叠后靠它恢复展开）
     const shell = mount.closest('.app-shell');
     if (localStorage.getItem(SB_KEY) === '1') shell.classList.add('collapsed');
     const btn = mount.querySelector('#sbCollapse');
     if (btn) {
+        const syncTitle = () => {
+            btn.title = shell.classList.contains('collapsed') ? '展开侧边栏' : '收起侧边栏';
+        };
+        syncTitle();
         btn.addEventListener('click', e => {
             e.preventDefault();
             e.stopPropagation();
             shell.classList.toggle('collapsed');
             localStorage.setItem(SB_KEY, shell.classList.contains('collapsed') ? '1' : '0');
+            syncTitle();
         });
     }
 }
