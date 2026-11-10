@@ -206,11 +206,18 @@
         return '<span class="muted">—</span>';
     }
 
-    // 防窥打码：身份证号/驾驶证编号默认脱敏，点眼睛切换显示完整
+    // 防窥打码：按长度自适应，保证"前段+星号+后段"永不超长、不重叠，
+    // 星号数 = 被隐藏位数（最多4），避免短号码打码后比原值还长（如 9 位号前6后4会重叠）
     function maskText(s) {
-        if (s.length > 8) return s.slice(0, 6) + '****' + s.slice(-4);
-        if (s.length > 4) return s.slice(0, 2) + '****' + s.slice(-2);
-        return '****';
+        const n = s.length;
+        if (n <= 4) return '****';
+        let front, back;
+        if (n >= 16) { front = 6; back = 4; }        // 18 位身份证：前 6 后 4
+        else if (n >= 10) { front = 4; back = 4; }   // 11~15 位：前 4 后 4
+        else if (n >= 7) { front = 3; back = 3; }    // 7~9 位：前 3 后 3
+        else { front = 2; back = 2; }                // 5~6 位：前 2 后 2
+        const stars = Math.min(4, n - front - back);
+        return s.slice(0, front) + '*'.repeat(stars) + s.slice(-back);
     }
     function maskedCell(v) {
         const eyeSvg = '<svg class="ico" viewBox="0 0 20 20"><path d="M1.8 10S5.2 5 10 5s8.2 5 8.2 5-3.4 5-8.2 5-8.2-5-8.2-5z"/><circle cx="10" cy="10" r="2.6"/></svg>';
