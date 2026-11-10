@@ -39,12 +39,12 @@
                 <div>
                     <div class="crumbs" data-auto-crumbs></div>
                     <h1 class="page-title">司机档案</h1>
-                    <p class="page-desc">司机姓名与联系方式台账</p>
+                    <p class="page-desc">司机姓名、证件、准驾车型与联系方式台账</p>
                 </div>
                 <div class="page-actions">
                     <label class="search-wrap">
                         <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
-                        <input type="text" class="search" id="searchInput" placeholder="搜索姓名 / 手机号…" style="width:250px">
+                        <input type="text" class="search" id="searchInput" placeholder="搜索姓名 / 手机号 / 身份证号…" style="width:250px">
                     </label>
                     <button class="btn btn-primary" id="btnAdd">
                         <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
@@ -60,7 +60,11 @@
                         <thead>
                         <tr>
                             <th>司机姓名</th>
+                            <th>性别</th>
                             <th>手机号</th>
+                            <th>准驾车型</th>
+                            <th>驾驶证编号</th>
+                            <th>身份证号</th>
                             <th>录入时间</th>
                             <th class="col-actions">操作</th>
                         </tr>
@@ -77,14 +81,40 @@
 <div id="modal" class="modal-mask" style="display:none">
     <div class="modal">
         <h3 id="modalTitle">新增司机</h3>
-        <p class="modal-desc">姓名与手机号用于班次派车时的人员指派</p>
-        <div class="field">
-            <label>司机姓名<span class="req">*</span></label>
-            <input type="text" class="input" id="fName" maxlength="30" placeholder="如 宋永建">
+        <p class="modal-desc">姓名、证件与准驾车型用于班次派车时的人员指派</p>
+        <div class="field-row">
+            <div class="field">
+                <label>司机姓名<span class="req">*</span></label>
+                <input type="text" class="input" id="fName" maxlength="30" placeholder="如 宋永建">
+            </div>
+            <div class="field">
+                <label>性别</label>
+                <select class="select" id="fGender">
+                    <option value="">未填写</option>
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </div>
         </div>
-        <div class="field">
-            <label>手机号</label>
-            <input type="text" class="input" id="fPhone" maxlength="20" placeholder="如 13439306770">
+        <div class="field-row">
+            <div class="field">
+                <label>手机号</label>
+                <input type="text" class="input" id="fPhone" maxlength="20" placeholder="如 13439306770">
+            </div>
+            <div class="field">
+                <label>身份证号</label>
+                <input type="text" class="input" id="fIdCard" maxlength="18" placeholder="18 位身份证号">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>准驾车型</label>
+                <input type="text" class="input" id="fLicenseClass" maxlength="20" placeholder="如 A1 / A3 / C1">
+            </div>
+            <div class="field">
+                <label>驾驶证编号</label>
+                <input type="text" class="input" id="fLicenseNumber" maxlength="30" placeholder="驾驶证编号">
+            </div>
         </div>
         <div class="btn-row">
             <button class="btn" id="btnCancel">取消</button>
@@ -129,11 +159,12 @@
         const kw = $('searchInput').value.trim().toLowerCase();
         const list = drivers.filter(d => {
             if (!kw) return true;
-            return ((d.name || '') + ' ' + (d.phone || '')).toLowerCase().includes(kw);
+            const hay = [d.name, d.phone, d.idCardNumber, d.licenseClass, d.licenseNumber].filter(Boolean).join(' ');
+            return hay.toLowerCase().includes(kw);
         });
         const tbody = $('tbody');
         if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="4">' +
+            tbody.innerHTML = '<tr><td colspan="8">' +
                 '<div class="empty-state"><div class="em-title">没有匹配的司机</div>' +
                 '<div class="em-desc">换个关键词，或点击右上角「新增司机」录入</div></div></td></tr>';
             return;
@@ -144,7 +175,11 @@
                 '<td><div class="name-cell"><span class="avatar">' + esc(initial) + '</span>' +
                 '<div class="cell-stack"><span class="strong">' + esc(d.name) + '</span>' +
                 '<span class="sub">ID ' + d.id + '</span></div></div></td>' +
+                '<td>' + (d.gender ? esc(d.gender) : '<span class="muted">—</span>') + '</td>' +
                 '<td class="mono">' + (d.phone ? esc(d.phone) : '<span class="muted">未填写</span>') + '</td>' +
+                '<td>' + (d.licenseClass ? esc(d.licenseClass) : '<span class="muted">—</span>') + '</td>' +
+                '<td class="mono">' + (d.licenseNumber ? esc(d.licenseNumber) : '<span class="muted">—</span>') + '</td>' +
+                '<td class="mono">' + (d.idCardNumber ? esc(d.idCardNumber) : '<span class="muted">—</span>') + '</td>' +
                 '<td class="muted mono">' + fmtDate(d.createdDate) + '</td>' +
                 '<td class="col-actions">' +
                 '<button class="btn btn-sm" data-edit="' + d.id + '">编辑</button> ' +
@@ -160,7 +195,11 @@
         $('modalTitle').textContent = id ? '编辑司机' : '新增司机';
         const d = id ? drivers.find(x => x.id === id) : null;
         $('fName').value = d ? d.name : '';
+        $('fGender').value = d ? (d.gender || '') : '';
         $('fPhone').value = d ? (d.phone || '') : '';
+        $('fIdCard').value = d ? (d.idCardNumber || '') : '';
+        $('fLicenseClass').value = d ? (d.licenseClass || '') : '';
+        $('fLicenseNumber').value = d ? (d.licenseNumber || '') : '';
         $('modal').style.display = '';
         $('fName').focus();
     }
@@ -170,7 +209,14 @@
     async function save() {
         const name = $('fName').value.trim();
         if (!name) { toast('司机姓名不能为空', true); return; }
-        const body = { name: name, phone: $('fPhone').value.trim() || null };
+        const body = {
+            name: name,
+            phone: $('fPhone').value.trim() || null,
+            idCardNumber: $('fIdCard').value.trim() || null,
+            gender: $('fGender').value || null,
+            licenseClass: $('fLicenseClass').value.trim() || null,
+            licenseNumber: $('fLicenseNumber').value.trim() || null
+        };
         try {
             if (editingId) {
                 await api(API.drivers + '/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
