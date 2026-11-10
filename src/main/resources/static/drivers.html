@@ -147,15 +147,25 @@
                 <input type="text" class="input" id="fPhone" maxlength="20" placeholder="如 13439306770">
             </div>
             <div class="field">
-                <label>身份证号</label>
-                <input type="text" class="input" id="fIdCard" maxlength="18" placeholder="18 位身份证号">
+                <label>状态</label>
+                <select class="select" id="fStatus">
+                    <option value="在岗">在岗</option>
+                    <option value="休假">休假</option>
+                    <option value="停用">停用</option>
+                </select>
             </div>
         </div>
         <div class="field-row">
             <div class="field">
+                <label>身份证号</label>
+                <input type="text" class="input" id="fIdCard" maxlength="18" placeholder="18 位身份证号">
+            </div>
+            <div class="field">
                 <label>准驾车型</label>
                 <input type="text" class="input" id="fLicenseClass" maxlength="20" placeholder="如 A1 / A3 / C1">
             </div>
+        </div>
+        <div class="field-row">
             <div class="field">
                 <label>驾驶证编号</label>
                 <input type="text" class="input" id="fLicenseNumber" maxlength="30" placeholder="驾驶证编号">
@@ -206,6 +216,12 @@
         return '<span class="muted">—</span>';
     }
 
+    function driverStatusPill(s) {
+        const v = s || '在岗';
+        const cls = v === '休假' ? 'pill-warn' : v === '停用' ? 'pill-neutral' : 'pill-ok';
+        return '<span class="pill ' + cls + '">' + esc(v) + '</span>';
+    }
+
     // 防窥打码：按长度自适应，保证"前段+星号+后段"永不超长、不重叠，
     // 星号数 = 被隐藏位数（最多4），避免短号码打码后比原值还长（如 9 位号前6后4会重叠）
     function maskText(s) {
@@ -239,6 +255,7 @@
         { key: 'gender', label: '性别', cell: d => '<td>' + genderPill(d.gender) + '</td>' },
         { key: 'phone', label: '手机号', cell: d =>
             '<td class="mono">' + (d.phone ? esc(d.phone) : '<span class="muted">未填写</span>') + '</td>' },
+        { key: 'status', label: '状态', cell: d => '<td>' + driverStatusPill(d.status) + '</td>' },
         { key: 'licenseClass', label: '准驾车型', cell: d =>
             '<td>' + (d.licenseClass ? esc(d.licenseClass) : '<span class="muted">—</span>') + '</td>' },
         { key: 'licenseNumber', label: '驾驶证编号', cell: d => '<td>' + maskedCell(d.licenseNumber) + '</td>' },
@@ -270,7 +287,7 @@
         const kw = $('searchInput').value.trim().toLowerCase();
         const list = drivers.filter(d => {
             if (!kw) return true;
-            const hay = [d.name, d.phone, d.idCardNumber, d.licenseClass, d.licenseNumber].filter(Boolean).join(' ');
+            const hay = [d.name, d.phone, d.status, d.idCardNumber, d.licenseClass, d.licenseNumber].filter(Boolean).join(' ');
             return hay.toLowerCase().includes(kw);
         });
         const tbody = $('tbody');
@@ -311,6 +328,7 @@
         $('fName').value = d ? d.name : '';
         $('fGender').value = d ? (d.gender || '') : '';
         $('fPhone').value = d ? (d.phone || '') : '';
+        $('fStatus').value = d && d.status ? d.status : '在岗';
         $('fIdCard').value = d ? (d.idCardNumber || '') : '';
         $('fLicenseClass').value = d ? (d.licenseClass || '') : '';
         $('fLicenseNumber').value = d ? (d.licenseNumber || '') : '';
@@ -326,6 +344,7 @@
         const body = {
             name: name,
             phone: $('fPhone').value.trim() || null,
+            status: $('fStatus').value || '在岗',
             idCardNumber: $('fIdCard').value.trim() || null,
             gender: $('fGender').value || null,
             licenseClass: $('fLicenseClass').value.trim() || null,

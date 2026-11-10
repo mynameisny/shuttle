@@ -26,6 +26,7 @@ public class DriverService
         return driverRepository.save(Driver.builder()
                 .name(req.getName())
                 .phone(req.getPhone())
+                .status(req.getStatus())
                 .idCardNumber(req.getIdCardNumber())
                 .gender(req.getGender())
                 .licenseClass(req.getLicenseClass())
@@ -40,6 +41,7 @@ public class DriverService
                 .orElseThrow(() -> new IllegalArgumentException("司机不存在: id=" + id));
         d.setName(req.getName());
         d.setPhone(req.getPhone());
+        d.setStatus(req.getStatus());
         d.setIdCardNumber(req.getIdCardNumber());
         d.setGender(req.getGender());
         d.setLicenseClass(req.getLicenseClass());

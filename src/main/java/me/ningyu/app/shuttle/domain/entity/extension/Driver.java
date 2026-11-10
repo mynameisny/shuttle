@@ -13,7 +13,7 @@ import me.ningyu.app.shuttle.domain.entity.AbstractAuditable;
 /**
  * 司机（GTFS 扩展域，非 GTFS 规范字段）。
  *
- * <p>承载班车运营中的司机台账：姓名、手机号、身份证号、性别、准驾车型、驾驶证编号。
+ * <p>承载班车运营中的司机台账：姓名、手机号、状态、身份证号、性别、准驾车型、驾驶证编号。
  * 车辆通过 {@link Vehicle#getDriver()} 关联司机（每辆车一个在册司机）。
  */
 @Entity(name = "driver")
@@ -36,6 +36,13 @@ public class Driver extends AbstractAuditable
      */
     @Column(name = "phone", columnDefinition = "VARCHAR(20) COMMENT '司机手机号'")
     private String phone;
+
+    /**
+     * 司机状态（在岗 / 休假 / 停用）。
+     */
+    @Column(name = "status", columnDefinition = "VARCHAR(20) DEFAULT '在岗' COMMENT '司机状态（在岗/休假/停用）'")
+    @Builder.Default
+    private String status = "在岗";
 
     /**
      * 身份证号。
