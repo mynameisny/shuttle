@@ -35,6 +35,42 @@
         }
         .gender-m { background: var(--c-info-soft); color: var(--c-info); }
         .gender-f { background: #fdeef4; color: #d63384; }
+
+        /* 列设置下拉面板 */
+        .cols-wrap { position: relative; }
+        .col-panel {
+            position: absolute; top: calc(100% + 6px); right: 0; z-index: 60;
+            min-width: 190px; background: #fff;
+            border: 1px solid var(--c-border); border-radius: 8px;
+            box-shadow: var(--shadow-2); padding: 6px;
+        }
+        .col-panel .cp-title {
+            font-size: 11px; font-weight: 700; letter-spacing: .05em;
+            text-transform: uppercase; color: var(--c-text-3); padding: 4px 8px 6px;
+        }
+        .col-panel .cp-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 8px; border-radius: 6px;
+            font-size: 12.5px; color: var(--c-text-2);
+            cursor: pointer; user-select: none;
+        }
+        .col-panel .cp-item:hover { background: #f7f8fa; }
+        .col-panel .cp-item input { margin: 0; accent-color: var(--c-primary); }
+
+        /* 防窥打码：身份证号/驾驶证编号默认打码，点眼睛切换显示 */
+        .mask-wrap { display: inline-flex; align-items: center; gap: 6px; }
+        .mask-txt { font-variant-numeric: tabular-nums; }
+        .mask-toggle {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border: none; background: transparent;
+            color: var(--c-text-3); cursor: pointer; border-radius: 5px; padding: 0;
+            flex-shrink: 0;
+        }
+        .mask-toggle:hover { background: #f1f3f5; color: var(--c-text-2); }
+        .mask-toggle .ico {
+            width: 14px; height: 14px; stroke: currentColor; fill: none;
+            stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+        }
     </style>
 </head>
 <body>
@@ -54,6 +90,13 @@
                         <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
                         <input type="text" class="search" id="searchInput" placeholder="搜索姓名 / 手机号 / 身份证号…" style="width:250px">
                     </label>
+                    <div class="cols-wrap">
+                        <button class="btn" id="btnCols" title="设置显示列">
+                            <svg class="ico" viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 9h14M3 14h14M9.5 4v13M14.5 4v13"/></svg>
+                            列设置
+                        </button>
+                        <div class="col-panel" id="colPanel" style="display:none"></div>
+                    </div>
                     <button class="btn btn-primary" id="btnAdd">
                         <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
                         新增司机
@@ -66,16 +109,7 @@
                 <div class="table-wrap">
                     <table class="tbl">
                         <thead>
-                        <tr>
-                            <th>司机姓名</th>
-                            <th>性别</th>
-                            <th>手机号</th>
-                            <th>准驾车型</th>
-                            <th>驾驶证编号</th>
-                            <th>身份证号</th>
-                            <th>录入时间</th>
-                            <th class="col-actions">操作</th>
-                        </tr>
+                        <tr id="theadRow"></tr>
                         </thead>
                         <tbody id="tbody"></tbody>
                     </table>
@@ -169,7 +203,57 @@
         return '<span class="muted">—</span>';
     }
 
+    // 防窥打码：身份证号/驾驶证编号默认脱敏，点眼睛切换显示完整
+    function maskText(s) {
+        if (s.length > 8) return s.slice(0, 6) + '****' + s.slice(-4);
+        if (s.length > 4) return s.slice(0, 2) + '****' + s.slice(-2);
+        return '****';
+    }
+    function maskedCell(v) {
+        if (!v) return '<span class="muted">—</span>';
+        return '<span class="mask-wrap"><span class="mask-txt mono">' + esc(maskText(v)) + '</span>' +
+            '<button type="button" class="mask-toggle" data-full="' + esc(v) + '" title="显示/隐藏">' +
+            '<svg class="ico" viewBox="0 0 20 20"><path d="M1.8 10S5.2 5 10 5s8.2 5 8.2 5-3.4 5-8.2 5-8.2-5-8.2-5z"/><circle cx="10" cy="10" r="2.6"/></svg>' +
+            '</button></span>';
+    }
+
+    // ===== 列配置：key 用于持久化；required 固定；cell(d) 返回整格 <td> =====
+    const COLUMNS = [
+        { key: 'name', label: '司机姓名', required: true, cell: d =>
+            '<td><div class="name-cell"><span class="avatar">' + esc((d.name || '?').trim().charAt(0)) + '</span>' +
+            '<div class="cell-stack"><span class="strong">' + esc(d.name) + '</span>' +
+            '<span class="sub">ID ' + d.id + '</span></div></div></td>' },
+        { key: 'gender', label: '性别', cell: d => '<td>' + genderPill(d.gender) + '</td>' },
+        { key: 'phone', label: '手机号', cell: d =>
+            '<td class="mono">' + (d.phone ? esc(d.phone) : '<span class="muted">未填写</span>') + '</td>' },
+        { key: 'licenseClass', label: '准驾车型', cell: d =>
+            '<td>' + (d.licenseClass ? esc(d.licenseClass) : '<span class="muted">—</span>') + '</td>' },
+        { key: 'licenseNumber', label: '驾驶证编号', cell: d => '<td>' + maskedCell(d.licenseNumber) + '</td>' },
+        { key: 'idCardNumber', label: '身份证号', cell: d => '<td>' + maskedCell(d.idCardNumber) + '</td>' },
+        { key: 'createdDate', label: '录入时间', cell: d => '<td class="muted mono">' + fmtDate(d.createdDate) + '</td>' },
+        { key: 'actions', label: '操作', required: true, cell: d =>
+            '<td class="col-actions"><button class="btn btn-sm" data-edit="' + d.id + '">编辑</button> ' +
+            '<button class="btn btn-sm btn-danger" data-del="' + d.id + '">删除</button></td>' }
+    ];
+
+    const COL_KEY = 'shuttle.drivers.hiddenCols';
+    // 默认隐藏：准驾车型、驾驶证编号（次要信息，可勾选展开）
+    const DEFAULT_HIDDEN = ['licenseClass', 'licenseNumber'];
+    let hiddenCols = [];
+    try {
+        const stored = localStorage.getItem(COL_KEY);
+        hiddenCols = stored ? JSON.parse(stored) : DEFAULT_HIDDEN.slice();
+    } catch (e) { hiddenCols = DEFAULT_HIDDEN.slice(); }
+
+    function visibleColumns() {
+        return COLUMNS.filter(c => c.required || hiddenCols.indexOf(c.key) === -1);
+    }
+
     function render() {
+        const cols = visibleColumns();
+        $('theadRow').innerHTML = cols.map(c =>
+            '<th' + (c.key === 'actions' ? ' class="col-actions"' : '') + '>' + c.label + '</th>'
+        ).join('');
         const kw = $('searchInput').value.trim().toLowerCase();
         const list = drivers.filter(d => {
             if (!kw) return true;
@@ -178,30 +262,33 @@
         });
         const tbody = $('tbody');
         if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="8">' +
+            tbody.innerHTML = '<tr><td colspan="' + cols.length + '">' +
                 '<div class="empty-state"><div class="em-title">没有匹配的司机</div>' +
                 '<div class="em-desc">换个关键词，或点击右上角「新增司机」录入</div></div></td></tr>';
             return;
         }
-        tbody.innerHTML = list.map(d => {
-            const initial = (d.name || '?').trim().charAt(0);
-            return '<tr>' +
-                '<td><div class="name-cell"><span class="avatar">' + esc(initial) + '</span>' +
-                '<div class="cell-stack"><span class="strong">' + esc(d.name) + '</span>' +
-                '<span class="sub">ID ' + d.id + '</span></div></div></td>' +
-                '<td>' + genderPill(d.gender) + '</td>' +
-                '<td class="mono">' + (d.phone ? esc(d.phone) : '<span class="muted">未填写</span>') + '</td>' +
-                '<td>' + (d.licenseClass ? esc(d.licenseClass) : '<span class="muted">—</span>') + '</td>' +
-                '<td class="mono">' + (d.licenseNumber ? esc(d.licenseNumber) : '<span class="muted">—</span>') + '</td>' +
-                '<td class="mono">' + (d.idCardNumber ? esc(d.idCardNumber) : '<span class="muted">—</span>') + '</td>' +
-                '<td class="muted mono">' + fmtDate(d.createdDate) + '</td>' +
-                '<td class="col-actions">' +
-                '<button class="btn btn-sm" data-edit="' + d.id + '">编辑</button> ' +
-                '<button class="btn btn-sm btn-danger" data-del="' + d.id + '">删除</button></td>' +
-                '</tr>';
-        }).join('');
+        tbody.innerHTML = list.map(d => '<tr>' + cols.map(c => c.cell(d)).join('') + '</tr>').join('');
         tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
         tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    // 列设置面板
+    function renderColPanel() {
+        $('colPanel').innerHTML =
+            '<div class="cp-title">显示列</div>' +
+            COLUMNS.filter(c => !c.required).map(c =>
+                '<label class="cp-item"><input type="checkbox" data-col="' + c.key + '"' +
+                (hiddenCols.indexOf(c.key) === -1 ? ' checked' : '') + '> ' + esc(c.label) + '</label>'
+            ).join('');
+        $('colPanel').querySelectorAll('input[data-col]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const key = cb.dataset.col;
+                if (cb.checked) hiddenCols = hiddenCols.filter(k => k !== key);
+                else if (hiddenCols.indexOf(key) === -1) hiddenCols.push(key);
+                localStorage.setItem(COL_KEY, JSON.stringify(hiddenCols));
+                render();
+            });
+        });
     }
 
     function openModal(id) {
@@ -260,7 +347,31 @@
     $('btnCancel').addEventListener('click', closeModal);
     $('btnSave').addEventListener('click', save);
     $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
+    $('btnCols').addEventListener('click', e => {
+        e.stopPropagation();
+        const p = $('colPanel');
+        if (p.style.display === 'none') { renderColPanel(); p.style.display = ''; }
+        else p.style.display = 'none';
+    });
+    document.addEventListener('click', e => {
+        const wrap = document.querySelector('.cols-wrap');
+        if (wrap && !wrap.contains(e.target)) $('colPanel').style.display = 'none';
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            if ($('modal').style.display !== 'none') closeModal();
+            $('colPanel').style.display = 'none';
+        }
+    });
+    // 防窥切换（事件委托，render 重绘后仍生效）
+    $('tbody').addEventListener('click', e => {
+        const t = e.target.closest('.mask-toggle');
+        if (!t) return;
+        const txt = t.parentElement.querySelector('.mask-txt');
+        const showing = t.dataset.showing === '1';
+        txt.textContent = showing ? maskText(t.dataset.full) : t.dataset.full;
+        t.dataset.showing = showing ? '0' : '1';
+    });
 
     load();
 </script>
