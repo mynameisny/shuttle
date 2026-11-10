@@ -27,6 +27,14 @@
             font-size: 12.5px; font-weight: 650; flex-shrink: 0;
         }
         .name-cell { display: flex; align-items: center; gap: 10px; }
+        /* 性别配色胶囊：男=蓝、女=粉 */
+        .gender-pill {
+            display: inline-flex; align-items: center;
+            padding: 2px 10px; border-radius: 999px;
+            font-size: 12px; font-weight: 600; line-height: 1.5;
+        }
+        .gender-m { background: var(--c-info-soft); color: var(--c-info); }
+        .gender-f { background: #fdeef4; color: #d63384; }
     </style>
 </head>
 <body>
@@ -155,6 +163,12 @@
         return esc(String(s).replace('T', ' ').slice(0, 16));
     }
 
+    function genderPill(g) {
+        if (g === '男') return '<span class="gender-pill gender-m">男</span>';
+        if (g === '女') return '<span class="gender-pill gender-f">女</span>';
+        return '<span class="muted">—</span>';
+    }
+
     function render() {
         const kw = $('searchInput').value.trim().toLowerCase();
         const list = drivers.filter(d => {
@@ -175,7 +189,7 @@
                 '<td><div class="name-cell"><span class="avatar">' + esc(initial) + '</span>' +
                 '<div class="cell-stack"><span class="strong">' + esc(d.name) + '</span>' +
                 '<span class="sub">ID ' + d.id + '</span></div></div></td>' +
-                '<td>' + (d.gender ? esc(d.gender) : '<span class="muted">—</span>') + '</td>' +
+                '<td>' + genderPill(d.gender) + '</td>' +
                 '<td class="mono">' + (d.phone ? esc(d.phone) : '<span class="muted">未填写</span>') + '</td>' +
                 '<td>' + (d.licenseClass ? esc(d.licenseClass) : '<span class="muted">—</span>') + '</td>' +
                 '<td class="mono">' + (d.licenseNumber ? esc(d.licenseNumber) : '<span class="muted">—</span>') + '</td>' +
