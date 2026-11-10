@@ -32,6 +32,34 @@
         .plate-cell { font-weight: 620; letter-spacing: .02em; }
         .expiry-soon { color: var(--c-warn); font-weight: 600; }
         .expiry-over { color: var(--c-danger); font-weight: 600; }
+
+        /* 列设置下拉面板 */
+        .cols-wrap { position: relative; }
+        .col-panel {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            z-index: 60;
+            min-width: 190px;
+            background: #fff;
+            border: 1px solid var(--c-border);
+            border-radius: 8px;
+            box-shadow: var(--shadow-2);
+            padding: 6px;
+        }
+        .col-panel .cp-title {
+            font-size: 11px; font-weight: 700; letter-spacing: .05em;
+            text-transform: uppercase; color: var(--c-text-3);
+            padding: 4px 8px 6px;
+        }
+        .col-panel .cp-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 8px; border-radius: 6px;
+            font-size: 12.5px; color: var(--c-text-2);
+            cursor: pointer; user-select: none;
+        }
+        .col-panel .cp-item:hover { background: #f7f8fa; }
+        .col-panel .cp-item input { margin: 0; accent-color: var(--c-primary); }
     </style>
 </head>
 <body>
@@ -51,6 +79,13 @@
                         <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
                         <input type="text" class="search" id="searchInput" placeholder="搜索车牌 / 品牌 / 车系 / 供应商…" style="width:250px">
                     </label>
+                    <div class="cols-wrap">
+                        <button class="btn" id="btnCols" title="设置显示列">
+                            <svg class="ico" viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 9h14M3 14h14M9.5 4v13M14.5 4v13"/></svg>
+                            列设置
+                        </button>
+                        <div class="col-panel" id="colPanel" style="display:none"></div>
+                    </div>
                     <button class="btn btn-primary" id="btnAdd">
                         <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
                         新增车辆
@@ -63,19 +98,7 @@
                 <div class="table-wrap">
                     <table class="tbl">
                         <thead>
-                        <tr>
-                            <th>车牌号</th>
-                            <th>品牌 / 车系 / 款型</th>
-                            <th>VIN / 发动机号</th>
-                            <th>车型</th>
-                            <th>座位</th>
-                            <th>能源</th>
-                            <th>状态</th>
-                            <th>供应商</th>
-                            <th>保险到期</th>
-                            <th>年检到期</th>
-                            <th class="col-actions">操作</th>
-                        </tr>
+                        <tr id="theadRow"></tr>
                         </thead>
                         <tbody id="tbody"></tbody>
                     </table>
@@ -213,6 +236,41 @@
         return '<span class="mono ' + cls + '">' + esc(d) + '</span>';
     }
 
+    // ===== 列配置：key 用于持久化隐藏状态；required 列不可隐藏；cell(v) 返回整格 <td> =====
+    const COLUMNS = [
+        { key: 'plateNumber', label: '车牌号', required: true, cell: v =>
+            '<td><div class="cell-stack"><span class="plate-cell">' + esc(v.plateNumber) + '</span>' +
+            '<span class="sub">ID ' + v.id + '</span></div></td>' },
+        { key: 'brand', label: '品牌 / 车系 / 款型', cell: v =>
+            '<td>' + (v.brand || v.series || v.model
+                ? '<div class="cell-stack"><span>' + esc(v.brand || '—') + (v.series ? ' ' + esc(v.series) : '') + '</span>' +
+                  '<span class="sub">' + esc(v.model || '—') + '</span></div>'
+                : '<span class="muted">未填写</span>') + '</td>' },
+        { key: 'vin', label: 'VIN / 发动机号', cell: v =>
+            '<td>' + (v.vin || v.engineNumber
+                ? '<div class="cell-stack"><span class="mono">' + esc(v.vin || '—') + '</span>' +
+                  '<span class="sub mono">' + esc(v.engineNumber || '—') + '</span></div>'
+                : '<span class="muted">—</span>') + '</td>' },
+        { key: 'vehicleType', label: '车型', cell: v => '<td>' + typePill(v.vehicleType) + '</td>' },
+        { key: 'seatCount', label: '座位', cell: v => '<td class="mono">' + (v.seatCount != null ? v.seatCount : '<span class="muted">—</span>') + '</td>' },
+        { key: 'energyType', label: '能源', cell: v => '<td>' + (v.energyType ? esc(v.energyType) : '<span class="muted">—</span>') + '</td>' },
+        { key: 'status', label: '状态', cell: v => '<td>' + statusPill(v.status) + '</td>' },
+        { key: 'supplier', label: '供应商', cell: v => '<td>' + (v.supplier ? esc(v.supplier) : '<span class="muted">—</span>') + '</td>' },
+        { key: 'insuranceExpiry', label: '保险到期', cell: v => '<td>' + expiryCell(v.insuranceExpiry) + '</td>' },
+        { key: 'inspectionExpiry', label: '年检到期', cell: v => '<td>' + expiryCell(v.inspectionExpiry) + '</td>' },
+        { key: 'actions', label: '操作', required: true, cell: v =>
+            '<td class="col-actions"><button class="btn btn-sm" data-edit="' + v.id + '">编辑</button> ' +
+            '<button class="btn btn-sm btn-danger" data-del="' + v.id + '">删除</button></td>' }
+    ];
+
+    const COL_KEY = 'shuttle.vehicles.hiddenCols';
+    let hiddenCols = [];
+    try { hiddenCols = JSON.parse(localStorage.getItem(COL_KEY) || '[]'); } catch (e) { hiddenCols = []; }
+
+    function visibleColumns() {
+        return COLUMNS.filter(c => c.required || hiddenCols.indexOf(c.key) === -1);
+    }
+
     function renderSummary() {
         const total = vehicles.length;
         const running = vehicles.filter(v => (v.status || '运营中') === '运营中').length;
@@ -228,6 +286,10 @@
     }
 
     function render() {
+        const cols = visibleColumns();
+        $('theadRow').innerHTML = cols.map(c =>
+            '<th' + (c.key === 'actions' ? ' class="col-actions"' : '') + '>' + c.label + '</th>'
+        ).join('');
         const kw = $('searchInput').value.trim().toLowerCase();
         const list = vehicles.filter(v => {
             if (!kw) return true;
@@ -237,37 +299,33 @@
         });
         const tbody = $('tbody');
         if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="11">' +
+            tbody.innerHTML = '<tr><td colspan="' + cols.length + '">' +
                 '<div class="empty-state"><div class="em-title">没有匹配的车辆</div>' +
                 '<div class="em-desc">换个关键词，或点击右上角「新增车辆」录入</div></div></td></tr>';
             return;
         }
-        tbody.innerHTML = list.map(v =>
-            '<tr>' +
-            '<td><div class="cell-stack"><span class="plate-cell">' + esc(v.plateNumber) + '</span>' +
-            '<span class="sub">ID ' + v.id + '</span></div></td>' +
-            '<td>' + (v.brand || v.series || v.model
-                ? '<div class="cell-stack"><span>' + esc(v.brand || '—') + (v.series ? ' ' + esc(v.series) : '') + '</span>' +
-                  '<span class="sub">' + esc(v.model || '—') + '</span></div>'
-                : '<span class="muted">未填写</span>') + '</td>' +
-            '<td>' + (v.vin || v.engineNumber
-                ? '<div class="cell-stack"><span class="mono">' + esc(v.vin || '—') + '</span>' +
-                  '<span class="sub mono">' + esc(v.engineNumber || '—') + '</span></div>'
-                : '<span class="muted">—</span>') + '</td>' +
-            '<td>' + typePill(v.vehicleType) + '</td>' +
-            '<td class="mono">' + (v.seatCount != null ? v.seatCount : '<span class="muted">—</span>') + '</td>' +
-            '<td>' + (v.energyType ? esc(v.energyType) : '<span class="muted">—</span>') + '</td>' +
-            '<td>' + statusPill(v.status) + '</td>' +
-            '<td>' + (v.supplier ? esc(v.supplier) : '<span class="muted">—</span>') + '</td>' +
-            '<td>' + expiryCell(v.insuranceExpiry) + '</td>' +
-            '<td>' + expiryCell(v.inspectionExpiry) + '</td>' +
-            '<td class="col-actions">' +
-            '<button class="btn btn-sm" data-edit="' + v.id + '">编辑</button> ' +
-            '<button class="btn btn-sm btn-danger" data-del="' + v.id + '">删除</button></td>' +
-            '</tr>'
-        ).join('');
+        tbody.innerHTML = list.map(v => '<tr>' + cols.map(c => c.cell(v)).join('') + '</tr>').join('');
         tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
         tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    // 列设置面板：渲染可隐藏列的 checkbox，切换即持久化并重渲染
+    function renderColPanel() {
+        $('colPanel').innerHTML =
+            '<div class="cp-title">显示列</div>' +
+            COLUMNS.filter(c => !c.required).map(c =>
+                '<label class="cp-item"><input type="checkbox" data-col="' + c.key + '"' +
+                (hiddenCols.indexOf(c.key) === -1 ? ' checked' : '') + '> ' + esc(c.label) + '</label>'
+            ).join('');
+        $('colPanel').querySelectorAll('input[data-col]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const key = cb.dataset.col;
+                if (cb.checked) hiddenCols = hiddenCols.filter(k => k !== key);
+                else if (hiddenCols.indexOf(key) === -1) hiddenCols.push(key);
+                localStorage.setItem(COL_KEY, JSON.stringify(hiddenCols));
+                render();
+            });
+        });
     }
 
     function openModal(id) {
@@ -340,7 +398,22 @@
     $('btnCancel').addEventListener('click', closeModal);
     $('btnSave').addEventListener('click', save);
     $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
+    $('btnCols').addEventListener('click', e => {
+        e.stopPropagation();
+        const p = $('colPanel');
+        if (p.style.display === 'none') { renderColPanel(); p.style.display = ''; }
+        else p.style.display = 'none';
+    });
+    document.addEventListener('click', e => {
+        const wrap = document.querySelector('.cols-wrap');
+        if (wrap && !wrap.contains(e.target)) $('colPanel').style.display = 'none';
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            if ($('modal').style.display !== 'none') closeModal();
+            $('colPanel').style.display = 'none';
+        }
+    });
 
     load();
 </script>
