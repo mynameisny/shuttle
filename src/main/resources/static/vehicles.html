@@ -44,12 +44,12 @@
                 <div>
                     <div class="crumbs" data-auto-crumbs></div>
                     <h1 class="page-title">车辆档案</h1>
-                    <p class="page-desc">车牌、品牌型号、座位、能源类型、状态与保险年检台账</p>
+                    <p class="page-desc">车牌、VIN、品牌/车系/款型、座位、能源、状态与保险年检台账</p>
                 </div>
                 <div class="page-actions">
                     <label class="search-wrap">
                         <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
-                        <input type="text" class="search" id="searchInput" placeholder="搜索车牌 / 品牌 / 供应商…" style="width:250px">
+                        <input type="text" class="search" id="searchInput" placeholder="搜索车牌 / 品牌 / 车系 / 供应商…" style="width:250px">
                     </label>
                     <button class="btn btn-primary" id="btnAdd">
                         <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
@@ -65,7 +65,8 @@
                         <thead>
                         <tr>
                             <th>车牌号</th>
-                            <th>品牌 / 型号</th>
+                            <th>品牌 / 车系 / 款型</th>
+                            <th>VIN / 发动机号</th>
                             <th>车型</th>
                             <th>座位</th>
                             <th>能源</th>
@@ -95,8 +96,28 @@
         </div>
         <div class="field-row">
             <div class="field">
-                <label>品牌 / 型号</label>
-                <input type="text" class="input" id="fBrand" maxlength="50" placeholder="如 宇通 ZK6122">
+                <label>VIN（车辆识别代号）</label>
+                <input type="text" class="input" id="fVin" maxlength="50" placeholder="如 LSKK69A8XA1234567">
+            </div>
+            <div class="field">
+                <label>发动机号 / 电机号</label>
+                <input type="text" class="input" id="fEngine" maxlength="50" placeholder="如 YCS04230-52">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>品牌</label>
+                <input type="text" class="input" id="fBrand" maxlength="50" placeholder="如 宇通 / 比亚迪 / 丰田">
+            </div>
+            <div class="field">
+                <label>车系</label>
+                <input type="text" class="input" id="fSeries" maxlength="50" placeholder="如 海格 / 唐 / 卡罗拉">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>款型</label>
+                <input type="text" class="input" id="fModel" maxlength="100" placeholder="如 2023款 纯电动 豪华版">
             </div>
             <div class="field">
                 <label>座位数</label>
@@ -210,11 +231,13 @@
         const kw = $('searchInput').value.trim().toLowerCase();
         const list = vehicles.filter(v => {
             if (!kw) return true;
-            return (v.plateNumber + ' ' + (v.brandModel || '') + ' ' + (v.supplier || '')).toLowerCase().includes(kw);
+            const hay = [v.plateNumber, v.vin, v.brand, v.series, v.model, v.engineNumber, v.supplier]
+                .filter(Boolean).join(' ');
+            return hay.toLowerCase().includes(kw);
         });
         const tbody = $('tbody');
         if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="10">' +
+            tbody.innerHTML = '<tr><td colspan="11">' +
                 '<div class="empty-state"><div class="em-title">没有匹配的车辆</div>' +
                 '<div class="em-desc">换个关键词，或点击右上角「新增车辆」录入</div></div></td></tr>';
             return;
@@ -223,7 +246,14 @@
             '<tr>' +
             '<td><div class="cell-stack"><span class="plate-cell">' + esc(v.plateNumber) + '</span>' +
             '<span class="sub">ID ' + v.id + '</span></div></td>' +
-            '<td>' + (v.brandModel ? esc(v.brandModel) : '<span class="muted">未填写</span>') + '</td>' +
+            '<td>' + (v.brand || v.series || v.model
+                ? '<div class="cell-stack"><span>' + esc(v.brand || '—') + (v.series ? ' ' + esc(v.series) : '') + '</span>' +
+                  '<span class="sub">' + esc(v.model || '—') + '</span></div>'
+                : '<span class="muted">未填写</span>') + '</td>' +
+            '<td>' + (v.vin || v.engineNumber
+                ? '<div class="cell-stack"><span class="mono">' + esc(v.vin || '—') + '</span>' +
+                  '<span class="sub mono">' + esc(v.engineNumber || '—') + '</span></div>'
+                : '<span class="muted">—</span>') + '</td>' +
             '<td>' + typePill(v.vehicleType) + '</td>' +
             '<td class="mono">' + (v.seatCount != null ? v.seatCount : '<span class="muted">—</span>') + '</td>' +
             '<td>' + (v.energyType ? esc(v.energyType) : '<span class="muted">—</span>') + '</td>' +
@@ -245,7 +275,11 @@
         $('modalTitle').textContent = id ? '编辑车辆' : '新增车辆';
         const v = id ? vehicles.find(x => x.id === id) : null;
         $('fPlate').value = v ? v.plateNumber : '';
-        $('fBrand').value = v ? (v.brandModel || '') : '';
+        $('fVin').value = v ? (v.vin || '') : '';
+        $('fEngine').value = v ? (v.engineNumber || '') : '';
+        $('fBrand').value = v ? (v.brand || '') : '';
+        $('fSeries').value = v ? (v.series || '') : '';
+        $('fModel').value = v ? (v.model || '') : '';
         $('fSeat').value = v && v.seatCount != null ? v.seatCount : '';
         $('fType').value = v && v.vehicleType ? v.vehicleType : '大巴';
         $('fEnergy').value = v && v.energyType ? v.energyType : '';
@@ -264,7 +298,11 @@
         if (!plate) { toast('车牌号不能为空', true); return; }
         const body = {
             plateNumber: plate,
-            brandModel: $('fBrand').value.trim() || null,
+            vin: $('fVin').value.trim() || null,
+            brand: $('fBrand').value.trim() || null,
+            series: $('fSeries').value.trim() || null,
+            model: $('fModel').value.trim() || null,
+            engineNumber: $('fEngine').value.trim() || null,
             seatCount: $('fSeat').value ? parseInt($('fSeat').value) : null,
             vehicleType: $('fType').value,
             energyType: $('fEnergy').value || null,

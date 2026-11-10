@@ -346,13 +346,13 @@
             $('qualityBox').innerHTML = '<div class="empty-state" style="padding:20px 0"><div class="em-desc">暂无数据</div></div>';
             return;
         }
-        const noBrand = vs.filter(v => !v.brandModel).length;
+        const noVin = vs.filter(v => !v.vin).length;
         const noEnergy = vs.filter(v => !v.energyType).length;
         const noDates = vs.filter(v => !v.insuranceExpiry || !v.inspectionExpiry).length;
         const noPhone = ds.filter(d => !d.phone).length;
 
         const items = [
-            ['车辆缺品牌型号', noBrand, vs.length],
+            ['车辆缺 VIN', noVin, vs.length],
             ['车辆缺能源类型', noEnergy, vs.length],
             ['车辆缺保险/年检日期', noDates, vs.length],
             ['司机缺手机号', noPhone, ds.length]

@@ -21,7 +21,11 @@ public class VehicleView
 {
     private Long id;
     private String plateNumber;
-    private String brandModel;
+    private String vin;
+    private String brand;
+    private String series;
+    private String model;
+    private String engineNumber;
     private Integer seatCount;
     private String vehicleType;
     private String energyType;
@@ -35,7 +39,11 @@ public class VehicleView
         return VehicleView.builder()
                 .id(v.getId())
                 .plateNumber(v.getPlateNumber())
-                .brandModel(v.getBrandModel())
+                .vin(v.getVin())
+                .brand(v.getBrand())
+                .series(v.getSeries())
+                .model(v.getModel())
+                .engineNumber(v.getEngineNumber())
                 .seatCount(v.getSeatCount())
                 .vehicleType(v.getVehicleType())
                 .energyType(v.getEnergyType())

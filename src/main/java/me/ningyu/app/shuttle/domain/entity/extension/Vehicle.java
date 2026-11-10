@@ -15,8 +15,8 @@ import java.time.LocalDate;
 /**
  * 载具（GTFS 扩展域，非 GTFS 规范字段）。
  *
- * <p>承载班车运营中的车辆台账：车牌号、品牌/型号、座位数、车型、能源类型、
- * 车辆状态、供应商，以及保险/年检到期日等车辆自身的实用属性。
+ * <p>承载班车运营中的车辆台账：车牌号、VIN、品牌/车系/款型、座位数、车型、能源类型、
+ * 发动机号/电机号、车辆状态、供应商，以及保险/年检到期日等车辆自身的实用属性。
  */
 @Entity(name = "vehicle")
 @Table(name = "vehicle")
@@ -34,10 +34,34 @@ public class Vehicle extends AbstractAuditable
     private String plateNumber;
 
     /**
-     * 品牌/型号（如宇通、金龙）。
+     * 车辆识别代号（VIN）。
      */
-    @Column(name = "brand_model", columnDefinition = "VARCHAR(50) COMMENT '品牌/型号'")
-    private String brandModel;
+    @Column(name = "vin", columnDefinition = "VARCHAR(50) COMMENT '车辆识别代号(VIN)'")
+    private String vin;
+
+    /**
+     * 品牌（如宇通、比亚迪、丰田）。
+     */
+    @Column(name = "brand", columnDefinition = "VARCHAR(50) COMMENT '品牌'")
+    private String brand;
+
+    /**
+     * 车系（如海格、唐、卡罗拉）。
+     */
+    @Column(name = "series", columnDefinition = "VARCHAR(50) COMMENT '车系'")
+    private String series;
+
+    /**
+     * 具体车型/款型（如 2023款 纯电动 豪华版）。
+     */
+    @Column(name = "model", columnDefinition = "VARCHAR(100) COMMENT '车型/款型'")
+    private String model;
+
+    /**
+     * 发动机号/电机号。
+     */
+    @Column(name = "engine_number", columnDefinition = "VARCHAR(50) COMMENT '发动机号/电机号'")
+    private String engineNumber;
 
     /**
      * 座位数。

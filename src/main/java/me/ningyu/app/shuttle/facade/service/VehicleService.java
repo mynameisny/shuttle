@@ -56,7 +56,11 @@ public class VehicleService
     private Vehicle apply(Vehicle v, VehicleUpsertRequest req)
     {
         v.setPlateNumber(req.getPlateNumber());
-        v.setBrandModel(req.getBrandModel());
+        v.setVin(req.getVin());
+        v.setBrand(req.getBrand());
+        v.setSeries(req.getSeries());
+        v.setModel(req.getModel());
+        v.setEngineNumber(req.getEngineNumber());
         v.setSeatCount(req.getSeatCount());
         v.setVehicleType(req.getVehicleType());
         v.setEnergyType(req.getEnergyType());
