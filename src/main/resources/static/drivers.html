@@ -50,6 +50,21 @@
             display: inline-flex; align-items: center; justify-content: center;
         }
         .avatar-img img { width: 100%; height: 100%; object-fit: cover; }
+        /* 有头像时：头像右下角叠性别角标 */
+        .avatar-wrap { position: relative; display: inline-flex; flex-shrink: 0; }
+        .gender-badge {
+            position: absolute;
+            right: -3px; bottom: -3px;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .gender-badge svg {
+            width: 8px; height: 8px;
+            fill: none; stroke: currentColor;
+            stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+        }
 
         /* 头像悬浮大图预览浮层 */
         .avatar-float {
@@ -249,17 +264,29 @@
         return esc(String(s).replace('T', ' ').slice(0, 16));
     }
 
+    const GENDER_SVG = {
+        male: '<svg viewBox="0 0 24 24"><circle cx="10" cy="14" r="5.5"/><path d="M14.5 9.5L19 5M19 5h-4M19 5v4"/></svg>',
+        female: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5.5"/><path d="M12 13.5V20M9 17h6"/></svg>'
+    };
+
     function genderIcon(g) {
-        const male = '<svg viewBox="0 0 24 24"><circle cx="10" cy="14" r="5.5"/><path d="M14.5 9.5L19 5M19 5h-4M19 5v4"/></svg>';
-        const female = '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5.5"/><path d="M12 13.5V20M9 17h6"/></svg>';
-        if (g === '男') return '<span class="gender-ico gender-m" title="男">' + male + '</span>';
-        if (g === '女') return '<span class="gender-ico gender-f" title="女">' + female + '</span>';
+        if (g === '男') return '<span class="gender-ico gender-m" title="男">' + GENDER_SVG.male + '</span>';
+        if (g === '女') return '<span class="gender-ico gender-f" title="女">' + GENDER_SVG.female + '</span>';
         return '<span class="gender-ico gender-none" title="未填写">—</span>';
+    }
+
+    function genderBadge(g) {
+        if (g === '男') return '<span class="gender-badge gender-m" title="男">' + GENDER_SVG.male + '</span>';
+        if (g === '女') return '<span class="gender-badge gender-f" title="女">' + GENDER_SVG.female + '</span>';
+        return '';
     }
 
     function driverAvatar(d) {
         if (d.avatarUrl) {
-            return '<span class="avatar-img" title="' + esc(d.name) + '"><img src="' + esc(d.avatarUrl) + '" alt=""></span>';
+            return '<span class="avatar-wrap">' +
+                '<span class="avatar-img"><img src="' + esc(d.avatarUrl) + '" alt=""></span>' +
+                genderBadge(d.gender) +
+                '</span>';
         }
         return genderIcon(d.gender);
     }
@@ -491,30 +518,36 @@
         t.dataset.showing = showing ? '0' : '1';
     });
 
-    // 头像悬浮大图预览（事件委托）
+    // 头像悬浮大图预览（事件委托，悬停 400ms 后才显示，避免划过误触）
     const floatEl = $('avatarFloat');
-    let floatTimer = null;
+    let showTimer = null, hideTimer = null;
     function hideFloat() {
-        clearTimeout(floatTimer);
-        floatTimer = setTimeout(() => { floatEl.style.display = 'none'; }, 120);
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => { floatEl.style.display = 'none'; }, 120);
     }
     $('tbody').addEventListener('mouseover', e => {
         const img = e.target.closest('.avatar-img img');
         if (!img) return;
-        clearTimeout(floatTimer);
-        floatEl.innerHTML = '<img src="' + img.getAttribute('src') + '" alt="">';
+        clearTimeout(hideTimer);
+        clearTimeout(showTimer);
+        const src = img.getAttribute('src');
         const r = img.getBoundingClientRect();
-        let left = r.right + 14;
-        let top = r.top + (r.height - 120) / 2;
-        if (left + 120 > window.innerWidth - 8) left = r.left - 134;
-        if (top < 8) top = 8;
-        if (top + 120 > window.innerHeight - 8) top = window.innerHeight - 128;
-        floatEl.style.left = left + 'px';
-        floatEl.style.top = top + 'px';
-        floatEl.style.display = '';
+        showTimer = setTimeout(() => {
+            floatEl.innerHTML = '<img src="' + src + '" alt="">';
+            let left = r.right + 14;
+            let top = r.top + (r.height - 120) / 2;
+            if (left + 120 > window.innerWidth - 8) left = r.left - 134;
+            if (top < 8) top = 8;
+            if (top + 120 > window.innerHeight - 8) top = window.innerHeight - 128;
+            floatEl.style.left = left + 'px';
+            floatEl.style.top = top + 'px';
+            floatEl.style.display = '';
+        }, 400);
     });
     $('tbody').addEventListener('mouseout', e => {
-        if (e.target.closest('.avatar-img img')) hideFloat();
+        if (!e.target.closest('.avatar-img img')) return;
+        clearTimeout(showTimer);
+        hideFloat();
     });
 
     load();
