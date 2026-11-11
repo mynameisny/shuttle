@@ -47,6 +47,14 @@ public class RouteController
         return ResponseEntity.created(location).body(route);
     }
 
+    @PutMapping("/sort")
+    @Operation(summary = "批量排序线路", description = "按传入的有序 id 列表重写 route_sort_order（值为 1..N）")
+    public ResponseEntity<Void> reorder(@RequestBody List<Long> orderedIds)
+    {
+        routeService.reorderRoutes(orderedIds);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/{id}")
     @Operation(summary = "更新线路", description = "更新指定线路的信息")
     @Parameters({

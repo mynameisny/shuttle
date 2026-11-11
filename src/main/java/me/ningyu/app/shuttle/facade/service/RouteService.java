@@ -102,6 +102,23 @@ public class RouteService
         routeRepository.delete(route);
     }
 
+    /**
+     * 批量重排线路：按传入的有序 id 列表，把 route_sort_order 重写为 1..N。
+     * 列表中不存在的 id 静默跳过；未出现在列表中的线路排序值保持不变。
+     */
+    public void reorderRoutes(List<Long> orderedIds)
+    {
+        for (int i = 0; i < orderedIds.size(); i++)
+        {
+            Long id = orderedIds.get(i);
+            final int sortOrder = i + 1;
+            routeRepository.findById(id).ifPresent(route -> {
+                route.setRouteSortOrder(sortOrder);
+                routeRepository.save(route);
+            });
+        }
+    }
+
     @Nonnull
     public Route getRouteById(Long id)
     {

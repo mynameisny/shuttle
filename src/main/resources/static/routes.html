@@ -15,6 +15,13 @@
             color: #fff; font-variant-numeric: tabular-nums;
         }
         .color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; vertical-align: middle; }
+        .drag-cell { width: 32px; text-align: center; cursor: grab; }
+        .drag-handle {
+            display: inline-flex; align-items: center; justify-content: center;
+            color: #c3c9d1; user-select: none;
+        }
+        .drag-handle .ico { width: 14px; height: 14px; fill: currentColor; }
+        .drag-cell:hover .drag-handle { color: var(--c-text-3); }
         .color-input { display: flex; align-items: center; gap: 8px; }
         .color-input input[type="color"] {
             width: 44px; height: 34px; padding: 0; flex-shrink: 0;
@@ -61,6 +68,7 @@
                     <table class="tbl">
                         <thead>
                         <tr>
+                            <th style="width:32px"></th>
                             <th style="width:74px">线路号</th>
                             <th>线路名称</th>
                             <th>起点标注</th>
@@ -127,6 +135,7 @@
 </div>
 
 <div id="toast"></div>
+<script src="vendor/sortablejs/Sortable.min.js"></script>
 <script src="js/map-common.js"></script>
 <script src="js/layout.js"></script>
 <script>
@@ -183,6 +192,7 @@
     }
 
     function sortKey(r) {
+        if (r.routeSortOrder != null) return r.routeSortOrder;
         const n = parseInt(r.routeId);
         return isNaN(n) ? 9999 : n;
     }
@@ -198,7 +208,7 @@
 
         const tbody = $('tbody');
         if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">' +
+            tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">' +
                 '<div class="em-title">没有匹配的线路</div><div class="em-desc">换个关键词试试</div></div></td></tr>';
             return;
         }
@@ -206,7 +216,11 @@
         tbody.innerHTML = list.map(r => {
             const color = r.routeColor ? '#' + String(r.routeColor).replace('#', '') : '#9aa3b0';
             const name = r.routeLongName || r.routeShortName || ('线路 ' + r.routeId);
-            return '<tr>' +
+            return '<tr data-id="' + r.id + '">' +
+                '<td class="drag-cell"><span class="drag-handle"><svg class="ico" viewBox="0 0 20 20">' +
+                '<circle cx="7" cy="4" r="1.4"/><circle cx="13" cy="4" r="1.4"/>' +
+                '<circle cx="7" cy="10" r="1.4"/><circle cx="13" cy="10" r="1.4"/>' +
+                '<circle cx="7" cy="16" r="1.4"/><circle cx="13" cy="16" r="1.4"/></svg></span></td>' +
                 '<td><span class="route-chip" style="background:' + esc(color) + '">' + esc(r.routeId) + '</span></td>' +
                 '<td class="strong">' + esc(name) + '</td>' +
                 '<td>' + (r.routeShortName ? esc(r.routeShortName) : '<span class="muted">—</span>') + '</td>' +
@@ -302,6 +316,26 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
 
     load();
+
+    // 拖拽排序（SortableJS，通过手柄触发）
+    new Sortable($('tbody'), {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: async () => {
+            const orderedIds = [...$('tbody').querySelectorAll('tr[data-id]')].map(tr => parseInt(tr.dataset.id));
+            if (!orderedIds.length) return;
+            const byId = {};
+            routes.forEach(r => { byId[r.id] = r; });
+            routes = orderedIds.map(id => byId[id]).filter(Boolean);
+            try {
+                await api('/api/routes/sort', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderedIds) });
+                toast('排序已保存');
+            } catch (err) {
+                toast('保存排序失败：' + err.message, true);
+                await load();
+            }
+        }
+    });
 </script>
 </body>
 </html>
