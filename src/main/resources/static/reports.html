@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运营报表 · 班车调度管理</title>
+    <meta name="nav" content="ops.reports">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .chart-box { position: relative; height: 280px; }
+        .reports-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+        @media (max-width: 1100px) { .reports-row { grid-template-columns: 1fr; } }
+        .demo-banner {
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 14px; border: 1px dashed var(--c-border-strong);
+            border-radius: var(--radius-sm); color: var(--c-text-3); font-size: 12.5px;
+            background: #fafbfc; margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">运营报表</h1>
+                    <p class="page-desc">满载率、准点率等运营指标总览</p>
+                </div>
+            </div>
+
+            <div class="demo-banner">
+                <svg class="ico" viewBox="0 0 20 20" style="width:15px;height:15px"><path d="M10 3.2 17.4 16H2.6z"/><path d="M10 8v3.4M10 13.6v.6"/></svg>
+                当前为演示数据，后续接入真实运营数据（发车、载客、准点）
+            </div>
+
+            <!-- 指标卡 -->
+            <div class="stat-grid" id="statGrid"></div>
+
+            <!-- 趋势图：满载率 + 准点率 -->
+            <div class="reports-row" style="margin-top:16px">
+                <div class="card">
+                    <div class="card-head">
+                        <div>
+                            <div class="card-title">满载率趋势</div>
+                            <div class="card-sub">近 14 天平均满载率</div>
+                        </div>
+                    </div>
+                    <div class="card-body"><div class="chart-box"><canvas id="loadChart"></canvas></div></div>
+                </div>
+                <div class="card">
+                    <div class="card-head">
+                        <div>
+                            <div class="card-title">准点率趋势</div>
+                            <div class="card-sub">近 14 天平均准点率</div>
+                        </div>
+                    </div>
+                    <div class="card-body"><div class="chart-box"><canvas id="punctChart"></canvas></div></div>
+                </div>
+            </div>
+
+            <!-- 各线路满载率对比 -->
+            <div class="card" style="margin-top:16px">
+                <div class="card-head">
+                    <div>
+                        <div class="card-title">各线路满载率对比</div>
+                        <div class="card-sub">柱体颜色：≥90% 红 · 80~89% 橙 · &lt;80% 绿</div>
+                    </div>
+                </div>
+                <div class="card-body"><div class="chart-box" style="height:320px"><canvas id="routeChart"></canvas></div></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="vendor/chart.js/chart.umd.js"></script>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    // ===== 演示数据（未来替换为真实运营数据） =====
+    const days = [];
+    for (let i = 13; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        days.push((d.getMonth() + 1) + '/' + d.getDate());
+    }
+    const loadFactor = [78, 82, 80, 88, 91, 86, 93, 90, 95, 92, 96, 94, 97, 95];
+    const punctuality = [90, 88, 92, 91, 94, 93, 95, 92, 96, 94, 97, 95, 98, 96];
+    const routeLoad = [
+        { name: '天通苑-昌平1', v: 96 },
+        { name: '霍营-昌平', v: 88 },
+        { name: '雍和宫-昌平1', v: 90 },
+        { name: '东坝支线', v: 82 },
+        { name: '昌平水屯-八角', v: 75 },
+        { name: '涿州-八角', v: 68 }
+    ];
+
+    const avg = arr => Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
+    const avgLoad = avg(loadFactor);
+    const avgPunct = avg(punctuality);
+    const warnCount = routeLoad.filter(r => r.v >= 90).length;
+
+    // ===== 指标卡 =====
+    $('statGrid').innerHTML = '' +
+        statCard('平均满载率', avgLoad, '%', 'bus', '近 14 天均值 · 演示数据', true) +
+        statCard('平均准点率', avgPunct, '%', 'clock', '近 14 天均值 · 演示数据') +
+        statCard('运营班次', 52, '班', 'route', '在册班次总量 · 演示数据') +
+        statCard('高负载车辆', warnCount, '辆', 'alert', '满载率 ≥90% 的线路 · 演示数据');
+
+    function statCard(label, value, unit, icon, foot, accent) {
+        return '<div class="stat-card' + (accent ? ' accent' : '') + '">' +
+            '<div class="stat-top"><span class="stat-label">' + iconSvg(icon) + esc(label) + '</span></div>' +
+            '<div class="stat-value">' + value + '<span class="unit">' + unit + '</span></div>' +
+            '<div class="stat-foot">' + foot + '</div></div>';
+    }
+
+    // ===== Chart.js 主题色 =====
+    const TEAL = '#14b8a6';
+    const BLUE = '#1a6fd4';
+    Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif";
+    Chart.defaults.color = '#8d95a3';
+    Chart.defaults.borderColor = '#eef1f4';
+
+    const pctTicks = { callback: v => v + '%' };
+    const yScale = { min: 0, max: 100, ticks: pctTicks };
+
+    // ===== 满载率趋势 =====
+    new Chart($('loadChart'), {
+        type: 'line',
+        data: {
+            labels: days,
+            datasets: [{
+                label: '满载率',
+                data: loadFactor,
+                borderColor: TEAL,
+                backgroundColor: 'rgba(20,184,166,0.10)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 3,
+                pointBackgroundColor: TEAL
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: yScale } }
+    });
+
+    // ===== 准点率趋势 =====
+    new Chart($('punctChart'), {
+        type: 'line',
+        data: {
+            labels: days,
+            datasets: [{
+                label: '准点率',
+                data: punctuality,
+                borderColor: BLUE,
+                backgroundColor: 'rgba(26,111,212,0.10)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 3,
+                pointBackgroundColor: BLUE
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: yScale } }
+    });
+
+    // ===== 各线路满载率对比（柱体按高低着色） =====
+    new Chart($('routeChart'), {
+        type: 'bar',
+        data: {
+            labels: routeLoad.map(r => r.name),
+            datasets: [{
+                label: '满载率',
+                data: routeLoad.map(r => r.v),
+                backgroundColor: routeLoad.map(r => r.v >= 90 ? '#e0685b' : r.v >= 80 ? '#e8a33d' : '#14b8a6'),
+                borderRadius: 5,
+                maxBarThickness: 46
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: yScale, x: { grid: { display: false } } }
+        }
+    });
+</script>
+</body>
+</html>

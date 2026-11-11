@@ -66,6 +66,7 @@ const MENU = [
             },
             {
                 key: 'ops', name: '运营管理', icon: 'activity', children: [
+                    { key: 'ops.reports', name: '运营报表', href: 'reports.html', ready: true },
                     { key: 'ops.records', name: '运营记录', ready: false, note: '实际发车、载客量、准点率' },
                     { key: 'ops.dispatch', name: '车辆调度', ready: false, note: '临时调车、加车、替班' }
                 ]
