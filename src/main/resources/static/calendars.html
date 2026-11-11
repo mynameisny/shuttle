@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服务日历 · 班车调度管理</title>
+    <meta name="nav" content="trips.calendar">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .tc { text-align: center; }
+        .day-on { color: var(--c-ok); font-weight: 700; }
+        .day-off { color: #d5dae0; }
+        .week-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+        .week-grid label {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 13px; color: var(--c-text-2); cursor: pointer; user-select: none;
+        }
+        .week-grid input { margin: 0; accent-color: var(--c-primary); }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page" id="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">服务日历</h1>
+                    <p class="page-desc">定义班次在哪些日期提供服务（对应 GTFS calendar.txt）</p>
+                </div>
+                <div class="page-actions">
+                    <label class="search-wrap">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        <input type="text" class="search" id="searchInput" placeholder="搜索 service_id…" style="width:220px">
+                    </label>
+                    <button class="btn btn-primary" id="btnAdd">
+                        <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
+                        新增日历
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>service_id</th>
+                            <th class="tc">一</th>
+                            <th class="tc">二</th>
+                            <th class="tc">三</th>
+                            <th class="tc">四</th>
+                            <th class="tc">五</th>
+                            <th class="tc">六</th>
+                            <th class="tc">日</th>
+                            <th>开始日期</th>
+                            <th>结束日期</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="modalTitle">新增日历</h3>
+        <p class="modal-desc">service_id 唯一，被班次（trip）引用</p>
+        <div class="field">
+            <label>service_id<span class="req">*</span></label>
+            <input type="text" class="input" id="fServiceId" maxlength="50" placeholder="如 WEEKDAY / WEEKEND">
+        </div>
+        <div class="field">
+            <label>运营日</label>
+            <div class="week-grid">
+                <label><input type="checkbox" id="fMon" checked> 周一</label>
+                <label><input type="checkbox" id="fTue" checked> 周二</label>
+                <label><input type="checkbox" id="fWed" checked> 周三</label>
+                <label><input type="checkbox" id="fThu" checked> 周四</label>
+                <label><input type="checkbox" id="fFri" checked> 周五</label>
+                <label><input type="checkbox" id="fSat"> 周六</label>
+                <label><input type="checkbox" id="fSun"> 周日</label>
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>开始日期<span class="req">*</span></label>
+                <input type="date" class="input" id="fStart">
+            </div>
+            <div class="field">
+                <label>结束日期<span class="req">*</span></label>
+                <input type="date" class="input" id="fEnd">
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    const API = { calendars: '/api/calendars' };
+    let calendars = [];
+    let editingId = null;
+
+    async function load() {
+        try {
+            calendars = await api(API.calendars) || [];
+            render();
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function dayMark(v) {
+        return v ? '<span class="day-on">✓</span>' : '<span class="day-off">·</span>';
+    }
+
+    function render() {
+        const kw = $('searchInput').value.trim().toLowerCase();
+        const list = calendars.filter(c => !kw || (c.serviceId || '').toLowerCase().includes(kw));
+        const tbody = $('tbody');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="11">' +
+                '<div class="empty-state"><div class="em-title">没有匹配的日历</div>' +
+                '<div class="em-desc">点击右上角「新增日历」创建</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(c =>
+            '<tr>' +
+            '<td class="mono strong">' + esc(c.serviceId) + '</td>' +
+            '<td class="tc">' + dayMark(c.monday) + '</td>' +
+            '<td class="tc">' + dayMark(c.tuesday) + '</td>' +
+            '<td class="tc">' + dayMark(c.wednesday) + '</td>' +
+            '<td class="tc">' + dayMark(c.thursday) + '</td>' +
+            '<td class="tc">' + dayMark(c.friday) + '</td>' +
+            '<td class="tc">' + dayMark(c.saturday) + '</td>' +
+            '<td class="tc">' + dayMark(c.sunday) + '</td>' +
+            '<td class="mono">' + esc(c.startDate || '—') + '</td>' +
+            '<td class="mono">' + esc(c.endDate || '—') + '</td>' +
+            '<td class="col-actions">' +
+            '<button class="btn btn-sm" data-edit="' + c.id + '">编辑</button> ' +
+            '<button class="btn btn-sm btn-danger" data-del="' + c.id + '">删除</button></td>' +
+            '</tr>'
+        ).join('');
+        tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    function openModal(id) {
+        editingId = id || null;
+        $('modalTitle').textContent = id ? '编辑日历' : '新增日历';
+        const c = id ? calendars.find(x => x.id === id) : null;
+        $('fServiceId').value = c ? c.serviceId : '';
+        $('fServiceId').readOnly = !!c;   // service_id 是唯一标识，编辑时不可改
+        $('fMon').checked = c ? !!c.monday : true;
+        $('fTue').checked = c ? !!c.tuesday : true;
+        $('fWed').checked = c ? !!c.wednesday : true;
+        $('fThu').checked = c ? !!c.thursday : true;
+        $('fFri').checked = c ? !!c.friday : true;
+        $('fSat').checked = c ? !!c.saturday : false;
+        $('fSun').checked = c ? !!c.sunday : false;
+        $('fStart').value = c ? (c.startDate || '') : '';
+        $('fEnd').value = c ? (c.endDate || '') : '';
+        $('modal').style.display = '';
+        $('fServiceId').focus();
+    }
+
+    function closeModal() { $('modal').style.display = 'none'; }
+
+    async function save() {
+        const serviceId = $('fServiceId').value.trim();
+        const startDate = $('fStart').value;
+        const endDate = $('fEnd').value;
+        if (!serviceId) { toast('service_id 不能为空', true); return; }
+        if (!startDate || !endDate) { toast('起止日期不能为空', true); return; }
+        if (startDate > endDate) { toast('开始日期不能晚于结束日期', true); return; }
+        const week = {
+            monday: $('fMon').checked, tuesday: $('fTue').checked,
+            wednesday: $('fWed').checked, thursday: $('fThu').checked,
+            friday: $('fFri').checked, saturday: $('fSat').checked, sunday: $('fSun').checked
+        };
+        try {
+            if (editingId) {
+                // 更新不含 serviceId（后端 UpdateCalendarRequest 无此字段）
+                await api(API.calendars + '/' + editingId, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(Object.assign({}, week, { startDate: startDate, endDate: endDate }))
+                });
+                toast('已更新：' + serviceId);
+            } else {
+                await api(API.calendars, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(Object.assign({ serviceId: serviceId }, week, { startDate: startDate, endDate: endDate }))
+                });
+                toast('已新增：' + serviceId);
+            }
+            closeModal();
+            await load();
+        } catch (err) { toast('保存失败：' + err.message, true); }
+    }
+
+    async function remove(id) {
+        const c = calendars.find(x => x.id === id);
+        if (!c) return;
+        if (!confirm('确定删除日历「' + c.serviceId + '」？此操作不可恢复。')) return;
+        try {
+            await api(API.calendars + '/' + id, { method: 'DELETE' });
+            toast('已删除：' + c.serviceId);
+            await load();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
+    $('searchInput').addEventListener('input', render);
+    $('btnAdd').addEventListener('click', () => openModal(null));
+    $('btnCancel').addEventListener('click', closeModal);
+    $('btnSave').addEventListener('click', save);
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
+
+    load();
+</script>
+</body>
+</html>
