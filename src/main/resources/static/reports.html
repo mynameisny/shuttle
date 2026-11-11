@@ -74,6 +74,39 @@
                 <div class="card-body"><div class="chart-box" style="height:320px"><canvas id="routeChart"></canvas></div></div>
             </div>
 
+            <!-- 客流 -->
+            <div class="reports-row" style="margin-top:16px">
+                <div class="card">
+                    <div class="card-head">
+                        <div>
+                            <div class="card-title">各线路客流量排行</div>
+                            <div class="card-sub">近 7 天累计载客（演示数据）</div>
+                        </div>
+                    </div>
+                    <div class="card-body"><div class="chart-box"><canvas id="passengerChart"></canvas></div></div>
+                </div>
+                <div class="card">
+                    <div class="card-head">
+                        <div>
+                            <div class="card-title">高峰时段客流分布</div>
+                            <div class="card-sub">分时段载客量（演示数据）</div>
+                        </div>
+                    </div>
+                    <div class="card-body"><div class="chart-box"><canvas id="hourChart"></canvas></div></div>
+                </div>
+            </div>
+
+            <!-- 延误分布 -->
+            <div class="card" style="margin-top:16px">
+                <div class="card-head">
+                    <div>
+                        <div class="card-title">延误时长分布</div>
+                        <div class="card-sub">班次延误分钟数占比（演示数据）</div>
+                    </div>
+                </div>
+                <div class="card-body"><div class="chart-box"><canvas id="delayChart"></canvas></div></div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -188,6 +221,79 @@
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: { y: yScale, x: { grid: { display: false } } }
+        }
+    });
+
+    // ===== 各线路客流量排行（横向柱状） =====
+    const passengerRank = [
+        { name: '天通苑-昌平1', v: 1280 },
+        { name: '霍营-昌平', v: 960 },
+        { name: '雍和宫-昌平1', v: 890 },
+        { name: '东坝支线', v: 640 },
+        { name: '昌平水屯-八角', v: 520 },
+        { name: '涿州-八角', v: 430 }
+    ].sort((a, b) => b.v - a.v);
+    new Chart($('passengerChart'), {
+        type: 'bar',
+        data: {
+            labels: passengerRank.map(r => r.name),
+            datasets: [{
+                label: '载客量',
+                data: passengerRank.map(r => r.v),
+                backgroundColor: 'rgba(20,184,166,0.72)',
+                borderRadius: 5,
+                maxBarThickness: 22
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { grid: { display: false } } }
+        }
+    });
+
+    // ===== 高峰时段客流分布 =====
+    const hourLabels = ['6点', '7点', '8点', '9点', '12点', '17点', '18点', '19点'];
+    const hourPassenger = [180, 620, 540, 260, 120, 480, 560, 220];
+    new Chart($('hourChart'), {
+        type: 'bar',
+        data: {
+            labels: hourLabels,
+            datasets: [{
+                label: '载客量',
+                data: hourPassenger,
+                backgroundColor: hourPassenger.map(v => v >= 500 ? '#e0685b' : '#14b8a6'),
+                borderRadius: 5,
+                maxBarThickness: 36
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { grid: { display: false } } }
+        }
+    });
+
+    // ===== 延误时长分布（环形） =====
+    new Chart($('delayChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['0-5 分钟', '5-10 分钟', '10 分钟以上'],
+            datasets: [{
+                data: [82, 13, 5],
+                backgroundColor: ['#14b8a6', '#e8a33d', '#e0685b'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right' } },
+            cutout: '62%'
         }
     });
 </script>
