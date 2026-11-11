@@ -43,8 +43,9 @@
                         <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
                         <input type="text" class="search" id="searchInput" placeholder="搜索线路名称 / 编号…" style="width:250px">
                     </label>
+                    <button class="btn btn-primary" id="btnAdd">新增线路</button>
                     <a class="btn" href="stops.html">站点维护</a>
-                    <a class="btn btn-primary" href="map.html">线路描图</a>
+                    <a class="btn" href="map.html">线路描图</a>
                 </div>
             </div>
 
@@ -71,6 +72,51 @@
     </div>
 </div>
 
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="modalTitle">新增线路</h3>
+        <p class="modal-desc">线路 ID 唯一，对应 GTFS routes.txt</p>
+        <div class="field-row">
+            <div class="field">
+                <label>所属机构<span class="req">*</span></label>
+                <select class="select" id="fAgency"></select>
+            </div>
+            <div class="field">
+                <label>线路 ID<span class="req">*</span></label>
+                <input type="text" class="input" id="fRouteId" maxlength="50" placeholder="如 42">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>线路名称<span class="req">*</span></label>
+                <input type="text" class="input" id="fLongName" maxlength="100" placeholder="如 天通苑-昌平">
+            </div>
+            <div class="field">
+                <label>简称 / 起点标注</label>
+                <input type="text" class="input" id="fShortName" maxlength="255" placeholder="如 天通苑">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>线路类型<span class="req">*</span></label>
+                <select class="select" id="fRouteType"></select>
+            </div>
+            <div class="field">
+                <label>线路颜色</label>
+                <input type="text" class="input" id="fColor" maxlength="6" placeholder="6位16进制，如 1a73e8">
+            </div>
+        </div>
+        <div class="field">
+            <label>排序</label>
+            <input type="number" class="input" id="fSortOrder" min="0" placeholder="数字越小越靠前，可留空">
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSave">保存</button>
+        </div>
+    </div>
+</div>
+
 <div id="toast"></div>
 <script src="js/map-common.js"></script>
 <script src="js/layout.js"></script>
@@ -78,10 +124,27 @@
     initShell();
 
     let routes = [];
+    let agencies = [];
+    let editingId = null;
+
+    const ROUTE_TYPES = [
+        { value: 'BUS', label: '公交' },
+        { value: 'SUBWAY', label: '地铁' },
+        { value: 'TRAM', label: '有轨电车' },
+        { value: 'RAIL', label: '铁路' },
+        { value: 'FERRY', label: '轮渡' },
+        { value: 'TROLLEYBUS', label: '无轨电车' },
+        { value: 'MONORAIL', label: '单轨' }
+    ];
 
     async function load() {
         try {
-            routes = await api('/api/routes') || [];
+            const [a, r] = await Promise.all([
+                api('/api/agencies'),
+                api('/api/routes')
+            ]);
+            agencies = a || [];
+            routes = r || [];
             renderStrip();
             render();
         } catch (err) { toast('加载失败：' + err.message, true); }
@@ -128,13 +191,83 @@
                 '<td><span class="color-dot" style="background:' + esc(color) + '"></span>' +
                 ' <span class="mono muted" style="font-size:11.5px">' + esc(r.routeColor || '—') + '</span></td>' +
                 '<td class="col-actions">' +
+                '<button class="btn btn-sm" data-edit="' + r.id + '">编辑</button> ' +
+                '<button class="btn btn-sm btn-danger" data-del="' + r.id + '">删除</button> ' +
                 '<a class="btn btn-sm" href="stops.html?routePk=' + r.id + '">站点</a> ' +
                 '<a class="btn btn-sm" href="map.html?routePk=' + r.id + '">描图</a></td>' +
                 '</tr>';
         }).join('');
+        tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    function openModal(id) {
+        editingId = id || null;
+        $('modalTitle').textContent = id ? '编辑线路' : '新增线路';
+        const r = id ? routes.find(x => x.id === id) : null;
+        $('fAgency').innerHTML = agencies.map(a => '<option value="' + a.id + '">' + esc(a.agencyName || a.agencyId) + '</option>').join('');
+        $('fAgency').value = r && r.agency ? String(r.agency.id) : (agencies[0] ? String(agencies[0].id) : '');
+        $('fAgency').disabled = !!r;
+        $('fRouteId').value = r ? r.routeId : '';
+        $('fRouteId').readOnly = !!r;
+        $('fLongName').value = r ? (r.routeLongName || '') : '';
+        $('fShortName').value = r ? (r.routeShortName || '') : '';
+        $('fRouteType').innerHTML = ROUTE_TYPES.map(t => '<option value="' + t.value + '">' + t.label + '</option>').join('');
+        $('fRouteType').value = r && r.routeType ? r.routeType : 'BUS';
+        $('fColor').value = r ? (r.routeColor || '') : '';
+        $('fSortOrder').value = r && r.routeSortOrder != null ? r.routeSortOrder : '';
+        $('modal').style.display = '';
+        $('fRouteId').focus();
+    }
+
+    function closeModal() { $('modal').style.display = 'none'; }
+
+    async function save() {
+        const routeId = $('fRouteId').value.trim();
+        const longName = $('fLongName').value.trim();
+        const agencyId = $('fAgency').value;
+        if (!routeId) { toast('线路 ID 不能为空', true); return; }
+        if (!longName) { toast('线路名称不能为空', true); return; }
+        if (!agencyId) { toast('请选择所属机构', true); return; }
+        const color = $('fColor').value.trim().replace('#', '');
+        const body = {
+            routeLongName: longName,
+            routeShortName: $('fShortName').value.trim() || null,
+            routeType: $('fRouteType').value,
+            routeColor: color || null,
+            routeSortOrder: $('fSortOrder').value ? parseInt($('fSortOrder').value) : null
+        };
+        try {
+            if (editingId) {
+                await api('/api/routes/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                toast('已更新：' + longName);
+            } else {
+                await api('/api/routes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ agencyId: parseInt(agencyId), routeId: routeId }, body)) });
+                toast('已新增：' + longName);
+            }
+            closeModal();
+            await load();
+        } catch (err) { toast('保存失败：' + err.message, true); }
+    }
+
+    async function remove(id) {
+        const r = routes.find(x => x.id === id);
+        if (!r) return;
+        if (!confirm('确定删除线路「' + (r.routeLongName || r.routeId) + '」？此操作不可恢复。')) return;
+        try {
+            await api('/api/routes/' + id, { method: 'DELETE' });
+            toast('已删除：' + (r.routeLongName || r.routeId));
+            await load();
+        } catch (err) { toast('删除失败：' + err.message, true); }
     }
 
     $('searchInput').addEventListener('input', render);
+    $('btnAdd').addEventListener('click', () => openModal(null));
+    $('btnCancel').addEventListener('click', closeModal);
+    $('btnSave').addEventListener('click', save);
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
+
     load();
 </script>
 </body>
