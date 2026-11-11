@@ -138,7 +138,8 @@
         }
         tbody.innerHTML = trips.map(t =>
             '<tr>' +
-            '<td class="strong mono">' + esc(t.tripShortName || t.tripId) + '</td>' +
+            '<td class="strong mono">' + esc(t.tripShortName || t.tripId) +
+            (t.directionId === 1 ? ' <span class="muted" style="font-size:11px;font-weight:400">返</span>' : '') + '</td>' +
             '<td>' + dirPill(t.directionId) + '</td>' +
             '<td>' + (t.tripHeadsign ? esc(t.tripHeadsign) : '<span class="muted">—</span>') + '</td>' +
             '<td><span class="pill no-dot pill-neutral mono">' + esc(t.serviceId || '—') + '</span></td>' +
