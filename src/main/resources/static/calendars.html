@@ -34,7 +34,7 @@
                 <div class="page-actions">
                     <label class="search-wrap">
                         <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
-                        <input type="text" class="search" id="searchInput" placeholder="搜索 service_id…" style="width:220px">
+                        <input type="text" class="search" id="searchInput" placeholder="搜索运营日历…" style="width:220px">
                     </label>
                     <button class="btn btn-primary" id="btnAdd">
                         <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
@@ -48,7 +48,7 @@
                     <table class="tbl">
                         <thead>
                         <tr>
-                            <th>service_id</th>
+                            <th>运营日历</th>
                             <th class="tc">一</th>
                             <th class="tc">二</th>
                             <th class="tc">三</th>
@@ -73,9 +73,9 @@
 <div id="modal" class="modal-mask" style="display:none">
     <div class="modal">
         <h3 id="modalTitle">新增日历</h3>
-        <p class="modal-desc">service_id 唯一，被班次（trip）引用</p>
+        <p class="modal-desc">运营日历名称唯一，被班次（trip）引用</p>
         <div class="field">
-            <label>service_id<span class="req">*</span></label>
+            <label>运营日历<span class="req">*</span></label>
             <input type="text" class="input" id="fServiceId" maxlength="50" placeholder="如 WEEKDAY / WEEKEND">
         </div>
         <div class="field">
@@ -184,7 +184,7 @@
         const serviceId = $('fServiceId').value.trim();
         const startDate = $('fStart').value;
         const endDate = $('fEnd').value;
-        if (!serviceId) { toast('service_id 不能为空', true); return; }
+        if (!serviceId) { toast('运营日历名称不能为空', true); return; }
         if (!startDate || !endDate) { toast('起止日期不能为空', true); return; }
         if (startDate > endDate) { toast('开始日期不能晚于结束日期', true); return; }
         const week = {
