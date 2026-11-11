@@ -14,7 +14,7 @@
             border-radius: 5px; font-size: 11.5px; font-weight: 650;
             color: #fff; font-variant-numeric: tabular-nums;
         }
-        .color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; vertical-align: middle; }
+        .tag-list { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
         .drag-cell { width: 32px; text-align: center; cursor: grab; }
         .drag-handle {
             display: inline-flex; align-items: center; justify-content: center;
@@ -73,7 +73,7 @@
                             <th>线路名称</th>
                             <th>起点标注</th>
                             <th>类型</th>
-                            <th>颜色</th>
+                            <th>标签</th>
                             <th class="col-actions">操作</th>
                         </tr>
                         </thead>
@@ -140,6 +140,7 @@
     let routes = [];
     let agencies = [];
     let editingId = null;
+    let tagsByPk = {};
 
     const ROUTE_TYPES = [
         { value: 'BUS', label: '公交' },
@@ -167,12 +168,15 @@
 
     async function load() {
         try {
-            const [a, r] = await Promise.all([
+            const [a, r, t] = await Promise.all([
                 api('/api/agencies'),
-                api('/api/routes')
+                api('/api/routes'),
+                api('/api/routes?withTags=true')
             ]);
             agencies = a || [];
             routes = r || [];
+            tagsByPk = {};
+            (t || []).forEach(v => { tagsByPk[v.routePk] = v.tags || []; });
             renderStrip();
             render();
         } catch (err) { toast('加载失败：' + err.message, true); }
@@ -191,6 +195,13 @@
         if (r.routeSortOrder != null) return r.routeSortOrder;
         const n = parseInt(r.routeId);
         return isNaN(n) ? 9999 : n;
+    }
+
+    function renderTags(tags) {
+        if (!tags || !tags.length) return '<span class="muted">—</span>';
+        return '<span class="tag-list">' + tags.map(t =>
+            '<span class="pill no-dot pill-neutral">' + esc(t.networkName || t.networkId) + '</span>'
+        ).join('') + '</span>';
     }
 
     function render() {
@@ -221,8 +232,7 @@
                 '<td class="strong">' + esc(name) + '</td>' +
                 '<td>' + (r.routeShortName ? esc(r.routeShortName) : '<span class="muted">—</span>') + '</td>' +
                 '<td><span class="pill no-dot pill-neutral">' + esc(r.routeType || 'BUS') + '</span></td>' +
-                '<td><span class="color-dot" style="background:' + esc(color) + '"></span>' +
-                ' <span class="mono muted" style="font-size:11.5px">' + esc(r.routeColor || '—') + '</span></td>' +
+                '<td>' + renderTags(tagsByPk[r.id] || []) + '</td>' +
                 '<td class="col-actions">' +
                 '<a class="btn btn-sm btn-primary" href="trips.html?routePk=' + r.id + '">班次</a> ' +
                 '<button class="btn btn-sm" data-edit="' + r.id + '">编辑</button> ' +
