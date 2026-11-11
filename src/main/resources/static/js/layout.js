@@ -60,7 +60,7 @@ const MENU = [
             {
                 key: 'trips', name: '班次管理', icon: 'clock', children: [
                     { key: 'trips.calendar', name: '服务日历', href: 'calendars.html', ready: true },
-                    { key: 'trips.plan', name: '发车计划', ready: false, note: '按线路维护发车时刻表' },
+                    { key: 'trips.plan', name: '发车计划', href: 'trips.html', ready: true },
                     { key: 'trips.assign', name: '班次安排', ready: false, note: '线路 × 班次 × 车辆 × 司机 指派' }
                 ]
             },

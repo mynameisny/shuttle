@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班次管理 · 班车调度管理</title>
+    <meta name="nav" content="trips.plan">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .mono { font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">班次管理</h1>
+                    <p class="page-desc" id="routeDesc">线路班次列表</p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn" href="routes.html">返回线路</a>
+                    <button class="btn btn-primary" id="btnAdd">新增班次</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>班次号</th>
+                            <th>方向</th>
+                            <th>终点</th>
+                            <th>服务日历</th>
+                            <th>停站数</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="modalTitle">新增班次</h3>
+        <p class="modal-desc">班次 ID 唯一，对应 GTFS trips.txt</p>
+        <div class="field-row">
+            <div class="field">
+                <label>班次 ID<span class="req">*</span></label>
+                <input type="text" class="input" id="fTripId" maxlength="50" placeholder="如 1_1">
+            </div>
+            <div class="field">
+                <label>简称 / 车次号</label>
+                <input type="text" class="input" id="fShortName" maxlength="50" placeholder="如 北土城-昌平1">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>方向</label>
+                <select class="select" id="fDirection">
+                    <option value="0">去程</option>
+                    <option value="1">返程</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>终点</label>
+                <input type="text" class="input" id="fHeadsign" maxlength="100" placeholder="如 北土城-昌平">
+            </div>
+        </div>
+        <div class="field">
+            <label>服务日历<span class="req">*</span></label>
+            <select class="select" id="fServiceId"></select>
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    const params = new URLSearchParams(location.search);
+    const routePk = params.get('routePk');
+    let route = null;
+    let trips = [];
+    let calendars = [];
+    let editingId = null;
+
+    async function load() {
+        try {
+            const [r, t, c] = await Promise.all([
+                routePk ? api('/api/routes/' + routePk) : Promise.resolve(null),
+                routePk ? api('/api/routes/' + routePk + '/trips') : api('/api/trips'),
+                api('/api/calendars')
+            ]);
+            route = r;
+            trips = t || [];
+            calendars = c || [];
+            if (route) {
+                $('routeDesc').textContent = '线路 ' + (route.routeLongName || route.routeId) + ' · 共 ' + trips.length + ' 个班次';
+            } else {
+                $('routeDesc').textContent = '全部班次 · 共 ' + trips.length + ' 个';
+            }
+            render();
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function dirPill(d) {
+        if (d == null) return '<span class="muted">—</span>';
+        return d === 1
+            ? '<span class="pill no-dot pill-info">返程</span>'
+            : '<span class="pill no-dot pill-ok">去程</span>';
+    }
+
+    function render() {
+        const tbody = $('tbody');
+        if (!trips.length) {
+            tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">' +
+                '<div class="em-title">暂无班次</div>' +
+                '<div class="em-desc">点击右上角「新增班次」创建</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = trips.map(t =>
+            '<tr>' +
+            '<td class="strong mono">' + esc(t.tripShortName || t.tripId) + '</td>' +
+            '<td>' + dirPill(t.directionId) + '</td>' +
+            '<td>' + (t.tripHeadsign ? esc(t.tripHeadsign) : '<span class="muted">—</span>') + '</td>' +
+            '<td><span class="pill no-dot pill-neutral mono">' + esc(t.serviceId || '—') + '</span></td>' +
+            '<td class="mono">' + (t.stopTimes ? t.stopTimes.length : 0) + '</td>' +
+            '<td class="col-actions">' +
+            '<button class="btn btn-sm" data-edit="' + t.id + '">编辑</button> ' +
+            '<button class="btn btn-sm btn-danger" data-del="' + t.id + '">删除</button></td>' +
+            '</tr>'
+        ).join('');
+        tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    function openModal(id) {
+        editingId = id || null;
+        $('modalTitle').textContent = id ? '编辑班次' : '新增班次';
+        const t = id ? trips.find(x => x.id === id) : null;
+        $('fTripId').value = t ? t.tripId : '';
+        $('fTripId').readOnly = !!t;
+        $('fShortName').value = t ? (t.tripShortName || '') : '';
+        $('fDirection').value = t && t.directionId != null ? String(t.directionId) : '0';
+        $('fHeadsign').value = t ? (t.tripHeadsign || '') : '';
+        $('fServiceId').innerHTML = calendars.map(c => '<option value="' + esc(c.serviceId) + '">' + esc(c.serviceId) + '</option>').join('');
+        $('fServiceId').value = t ? (t.serviceId || '') : (calendars[0] ? calendars[0].serviceId : '');
+        $('modal').style.display = '';
+        $('fTripId').focus();
+    }
+
+    function closeModal() { $('modal').style.display = 'none'; }
+
+    async function save() {
+        const tripId = $('fTripId').value.trim();
+        const serviceId = $('fServiceId').value;
+        if (!tripId) { toast('班次 ID 不能为空', true); return; }
+        if (!serviceId) { toast('请选择服务日历', true); return; }
+        const body = {
+            tripShortName: $('fShortName').value.trim() || null,
+            directionId: parseInt($('fDirection').value),
+            tripHeadsign: $('fHeadsign').value.trim() || null,
+            serviceId: serviceId
+        };
+        try {
+            if (editingId) {
+                await api('/api/trips/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                toast('已更新班次');
+            } else {
+                if (!routePk) { toast('缺少线路参数，请从线路列表进入', true); return; }
+                await api('/api/trips', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ routeId: parseInt(routePk), tripId: tripId }, body)) });
+                toast('已新增班次');
+            }
+            closeModal();
+            await load();
+        } catch (err) { toast('保存失败：' + err.message, true); }
+    }
+
+    async function remove(id) {
+        const t = trips.find(x => x.id === id);
+        if (!t) return;
+        if (!confirm('确定删除班次「' + (t.tripShortName || t.tripId) + '」？此操作不可恢复。')) return;
+        try {
+            await api('/api/trips/' + id, { method: 'DELETE' });
+            toast('已删除班次');
+            await load();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
+    $('btnAdd').addEventListener('click', () => openModal(null));
+    $('btnCancel').addEventListener('click', closeModal);
+    $('btnSave').addEventListener('click', save);
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
+
+    load();
+</script>
+</body>
+</html>
