@@ -123,10 +123,6 @@
                 </div>
             </div>
         </div>
-        <div class="field">
-            <label>排序</label>
-            <input type="number" class="input" id="fSortOrder" min="0" placeholder="数字越小越靠前，可留空">
-        </div>
         <div class="btn-row">
             <button class="btn" id="btnCancel">取消</button>
             <button class="btn btn-primary" id="btnSave">保存</button>
@@ -254,7 +250,6 @@
         const color = r ? (r.routeColor || '') : '';
         $('fColor').value = color ? '#' + color : '';
         $('fColorPicker').value = color ? '#' + color.toLowerCase() : '#1a73e8';
-        $('fSortOrder').value = r && r.routeSortOrder != null ? r.routeSortOrder : '';
         $('modal').style.display = '';
         $('fRouteId').focus();
     }
@@ -273,8 +268,7 @@
             routeLongName: longName,
             routeShortName: $('fShortName').value.trim() || null,
             routeType: $('fRouteType').value,
-            routeColor: color || null,
-            routeSortOrder: $('fSortOrder').value ? parseInt($('fSortOrder').value) : null
+            routeColor: color || null
         };
         try {
             if (editingId) {
