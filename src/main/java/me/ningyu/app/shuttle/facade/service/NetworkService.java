@@ -79,7 +79,7 @@ public class NetworkService
     @Transactional(readOnly = true)
     public List<Network> getAllNetworks()
     {
-        return networkRepository.findAllByOrderByNetworkIdAsc();
+        return networkRepository.findAllByOrderByIdAsc();
     }
 
     @Nonnull
@@ -111,6 +111,9 @@ public class NetworkService
         }
 
         routeNetworkRepository.deleteAll(routeNetworkRepository.findByRouteId(routePk));
+        // 强制 DELETE 先落库：Hibernate 默认 flush 顺序是 INSERT 先于 DELETE，
+        // 若新标签集合仍含旧标签（route_id + network_id 唯一键相同），INSERT 会撞 uk_route_network 唯一索引
+        routeNetworkRepository.flush();
         List<RouteNetwork> saved = new ArrayList<>();
         for (Network network : networks)
         {

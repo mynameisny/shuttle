@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线路标签 · 班车调度管理</title>
+    <meta name="nav" content="routes.networks">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .tag-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 3px 10px; border-radius: 999px;
+            background: #f1f3f5; color: var(--c-text-2);
+            font-size: 12.5px; font-weight: 500;
+        }
+        .tag-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c-primary); }
+        .count-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 22px; height: 22px; padding: 0 7px;
+            border-radius: 999px; background: #eef1f5; color: var(--c-text-2);
+            font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page" id="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">线路标签</h1>
+                    <p class="page-desc">线路分组标签，一条线路可挂多个标签（对应 GTFS networks.txt）</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" id="btnAdd">
+                        <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
+                        新增标签
+                    </button>
+                    <a class="btn" href="routes.html">班车线路</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th style="width:200px">标签标识</th>
+                            <th>标签名</th>
+                            <th style="width:130px">关联线路</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="modalTitle">新增标签</h3>
+        <p class="modal-desc">标签标识唯一，对应 GTFS networks.txt 的 network_id</p>
+        <div class="field">
+            <label>标签标识<span class="req">*</span></label>
+            <input type="text" class="input" id="fNetworkId" maxlength="50" placeholder="如 BAJIAO">
+        </div>
+        <div class="field">
+            <label>标签名<span class="req">*</span></label>
+            <input type="text" class="input" id="fNetworkName" maxlength="100" placeholder="如 八角办公区">
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    const API = { networks: '/api/networks' };
+    let networks = [];
+    let routeCount = {};
+    let editingId = null;
+
+    async function load() {
+        try {
+            const [nets, routes] = await Promise.all([
+                api(API.networks),
+                api('/api/routes?withTags=true')
+            ]);
+            networks = nets || [];
+            routeCount = {};
+            (routes || []).forEach(r => {
+                (r.tags || []).forEach(t => {
+                    routeCount[t.networkId] = (routeCount[t.networkId] || 0) + 1;
+                });
+            });
+            render();
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function render() {
+        const tbody = $('tbody');
+        const list = [...networks].sort((a, b) => (a.id || 0) - (b.id || 0));
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="4">' +
+                '<div class="empty-state"><div class="em-title">还没有标签</div>' +
+                '<div class="em-desc">点击右上角「新增标签」创建</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(n => {
+            const cnt = routeCount[n.networkId] || 0;
+            return '<tr>' +
+                '<td class="mono strong">' + esc(n.networkId) + '</td>' +
+                '<td><span class="tag-pill"><span class="dot"></span>' + esc(n.networkName || '—') + '</span></td>' +
+                '<td><span class="count-badge">' + cnt + ' 条</span></td>' +
+                '<td class="col-actions">' +
+                '<button class="btn btn-sm" data-edit="' + n.id + '">编辑</button> ' +
+                '<button class="btn btn-sm btn-danger" data-del="' + n.id + '">删除</button></td>' +
+                '</tr>';
+        }).join('');
+        tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    function openModal(id) {
+        editingId = id || null;
+        $('modalTitle').textContent = id ? '编辑标签' : '新增标签';
+        const n = id ? networks.find(x => x.id === id) : null;
+        $('fNetworkId').value = n ? n.networkId : '';
+        $('fNetworkId').readOnly = !!n;   // network_id 是唯一标识，编辑时不可改
+        $('fNetworkName').value = n ? (n.networkName || '') : '';
+        $('modal').style.display = '';
+        $('fNetworkId').focus();
+    }
+
+    function closeModal() { $('modal').style.display = 'none'; }
+
+    async function save() {
+        const networkId = $('fNetworkId').value.trim();
+        const networkName = $('fNetworkName').value.trim();
+        if (!networkId) { toast('标签标识不能为空', true); return; }
+        if (!networkName) { toast('标签名不能为空', true); return; }
+        try {
+            if (editingId) {
+                // 更新仅含 networkName（UpdateNetworkRequest 无 network_id）
+                await api(API.networks + '/' + editingId, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ networkName: networkName })
+                });
+                toast('已更新：' + networkName);
+            } else {
+                await api(API.networks, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ networkId: networkId, networkName: networkName })
+                });
+                toast('已新增：' + networkName);
+            }
+            closeModal();
+            await load();
+        } catch (err) { toast('保存失败：' + err.message, true); }
+    }
+
+    async function remove(id) {
+        const n = networks.find(x => x.id === id);
+        if (!n) return;
+        const cnt = routeCount[n.networkId] || 0;
+        if (!confirm('确定删除标签「' + (n.networkName || n.networkId) + '」？此操作不可恢复。')) return;
+        try {
+            await api(API.networks + '/' + id, { method: 'DELETE' });
+            toast('已删除：' + (n.networkName || n.networkId));
+            await load();
+        } catch (err) {
+            const msg = err.message || '';
+            if (msg.indexOf('仍有线路') >= 0 || msg.indexOf('不能删除') >= 0) {
+                toast('该标签下还有 ' + cnt + ' 条线路，请先移除线路上的此标签', true);
+            } else {
+                toast('删除失败：' + msg, true);
+            }
+        }
+    }
+
+    $('btnAdd').addEventListener('click', () => openModal(null));
+    $('btnCancel').addEventListener('click', closeModal);
+    $('btnSave').addEventListener('click', save);
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
+
+    load();
+</script>
+</body>
+</html>

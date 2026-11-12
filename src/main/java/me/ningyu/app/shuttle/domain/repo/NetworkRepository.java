@@ -14,5 +14,5 @@ public interface NetworkRepository extends JpaRepository<Network, Long>, PagingA
 
     boolean existsByNetworkId(String networkId);
 
-    List<Network> findAllByOrderByNetworkIdAsc();
+    List<Network> findAllByOrderByIdAsc();
 }

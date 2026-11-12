@@ -54,7 +54,8 @@ const MENU = [
                 key: 'routes', name: '线路管理', icon: 'route', children: [
                     { key: 'routes.list', name: '班车线路', href: 'routes.html', ready: true },
                     { key: 'routes.stops', name: '站点', href: 'stops.html', ready: true },
-                    { key: 'routes.direction', name: '运行方向', href: 'map.html', ready: true }
+                    { key: 'routes.direction', name: '运行方向', href: 'map.html', ready: true },
+                    { key: 'routes.networks', name: '线路标签', href: 'networks.html', ready: true }
                 ]
             },
             {

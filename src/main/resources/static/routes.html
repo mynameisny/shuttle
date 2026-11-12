@@ -28,6 +28,12 @@
             border: 1px solid var(--c-border-strong); border-radius: var(--radius-sm);
             background: #fff; cursor: pointer;
         }
+        .tag-check { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+        .tag-check label {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 13px; color: var(--c-text-2); cursor: pointer; user-select: none;
+        }
+        .tag-check input { margin: 0; accent-color: var(--c-primary); }
         .stat-strip { display: flex; align-items: center; padding: 0 18px; border-bottom: 1px solid var(--c-border); overflow-x: auto; }
         .stat-strip .fs-item {
             display: flex; flex-direction: column; gap: 1px;
@@ -56,6 +62,9 @@
                         <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
                         <input type="text" class="search" id="searchInput" placeholder="搜索线路名称 / 编号…" style="width:250px">
                     </label>
+                    <select class="select" id="tagFilter" style="width:150px">
+                        <option value="">全部标签</option>
+                    </select>
                     <button class="btn btn-primary" id="btnAdd">新增线路</button>
                     <a class="btn" href="stops.html">站点维护</a>
                     <a class="btn" href="map.html">线路描图</a>
@@ -72,7 +81,6 @@
                             <th style="width:74px">线路号</th>
                             <th>线路名称</th>
                             <th>起点标注</th>
-                            <th>类型</th>
                             <th>标签</th>
                             <th class="col-actions">操作</th>
                         </tr>
@@ -123,6 +131,10 @@
                 </div>
             </div>
         </div>
+        <div class="field">
+            <label>线路标签</label>
+            <div class="tag-check" id="fTags"></div>
+        </div>
         <div class="btn-row">
             <button class="btn" id="btnCancel">取消</button>
             <button class="btn btn-primary" id="btnSave">保存</button>
@@ -139,6 +151,7 @@
 
     let routes = [];
     let agencies = [];
+    let networks = [];
     let editingId = null;
     let tagsByPk = {};
 
@@ -168,15 +181,21 @@
 
     async function load() {
         try {
-            const [a, r, t] = await Promise.all([
+            const [a, r, t, n] = await Promise.all([
                 api('/api/agencies'),
                 api('/api/routes'),
-                api('/api/routes?withTags=true')
+                api('/api/routes?withTags=true'),
+                api('/api/networks')
             ]);
             agencies = a || [];
             routes = r || [];
+            networks = n || [];
             tagsByPk = {};
             (t || []).forEach(v => { tagsByPk[v.routePk] = v.tags || []; });
+            const curTag = $('tagFilter').value;
+            $('tagFilter').innerHTML = '<option value="">全部标签</option>' +
+                networks.map(x => '<option value="' + esc(x.networkId) + '">' + esc(x.networkName || x.networkId) + '</option>').join('');
+            $('tagFilter').value = curTag || '';
             renderStrip();
             render();
         } catch (err) { toast('加载失败：' + err.message, true); }
@@ -187,8 +206,7 @@
         const withColor = routes.filter(r => r.routeColor).length;
         $('statStrip').innerHTML =
             '<div class="fs-item"><span class="fs-label">线路总数</span><span class="fs-value">' + total + '</span></div>' +
-            '<div class="fs-item"><span class="fs-label">已设线路色</span><span class="fs-value">' + withColor + '</span></div>' +
-            '<div class="fs-item"><span class="fs-label">线路类型</span><span class="fs-value" style="font-size:13px">BUS 公交</span></div>';
+            '<div class="fs-item"><span class="fs-label">已设线路色</span><span class="fs-value">' + withColor + '</span></div>';
     }
 
     function sortKey(r) {
@@ -206,16 +224,18 @@
 
     function render() {
         const kw = $('searchInput').value.trim().toLowerCase();
+        const tagKw = $('tagFilter').value;
         const list = routes
             .filter(r => {
-                if (!kw) return true;
-                return ((r.routeLongName || '') + ' ' + (r.routeShortName || '') + ' ' + r.routeId).toLowerCase().includes(kw);
+                if (kw && !((r.routeLongName || '') + ' ' + (r.routeShortName || '') + ' ' + r.routeId).toLowerCase().includes(kw)) return false;
+                if (tagKw && !(tagsByPk[r.id] || []).some(t => t.networkId === tagKw)) return false;
+                return true;
             })
             .sort((a, b) => sortKey(a) - sortKey(b));
 
         const tbody = $('tbody');
         if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">' +
+            tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">' +
                 '<div class="em-title">没有匹配的线路</div><div class="em-desc">换个关键词试试</div></div></td></tr>';
             return;
         }
@@ -231,7 +251,6 @@
                 '<td><span class="route-chip" style="background:' + esc(color) + '">' + esc(r.routeId) + '</span></td>' +
                 '<td class="strong">' + esc(name) + '</td>' +
                 '<td>' + (r.routeShortName ? esc(r.routeShortName) : '<span class="muted">—</span>') + '</td>' +
-                '<td><span class="pill no-dot pill-neutral">' + esc(r.routeType || 'BUS') + '</span></td>' +
                 '<td>' + renderTags(tagsByPk[r.id] || []) + '</td>' +
                 '<td class="col-actions">' +
                 '<a class="btn btn-sm btn-primary" href="trips.html?routePk=' + r.id + '">班次</a> ' +
@@ -261,6 +280,12 @@
         const color = r ? (r.routeColor || '') : '';
         $('fColor').value = color ? '#' + color : '';
         $('fColorPicker').value = color ? '#' + color.toLowerCase() : '#1a73e8';
+        const curTags = r ? (tagsByPk[r.id] || []) : [];
+        $('fTags').innerHTML = networks.map(n => {
+            const checked = curTags.some(t => t.networkId === n.networkId);
+            return '<label><input type="checkbox" value="' + esc(n.networkId) + '"' +
+                (checked ? ' checked' : '') + '> ' + esc(n.networkName || n.networkId) + '</label>';
+        }).join('');
         $('modal').style.display = '';
         $('fRouteId').focus();
     }
@@ -275,6 +300,7 @@
         if (!longName) { toast('线路名称不能为空', true); return; }
         if (!agencyId) { toast('请选择所属机构', true); return; }
         const color = parseColorToHex($('fColor').value);
+        const tagIds = [...$('fTags').querySelectorAll('input:checked')].map(i => i.value);
         const body = {
             routeLongName: longName,
             routeShortName: $('fShortName').value.trim() || null,
@@ -284,9 +310,13 @@
         try {
             if (editingId) {
                 await api('/api/routes/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                await api('/api/networks/routes/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tagIds) });
                 toast('已更新：' + longName);
             } else {
-                await api('/api/routes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ agencyId: parseInt(agencyId), routeId: routeId }, body)) });
+                const created = await api('/api/routes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ agencyId: parseInt(agencyId), routeId: routeId }, body)) });
+                if (tagIds.length && created && created.id) {
+                    await api('/api/networks/routes/' + created.id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tagIds) });
+                }
                 toast('已新增：' + longName);
             }
             closeModal();
@@ -306,6 +336,7 @@
     }
 
     $('searchInput').addEventListener('input', render);
+    $('tagFilter').addEventListener('change', render);
     $('btnAdd').addEventListener('click', () => openModal(null));
     $('btnCancel').addEventListener('click', closeModal);
     $('btnSave').addEventListener('click', save);

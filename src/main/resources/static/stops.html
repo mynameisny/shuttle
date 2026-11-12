@@ -261,7 +261,7 @@
         <div id="panel">
             <div class="body">
             <div class="field">
-                <label>分组维度 <span class="label-hint" title="决定线路下拉按哪个网络标签分组">?</span></label>
+                <label>分组维度 <span class="label-hint" title="决定线路下拉按哪个线路标签分组">?</span></label>
                 <select id="groupBy"><option value="">不分组（平铺）</option></select>
             </div>
 
@@ -486,7 +486,7 @@
 
     // ---------- 线路下拉分组（可按任意 network 标签分组，选择只在本会话内生效） ----------
 
-    // 缓存：一次拉「全部网络标签」+「带标签的线路」，两个下拉都从这里渲染，避免切分组维度时重复请求
+    // 缓存：一次拉「全部线路标签」+「带标签的线路」，两个下拉都从这里渲染，避免切分组维度时重复请求
     let routesCache = null;   // [{routePk, routeShortName, routeLongName, routeGtfsId, tags:[{networkId, networkName}]}]
     let networksCache = null; // [{networkId, networkName}]
 
