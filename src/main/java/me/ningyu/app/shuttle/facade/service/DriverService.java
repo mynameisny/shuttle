@@ -32,6 +32,7 @@ public class DriverService
                 .licenseClass(req.getLicenseClass())
                 .licenseNumber(req.getLicenseNumber())
                 .avatarUrl(req.getAvatarUrl())
+                .company(req.getCompany())
                 .build());
     }
 
@@ -48,6 +49,7 @@ public class DriverService
         d.setLicenseClass(req.getLicenseClass());
         d.setLicenseNumber(req.getLicenseNumber());
         d.setAvatarUrl(req.getAvatarUrl());
+        d.setCompany(req.getCompany());
         return driverRepository.save(d);
     }
 

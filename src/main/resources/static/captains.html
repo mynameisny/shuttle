@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>车长管理 · 班车调度管理</title>
+    <meta name="nav" content="captains.archives">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .mono { font-variant-numeric: tabular-nums; }
+        .gender-ico {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+            margin-right: 8px; vertical-align: middle;
+        }
+        .gender-ico svg {
+            width: 11px; height: 11px; fill: none; stroke: currentColor;
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .gender-m { background: var(--c-info-soft); color: var(--c-info); }
+        .gender-f { background: #fdeef4; color: #d63384; }
+        .gender-none { background: #f1f3f5; color: var(--c-text-3); }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">车长管理</h1>
+                </div>
+                <div class="page-actions">
+                    <label class="search-wrap">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        <input type="text" class="search" id="searchInput" placeholder="搜索姓名 / 电话…" style="width:220px">
+                    </label>
+                    <button class="btn btn-primary" id="btnAdd">
+                        <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
+                        新增车长
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>姓名</th>
+                            <th>电话</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="modalTitle">新增车长</h3>
+        <div class="field-row">
+            <div class="field">
+                <label>姓名<span class="req">*</span></label>
+                <input type="text" class="input" id="fName" maxlength="50" placeholder="如 刘哲">
+            </div>
+            <div class="field">
+                <label>性别</label>
+                <select class="select" id="fGender">
+                    <option value="">未填写</option>
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </div>
+        </div>
+        <div class="field">
+            <label>电话</label>
+            <input type="text" class="input" id="fPhone" maxlength="20" placeholder="11 位手机号">
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    let captains = [];
+    let editingId = null;
+
+    const GENDER_SVG = {
+        male: '<svg viewBox="0 0 24 24"><circle cx="10" cy="14" r="5.5"/><path d="M14.5 9.5L19 5M19 5h-4M19 5v4"/></svg>',
+        female: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5.5"/><path d="M12 13.5V20M9 17h6"/></svg>'
+    };
+
+    function genderIcon(g) {
+        if (g === '男') return '<span class="gender-ico gender-m" title="男">' + GENDER_SVG.male + '</span>';
+        if (g === '女') return '<span class="gender-ico gender-f" title="女">' + GENDER_SVG.female + '</span>';
+        return '<span class="gender-ico gender-none" title="未填写">—</span>';
+    }
+
+    async function load() {
+        try {
+            captains = await api('/api/captains') || [];
+            render();
+            locate();
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function locate() {
+        const pk = new URLSearchParams(location.search).get('pk');
+        if (!pk) return;
+        const tr = document.querySelector('tr[data-id="' + pk + '"]');
+        if (tr) {
+            tr.scrollIntoView({ block: 'center' });
+            tr.classList.add('row-flash');
+        }
+    }
+
+    function render() {
+        const kw = $('searchInput').value.trim().toLowerCase();
+        const list = captains.filter(c => !kw ||
+            (c.name || '').toLowerCase().includes(kw) || (c.phone || '').toLowerCase().includes(kw));
+        const tbody = $('tbody');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state">' +
+                '<div class="em-title">没有匹配的车长</div>' +
+                '<div class="em-desc">点击右上角「新增车长」创建</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(c =>
+            '<tr data-id="' + c.id + '">' +
+            '<td class="strong">' + genderIcon(c.gender) + esc(c.name || '—') + '</td>' +
+            '<td class="mono">' + (c.phone ? esc(c.phone) : '<span class="muted">—</span>') + '</td>' +
+            '<td class="col-actions">' +
+            '<button class="btn btn-sm" data-edit="' + c.id + '">编辑</button> ' +
+            '<button class="btn btn-sm btn-danger" data-del="' + c.id + '">删除</button></td>' +
+            '</tr>'
+        ).join('');
+        tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    function openModal(id) {
+        editingId = id || null;
+        $('modalTitle').textContent = id ? '编辑车长' : '新增车长';
+        const c = id ? captains.find(x => x.id === id) : null;
+        $('fName').value = c ? (c.name || '') : '';
+        $('fGender').value = c ? (c.gender || '') : '';
+        $('fPhone').value = c ? (c.phone || '') : '';
+        $('modal').style.display = '';
+        $('fName').focus();
+    }
+
+    function closeModal() { $('modal').style.display = 'none'; }
+
+    async function save() {
+        const name = $('fName').value.trim();
+        const phone = $('fPhone').value.trim() || null;
+        const gender = $('fGender').value || null;
+        if (!name) { toast('姓名不能为空', true); return; }
+        const body = { name: name, phone: phone, gender: gender };
+        try {
+            if (editingId) {
+                await api('/api/captains/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                toast('已更新：' + name);
+            } else {
+                await api('/api/captains', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                toast('已新增：' + name);
+            }
+            closeModal();
+            await load();
+        } catch (err) { toast('保存失败：' + err.message, true); }
+    }
+
+    async function remove(id) {
+        const c = captains.find(x => x.id === id);
+        if (!c) return;
+        if (!confirm('确定删除车长「' + (c.name || '') + '」？此操作不可恢复。')) return;
+        try {
+            await api('/api/captains/' + id, { method: 'DELETE' });
+            toast('已删除：' + c.name);
+            await load();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
+    $('searchInput').addEventListener('input', render);
+    $('btnAdd').addEventListener('click', () => openModal(null));
+    $('btnCancel').addEventListener('click', closeModal);
+    $('btnSave').addEventListener('click', save);
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
+
+    load();
+</script>
+</body>
+</html>

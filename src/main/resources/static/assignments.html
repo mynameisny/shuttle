@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班次安排 · 班车调度管理</title>
+    <meta name="nav" content="trips.assign">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .mono { font-variant-numeric: tabular-nums; }
+        .color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        .sub-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+        .sub-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            padding: 6px 10px; border-radius: 6px; background: #f7f8fa; font-size: 12.5px;
+        }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">班次安排</h1>
+                </div>
+                <div class="page-actions">
+                    <label class="search-wrap">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        <input type="text" class="search" id="searchInput" placeholder="搜索线路 / 车辆 / 司机 / 车长…" style="width:240px">
+                    </label>
+                    <button class="btn btn-primary" id="btnAdd">
+                        <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
+                        新增安排
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>线路</th>
+                            <th>车辆</th>
+                            <th>司机</th>
+                            <th>车长</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="modalTitle">新增班次安排</h3>
+        <div class="field" id="routeField">
+            <label>线路<span class="req">*</span></label>
+            <select class="select" id="fRoute"></select>
+        </div>
+        <div class="field">
+            <label>车辆</label>
+            <select class="select" id="fVehicle"></select>
+        </div>
+        <div class="field">
+            <label>司机</label>
+            <select class="select" id="fDriver"></select>
+        </div>
+        <div class="field">
+            <label>车长</label>
+            <select class="select" id="fCaptain"></select>
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="subModal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3>代班管理</h3>
+        <p class="modal-desc" id="subDesc"></p>
+        <div class="field-row">
+            <div class="field">
+                <label>方向<span class="req">*</span></label>
+                <select class="select" id="fSubTrip"></select>
+            </div>
+            <div class="field">
+                <label>代班日期<span class="req">*</span></label>
+                <input type="date" class="input" id="fSubDate">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>代班司机<span class="req">*</span></label>
+                <select class="select" id="fSubDriver"></select>
+            </div>
+            <div class="field">
+                <label>代班原因</label>
+                <select class="select" id="fSubReason">
+                    <option value="LEAVE">请假</option>
+                    <option value="BUSY">有事</option>
+                    <option value="OTHER">其他</option>
+                </select>
+            </div>
+        </div>
+        <div id="subList"></div>
+        <div class="btn-row">
+            <button class="btn" id="btnSubCancel">关闭</button>
+            <button class="btn btn-primary" id="btnSubSave">新增代班</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    let assignments = [];
+    let vehicles = [];
+    let drivers = [];
+    let captains = [];
+    let routes = [];
+    let editingId = null;
+    let subRouteId = null;
+
+    async function load() {
+        try {
+            const [a, v, d, c, r] = await Promise.all([
+                api('/api/assignments'),
+                api('/api/vehicles'),
+                api('/api/drivers'),
+                api('/api/captains'),
+                api('/api/routes')
+            ]);
+            assignments = a || [];
+            vehicles = v || [];
+            drivers = d || [];
+            captains = c || [];
+            routes = r || [];
+            render();
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function render() {
+        const kw = $('searchInput').value.trim().toLowerCase();
+        const list = assignments.filter(a => !kw ||
+            (a.routeLabel || '').toLowerCase().includes(kw) ||
+            (a.vehiclePlate || '').toLowerCase().includes(kw) ||
+            (a.driverName || '').toLowerCase().includes(kw) ||
+            (a.captainName || '').toLowerCase().includes(kw));
+        const tbody = $('tbody');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">' +
+                '<div class="em-title">没有匹配的班次安排</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(a =>
+            '<tr>' +
+            '<td class="strong"><span class="color-dot" style="background:' + (a.routeColor ? '#' + String(a.routeColor).replace('#', '') : '#d5dae0') + '"></span>' +
+                (a.routeId ? '<a class="plain-link" href="routes.html?pk=' + parseInt(a.routeId) + '">' + esc(a.routeLabel || a.routeId) + '</a>' : esc(a.routeLabel || '—')) + '</td>' +
+            '<td class="mono">' + (a.vehicleId ? '<a class="plain-link" href="vehicles.html?pk=' + a.vehicleId + '">' + esc(a.vehiclePlate) + '</a>' : '<span class="muted">—</span>') + '</td>' +
+            '<td>' + (a.driverId ? '<a class="plain-link" href="drivers.html?pk=' + a.driverId + '">' + esc(a.driverName) + '</a>' : '<span class="muted">—</span>') + '</td>' +
+            '<td>' + (a.captainId ? '<a class="plain-link" href="captains.html?pk=' + a.captainId + '">' + esc(a.captainName) + '</a>' : '<span class="muted">—</span>') + '</td>' +
+            '<td class="col-actions">' +
+            '<button class="btn btn-sm" data-edit="' + a.id + '">编辑</button> ' +
+            '<button class="btn btn-sm" data-sub="' + a.id + '">代班</button></td>' +
+            '</tr>'
+        ).join('');
+        tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openEdit(parseInt(b.dataset.edit))));
+        tbody.querySelectorAll('[data-sub]').forEach(b => b.addEventListener('click', () => openSub(parseInt(b.dataset.sub))));
+    }
+
+    function optionHtml(list, val, nameFn, selectedId) {
+        return list.map(x =>
+            '<option value="' + x.id + '"' + (x.id === selectedId ? ' selected' : '') + '>' +
+            esc(nameFn(x)) + '</option>').join('');
+    }
+
+    function openCreate() {
+        editingId = null;
+        $('modalTitle').textContent = '新增班次安排';
+        $('routeField').style.display = '';
+        const assignedRouteIds = new Set(assignments.map(a => a.routeId));
+        const free = routes.filter(r => !assignedRouteIds.has(r.routeId));
+        $('fRoute').innerHTML = free.length
+            ? free.map(r => '<option value="' + esc(r.routeId) + '">' + esc(r.routeLongName || r.routeId) + '</option>').join('')
+            : '<option value="">（无未分配线路）</option>';
+        $('fVehicle').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(vehicles, null, x => x.plateNumber || ('车辆 ' + x.id), null);
+        $('fDriver').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(drivers, null, x => x.name || ('司机 ' + x.id), null);
+        $('fCaptain').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(captains, null, x => x.name || ('车长 ' + x.id), null);
+        $('modal').style.display = '';
+    }
+
+    function openEdit(id) {
+        editingId = id;
+        const a = assignments.find(x => x.id === id);
+        if (!a) return;
+        $('modalTitle').textContent = '编辑班次安排';
+        $('routeField').style.display = 'none';
+        $('fVehicle').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(vehicles, null, x => x.plateNumber || ('车辆 ' + x.id), a.vehicleId);
+        $('fDriver').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(drivers, null, x => x.name || ('司机 ' + x.id), a.driverId);
+        $('fCaptain').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(captains, null, x => x.name || ('车长 ' + x.id), a.captainId);
+        $('modal').style.display = '';
+    }
+
+    function openSub(id) {
+        const a = assignments.find(x => x.id === id);
+        if (!a) return;
+        subRouteId = id;
+        $('subDesc').textContent = '线路：' + (a.routeLabel || a.routeId || '');
+        // 方向下拉：去程 / 返程（value = trip_id）
+        const opts = [];
+        if (a.outboundTripId) opts.push('<option value="' + esc(a.outboundTripId) + '">去程</option>');
+        if (a.inboundTripId) opts.push('<option value="' + esc(a.inboundTripId) + '">返程</option>');
+        $('fSubTrip').innerHTML = opts.join('');
+        $('fSubDate').value = new Date().toISOString().slice(0, 10);
+        $('fSubDriver').innerHTML = optionHtml(drivers, null, x => x.name || ('司机 ' + x.id), null);
+        $('fSubReason').value = 'LEAVE';
+        $('fSubTrip').onchange = () => loadSubs();
+        loadSubs();
+        $('subModal').style.display = '';
+    }
+
+    async function loadSubs() {
+        const tripId = $('fSubTrip').value;
+        if (!tripId) { $('subList').innerHTML = ''; return; }
+        try {
+            const subs = await api('/api/assignments/trip/' + tripId + '/substitutions');
+            $('subList').innerHTML = subs && subs.length
+                ? '<div class="sub-list">' + subs.map(s =>
+                    '<div class="sub-item"><span>' + esc(s.substituteDate) + ' · ' +
+                    (s.substituteDriver ? esc(s.substituteDriver.name) : '—') + ' · ' + reasonName(s.reason) + '</span>' +
+                    '<button class="btn btn-sm btn-danger" data-sub-del="' + s.id + '">删除</button></div>'
+                ).join('') + '</div>'
+                : '<p class="muted" style="margin-top:8px">该班次暂无代班记录</p>';
+            $('subList').querySelectorAll('[data-sub-del]').forEach(b =>
+                b.addEventListener('click', () => delSub(parseInt(b.dataset.subDel))));
+        } catch (err) { $('subList').innerHTML = ''; }
+    }
+
+    function reasonName(r) {
+        return { LEAVE: '请假', BUSY: '有事', OTHER: '其他' }[r] || r || '—';
+    }
+
+    async function save() {
+        try {
+            if (editingId) {
+                const body = {
+                    vehicleId: $('fVehicle').value ? parseInt($('fVehicle').value) : null,
+                    driverId: $('fDriver').value ? parseInt($('fDriver').value) : null,
+                    captainId: $('fCaptain').value ? parseInt($('fCaptain').value) : null
+                };
+                await api('/api/assignments/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                toast('已更新安排');
+            } else {
+                const routeId = $('fRoute').value;
+                if (!routeId) { toast('请选择线路', true); return; }
+                const body = {
+                    routeId: routeId,
+                    vehicleId: $('fVehicle').value ? parseInt($('fVehicle').value) : null,
+                    driverId: $('fDriver').value ? parseInt($('fDriver').value) : null,
+                    captainId: $('fCaptain').value ? parseInt($('fCaptain').value) : null
+                };
+                await api('/api/assignments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                toast('已新增安排');
+            }
+            $('modal').style.display = 'none';
+            await load();
+        } catch (err) { toast('保存失败：' + err.message, true); }
+    }
+
+    async function addSub() {
+        const tripId = $('fSubTrip').value;
+        const date = $('fSubDate').value;
+        const driverId = $('fSubDriver').value;
+        if (!tripId) { toast('请选择方向', true); return; }
+        if (!date) { toast('请选择代班日期', true); return; }
+        if (!driverId) { toast('请选择代班司机', true); return; }
+        try {
+            await api('/api/assignments/trip/' + tripId + '/substitutions', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ substituteDate: date, substituteDriverId: parseInt(driverId), reason: $('fSubReason').value })
+            });
+            toast('已新增代班');
+            await loadSubs();
+        } catch (err) { toast('新增代班失败：' + err.message, true); }
+    }
+
+    async function delSub(subId) {
+        if (!confirm('确定删除这条代班记录？')) return;
+        try {
+            await api('/api/assignments/substitutions/' + subId, { method: 'DELETE' });
+            toast('已删除代班');
+            await loadSubs();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
+    $('searchInput').addEventListener('input', render);
+    $('btnAdd').addEventListener('click', openCreate);
+    $('btnCancel').addEventListener('click', () => $('modal').style.display = 'none');
+    $('btnSave').addEventListener('click', save);
+    $('btnSubCancel').addEventListener('click', () => $('subModal').style.display = 'none');
+    $('btnSubSave').addEventListener('click', addSub);
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) $('modal').style.display = 'none'; });
+    $('subModal').addEventListener('click', e => { if (e.target === $('subModal')) $('subModal').style.display = 'none'; });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            $('modal').style.display = 'none';
+            $('subModal').style.display = 'none';
+        }
+    });
+
+    load();
+</script>
+</body>
+</html>

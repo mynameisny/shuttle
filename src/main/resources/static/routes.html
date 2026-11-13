@@ -55,7 +55,6 @@
                 <div>
                     <div class="crumbs" data-auto-crumbs></div>
                     <h1 class="page-title">班车线路</h1>
-                    <p class="page-desc">GTFS 线路台账 · 站点与运行方向维护入口</p>
                 </div>
                 <div class="page-actions">
                     <label class="search-wrap">
@@ -198,7 +197,18 @@
             $('tagFilter').value = curTag || '';
             renderStrip();
             render();
+            locate();
         } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function locate() {
+        const pk = new URLSearchParams(location.search).get('pk');
+        if (!pk) return;
+        const tr = document.querySelector('tr[data-id="' + pk + '"]');
+        if (tr) {
+            tr.scrollIntoView({ block: 'center' });
+            tr.classList.add('row-flash');
+        }
     }
 
     function renderStrip() {

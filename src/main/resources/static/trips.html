@@ -9,6 +9,24 @@
     <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
     <style>
         .mono { font-variant-numeric: tabular-nums; }
+        .route-badge {
+            display: inline-flex; align-items: center;
+            margin-left: 10px; padding: 3px 11px;
+            background: var(--c-info-soft); color: var(--c-info);
+            border-radius: 999px; font-size: 13px; font-weight: 600;
+            vertical-align: middle; letter-spacing: 0;
+        }
+        .dir-ico {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px; border-radius: 50%;
+            vertical-align: middle; margin-right: 7px; flex-shrink: 0;
+        }
+        .dir-ico svg {
+            width: 11px; height: 11px; fill: none; stroke: currentColor;
+            stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .dir-go { background: var(--c-ok-soft); color: var(--c-ok); }
+        .dir-back { background: var(--c-info-soft); color: var(--c-info); }
     </style>
 </head>
 <body>
@@ -20,8 +38,7 @@
             <div class="page-head">
                 <div>
                     <div class="crumbs" data-auto-crumbs></div>
-                    <h1 class="page-title">班次管理</h1>
-                    <p class="page-desc" id="routeDesc">线路班次列表</p>
+                    <h1 class="page-title">班次管理<span id="routeBadge" class="route-badge" style="display:none"></span></h1>
                 </div>
                 <div class="page-actions">
                     <a class="btn" href="routes.html">返回线路</a>
@@ -57,8 +74,8 @@
         <p class="modal-desc">班次 ID 唯一，对应 GTFS trips.txt</p>
         <div class="field-row">
             <div class="field">
-                <label>班次 ID<span class="req">*</span></label>
-                <input type="text" class="input" id="fTripId" maxlength="50" placeholder="如 1_1">
+                <label>班次 ID（自动生成）</label>
+                <input type="text" class="input" id="fTripId" maxlength="50" readonly>
             </div>
             <div class="field">
                 <label>简称 / 车次号</label>
@@ -112,11 +129,10 @@
             route = r;
             trips = t || [];
             calendars = c || [];
-            if (route) {
-                $('routeDesc').textContent = '线路 ' + (route.routeLongName || route.routeId) + ' · 共 ' + trips.length + ' 个班次';
-            } else {
-                $('routeDesc').textContent = '全部班次 · 共 ' + trips.length + ' 个';
-            }
+            const badge = $('routeBadge');
+            const rname = route ? (route.routeLongName || route.routeId || '') : '';
+            badge.textContent = rname;
+            badge.style.display = rname ? '' : 'none';
             render();
         } catch (err) { toast('加载失败：' + err.message, true); }
     }
@@ -126,6 +142,28 @@
         return d === 1
             ? '<span class="pill no-dot pill-info">返程</span>'
             : '<span class="pill no-dot pill-ok">去程</span>';
+    }
+
+    // trip_id 惯例 = route_id_outbound（去程）/ route_id_inbound（返程），routePk = route_id 数字
+    function tripRoutePk(t) {
+        const base = (t.tripId || '').replace(/_(outbound|inbound)$/, '');
+        const n = parseInt(base, 10);
+        return isNaN(n) ? '' : n;
+    }
+
+    // 自动生成 trip_id：{route_id}_{outbound|inbound}，同方向已存在则加数字 _2/_3...
+    function genTripId(directionId) {
+        const base = route ? (route.routeId || '') : '';
+        if (!base) return '';
+        const suffix = directionId === 1 ? '_inbound' : '_outbound';
+        const existing = new Set(trips.map(x => x.tripId));
+        let candidate = base + suffix;
+        let i = 2;
+        while (existing.has(candidate)) {
+            candidate = base + suffix + '_' + i;
+            i++;
+        }
+        return candidate;
     }
 
     function render() {
@@ -138,13 +176,18 @@
         }
         tbody.innerHTML = trips.map(t =>
             '<tr>' +
-            '<td class="strong mono">' + esc(t.tripShortName || t.tripId) +
-            (t.directionId === 1 ? ' <span class="muted" style="font-size:11px;font-weight:400">返</span>' : '') + '</td>' +
+            '<td class="strong mono">' +
+            (t.directionId === 1
+                ? '<span class="dir-ico dir-back" title="返程"><svg viewBox="0 0 24 24"><path d="M20 12H5M10 6l-6 6 6 6"/></svg></span>'
+                : '<span class="dir-ico dir-go" title="去程"><svg viewBox="0 0 24 24"><path d="M4 12h15M14 6l6 6-6 6"/></svg></span>') +
+            esc(t.tripShortName || t.tripId) +
+            '</td>' +
             '<td>' + dirPill(t.directionId) + '</td>' +
             '<td>' + (t.tripHeadsign ? esc(t.tripHeadsign) : '<span class="muted">—</span>') + '</td>' +
             '<td><span class="pill no-dot pill-neutral mono">' + esc(t.serviceId || '—') + '</span></td>' +
             '<td class="mono">' + (t.stopTimes ? t.stopTimes.length : 0) + '</td>' +
             '<td class="col-actions">' +
+            '<a class="btn btn-sm" href="stops.html?routePk=' + tripRoutePk(t) + '">站点</a> ' +
             '<button class="btn btn-sm" data-edit="' + t.id + '">编辑</button> ' +
             '<button class="btn btn-sm btn-danger" data-del="' + t.id + '">删除</button></td>' +
             '</tr>'
@@ -157,15 +200,15 @@
         editingId = id || null;
         $('modalTitle').textContent = id ? '编辑班次' : '新增班次';
         const t = id ? trips.find(x => x.id === id) : null;
-        $('fTripId').value = t ? t.tripId : '';
-        $('fTripId').readOnly = !!t;
         $('fShortName').value = t ? (t.tripShortName || '') : '';
         $('fDirection').value = t && t.directionId != null ? String(t.directionId) : '0';
         $('fHeadsign').value = t ? (t.tripHeadsign || '') : '';
         $('fServiceId').innerHTML = calendars.map(c => '<option value="' + esc(c.serviceId) + '">' + esc(c.serviceId) + '</option>').join('');
         $('fServiceId').value = t ? (t.serviceId || '') : (calendars[0] ? calendars[0].serviceId : '');
+        $('fTripId').value = t ? t.tripId : genTripId(parseInt($('fDirection').value));
+        $('fTripId').readOnly = true;
         $('modal').style.display = '';
-        $('fTripId').focus();
+        $('fDirection').focus();
     }
 
     function closeModal() { $('modal').style.display = 'none'; }
@@ -207,6 +250,9 @@
     }
 
     $('btnAdd').addEventListener('click', () => openModal(null));
+    $('fDirection').addEventListener('change', () => {
+        if (!editingId) $('fTripId').value = genTripId(parseInt($('fDirection').value));
+    });
     $('btnCancel').addEventListener('click', closeModal);
     $('btnSave').addEventListener('click', save);
     $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });

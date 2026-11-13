@@ -76,4 +76,10 @@ public class Driver extends AbstractAuditable
      */
     @Column(name = "avatar_url", columnDefinition = "VARCHAR(255) COMMENT '司机头像 URL'")
     private String avatarUrl;
+
+    /**
+     * 所属公司。
+     */
+    @Column(name = "company", columnDefinition = "VARCHAR(100) COMMENT '所属公司'")
+    private String company;
 }

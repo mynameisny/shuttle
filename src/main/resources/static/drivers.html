@@ -129,7 +129,6 @@
                 <div>
                     <div class="crumbs" data-auto-crumbs></div>
                     <h1 class="page-title">司机档案</h1>
-                    <p class="page-desc">司机姓名、证件、准驾车型与联系方式台账</p>
                 </div>
                 <div class="page-actions">
                     <label class="search-wrap">
@@ -223,6 +222,10 @@
                 <label>驾驶证编号</label>
                 <input type="text" class="input" id="fLicenseNumber" maxlength="30" placeholder="驾驶证编号">
             </div>
+            <div class="field">
+                <label>所属公司</label>
+                <input type="text" class="input" id="fCompany" maxlength="100" placeholder="如 北京新朗途客运有限公司">
+            </div>
         </div>
         <div class="btn-row">
             <button class="btn" id="btnCancel">取消</button>
@@ -247,7 +250,18 @@
             drivers = await api(API.drivers) || [];
             renderSummary();
             render();
+            locate();
         } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function locate() {
+        const pk = new URLSearchParams(location.search).get('pk');
+        if (!pk) return;
+        const tr = document.querySelector('tr[data-id="' + pk + '"]');
+        if (tr) {
+            tr.scrollIntoView({ block: 'center' });
+            tr.classList.add('row-flash');
+        }
     }
 
     function renderSummary() {
@@ -332,6 +346,8 @@
         { key: 'status', label: '状态', cell: d => '<td>' + driverStatusPill(d.status) + '</td>' },
         { key: 'licenseClass', label: '准驾车型', cell: d =>
             '<td>' + (d.licenseClass ? esc(d.licenseClass) : '<span class="muted">—</span>') + '</td>' },
+        { key: 'company', label: '所属公司', cell: d =>
+            '<td>' + (d.company ? esc(d.company) : '<span class="muted">—</span>') + '</td>' },
         { key: 'licenseNumber', label: '驾驶证编号', cell: d => '<td>' + maskedCell(d.licenseNumber) + '</td>' },
         { key: 'idCardNumber', label: '身份证号', cell: d => '<td>' + maskedCell(d.idCardNumber) + '</td>' },
         { key: 'createdDate', label: '录入时间', cell: d => '<td class="muted mono">' + fmtDate(d.createdDate) + '</td>' },
@@ -371,7 +387,7 @@
                 '<div class="em-desc">换个关键词，或点击右上角「新增司机」录入</div></div></td></tr>';
             return;
         }
-        tbody.innerHTML = list.map(d => '<tr>' + cols.map(c => c.cell(d)).join('') + '</tr>').join('');
+        tbody.innerHTML = list.map(d => '<tr data-id="' + d.id + '">' + cols.map(c => c.cell(d)).join('') + '</tr>').join('');
         tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
         tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
     }
@@ -406,6 +422,7 @@
         $('fIdCard').value = d ? (d.idCardNumber || '') : '';
         $('fLicenseClass').value = d ? (d.licenseClass || '') : '';
         $('fLicenseNumber').value = d ? (d.licenseNumber || '') : '';
+        $('fCompany').value = d ? (d.company || '') : '';
         renderAvatarBox(d ? d.avatarUrl : null);
         $('modal').style.display = '';
         $('fName').focus();
@@ -447,6 +464,7 @@
             gender: $('fGender').value || null,
             licenseClass: $('fLicenseClass').value.trim() || null,
             licenseNumber: $('fLicenseNumber').value.trim() || null,
+            company: $('fCompany').value.trim() || null,
             avatarUrl: $('fAvatar').value || null
         };
         try {

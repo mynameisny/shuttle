@@ -68,6 +68,7 @@ public class VehicleService
         v.setSupplier(req.getSupplier());
         v.setInsuranceExpiry(req.getInsuranceExpiry());
         v.setInspectionExpiry(req.getInspectionExpiry());
+        v.setPhotoUrl(req.getPhotoUrl());
         return v;
     }
 }

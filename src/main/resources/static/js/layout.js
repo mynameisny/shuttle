@@ -44,6 +44,11 @@ const MENU = [
                     { key: 'drivers.archives', name: '司机档案', href: 'drivers.html', ready: true },
                     { key: 'drivers.records', name: '驾驶记录', ready: false, note: '出车记录、违章、安全考核' }
                 ]
+            },
+            {
+                key: 'captains', name: '车长管理', icon: 'captain', children: [
+                    { key: 'captains.archives', name: '车长档案', href: 'captains.html', ready: true }
+                ]
             }
         ]
     },
@@ -62,7 +67,7 @@ const MENU = [
                 key: 'trips', name: '班次管理', icon: 'clock', children: [
                     { key: 'trips.calendar', name: '服务日历', href: 'calendars.html', ready: true },
                     { key: 'trips.plan', name: '发车计划', href: 'trips.html', ready: true },
-                    { key: 'trips.assign', name: '班次安排', ready: false, note: '线路 × 班次 × 车辆 × 司机 指派' }
+                    { key: 'trips.assign', name: '班次安排', href: 'assignments.html', ready: true }
                 ]
             },
             {
@@ -99,6 +104,7 @@ const ICONS = {
     grid: '<rect x="3" y="3" width="6" height="6" rx="1.4"/><rect x="11" y="3" width="6" height="6" rx="1.4"/><rect x="3" y="11" width="6" height="6" rx="1.4"/><rect x="11" y="11" width="6" height="6" rx="1.4"/>',
     bus: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h7A2.5 2.5 0 0 1 16 5.5V14a1 1 0 0 1-1 1h-1.2a1 1 0 0 1-1-1v-.6H7.2V14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 9h12"/><circle cx="7" cy="12" r=".6"/><circle cx="13" cy="12" r=".6"/>',
     user: '<circle cx="10" cy="6.2" r="3.1"/><path d="M4 17.2c0-2.8 2.7-4.6 6-4.6s6 1.8 6 4.6"/>',
+    captain: '<circle cx="10" cy="6.8" r="2.9"/><path d="M4.6 17.2c0-2.7 2.4-4.3 5.4-4.3s5.4 1.6 5.4 4.3"/><path d="M10 2.4l.7 1.5 1.7.3-1.2 1.2.3 1.7-1.5-.8-1.5.8.3-1.7-1.2-1.2 1.7-.3z"/>',
     route: '<circle cx="5" cy="5" r="2"/><circle cx="15" cy="15" r="2"/><path d="M5 7v3.5A2.5 2.5 0 0 0 7.5 13H12a2.5 2.5 0 0 1 2.5 2.5V13"/>',
     clock: '<circle cx="10" cy="10" r="7"/><path d="M10 6v4.3l2.8 1.7"/>',
     activity: '<path d="M2.5 10h3.2l1.8-4.6L11 15l1.9-5h4.6"/>',

@@ -9,6 +9,22 @@
     <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
     <style>
         /* 页面特异性样式：仅车辆页使用的部分 */
+        .vehicle-photo-box {
+            width: 140px; height: 92px; border-radius: 8px;
+            border: 1px solid var(--c-border); background: #f7f8fa;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; flex-shrink: 0;
+            color: var(--c-text-3); font-size: 12px;
+        }
+        .vehicle-photo-box img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-upload { display: flex; align-items: center; gap: 10px; }
+        .detail-photo {
+            width: 100%; max-height: 260px; object-fit: cover;
+            border-radius: 8px; margin-bottom: 14px; background: #f1f3f5;
+        }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; font-size: 13px; }
+        .detail-grid .k { color: var(--c-text-3); }
+        .detail-grid .v { color: var(--c-text); }
         .fleet-summary {
             display: flex;
             align-items: center;
@@ -72,7 +88,6 @@
                 <div>
                     <div class="crumbs" data-auto-crumbs></div>
                     <h1 class="page-title">车辆档案</h1>
-                    <p class="page-desc">车牌、VIN、品牌/车系/款型、座位、能源、状态与保险年检台账</p>
                 </div>
                 <div class="page-actions">
                     <label class="search-wrap">
@@ -190,9 +205,30 @@
                 <input type="date" class="input" id="fInspection">
             </div>
         </div>
+        <div class="field">
+            <label>车辆照片</label>
+            <div class="photo-upload">
+                <div class="vehicle-photo-box" id="photoBox">无照片</div>
+                <button type="button" class="btn btn-sm" id="btnPhoto">上传照片</button>
+                <button type="button" class="btn btn-sm" id="btnPhotoClear">清除</button>
+                <input type="file" id="photoFile" accept="image/*" style="display:none">
+                <input type="hidden" id="fPhoto">
+            </div>
+        </div>
         <div class="btn-row">
             <button class="btn" id="btnCancel">取消</button>
             <button class="btn btn-primary" id="btnSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="detailModal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="detailTitle">车辆详情</h3>
+        <img class="detail-photo" id="detailPhoto" alt="车辆照片" style="display:none">
+        <div class="detail-grid" id="detailGrid"></div>
+        <div class="btn-row">
+            <button class="btn" id="btnDetailClose">关闭</button>
         </div>
     </div>
 </div>
@@ -212,7 +248,18 @@
             vehicles = await api(API.vehicles) || [];
             renderSummary();
             render();
+            locate();
         } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function locate() {
+        const pk = new URLSearchParams(location.search).get('pk');
+        if (!pk) return;
+        const tr = document.querySelector('tr[data-id="' + pk + '"]');
+        if (tr) {
+            tr.scrollIntoView({ block: 'center' });
+            tr.classList.add('row-flash');
+        }
     }
 
     function typePill(t) {
@@ -239,7 +286,7 @@
     // ===== 列配置：key 用于持久化隐藏状态；required 列不可隐藏；cell(v) 返回整格 <td> =====
     const COLUMNS = [
         { key: 'plateNumber', label: '车牌号', required: true, cell: v =>
-            '<td><div class="cell-stack"><span class="plate-cell">' + esc(v.plateNumber) + '</span>' +
+            '<td><div class="cell-stack"><a class="plate-cell plain-link" href="#" data-detail="' + v.id + '">' + esc(v.plateNumber) + '</a>' +
             '<span class="sub">ID ' + v.id + '</span></div></td>' },
         { key: 'brand', label: '品牌 / 车系 / 款型', cell: v =>
             '<td>' + (v.brand || v.series || v.model
@@ -309,7 +356,8 @@
                 '<div class="em-desc">换个关键词，或点击右上角「新增车辆」录入</div></div></td></tr>';
             return;
         }
-        tbody.innerHTML = list.map(v => '<tr>' + cols.map(c => c.cell(v)).join('') + '</tr>').join('');
+        tbody.innerHTML = list.map(v => '<tr data-id="' + v.id + '">' + cols.map(c => c.cell(v)).join('') + '</tr>').join('');
+        tbody.querySelectorAll('[data-detail]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); openDetail(parseInt(b.dataset.detail)); }));
         tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
         tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
     }
@@ -350,6 +398,7 @@
         $('fSupplier').value = v ? (v.supplier || '') : '';
         $('fInsurance').value = v ? (v.insuranceExpiry || '') : '';
         $('fInspection').value = v ? (v.inspectionExpiry || '') : '';
+        renderPhotoBox(v ? v.photoUrl : null);
         $('modal').style.display = '';
         $('fPlate').focus();
     }
@@ -372,7 +421,8 @@
             status: $('fStatus').value || '运营中',
             supplier: $('fSupplier').value.trim() || null,
             insuranceExpiry: $('fInsurance').value || null,
-            inspectionExpiry: $('fInspection').value || null
+            inspectionExpiry: $('fInspection').value || null,
+            photoUrl: $('fPhoto').value || null
         };
         try {
             if (editingId) {
@@ -398,10 +448,53 @@
         } catch (err) { toast('删除失败：' + err.message, true); }
     }
 
+    function renderPhotoBox(url) {
+        $('fPhoto').value = url || '';
+        const box = $('photoBox');
+        if (url) box.innerHTML = '<img src="' + esc(url) + '" alt="车辆照片">';
+        else box.textContent = '无照片';
+    }
+
+    function openDetail(id) {
+        const v = vehicles.find(x => x.id === id);
+        if (!v) return;
+        $('detailTitle').textContent = '车辆详情 · ' + (v.plateNumber || '');
+        const photo = $('detailPhoto');
+        if (v.photoUrl) { photo.src = v.photoUrl; photo.style.display = ''; }
+        else photo.style.display = 'none';
+        const rows = [
+            ['车牌号', v.plateNumber], ['VIN', v.vin], ['发动机号/电机号', v.engineNumber],
+            ['品牌/车系/款型', [v.brand, v.series, v.model].filter(Boolean).join(' ')],
+            ['座位数', v.seatCount], ['车型', v.vehicleType], ['能源类型', v.energyType],
+            ['状态', v.status], ['供应商', v.supplier],
+            ['保险到期', v.insuranceExpiry], ['年检到期', v.inspectionExpiry]
+        ];
+        $('detailGrid').innerHTML = rows.map(r =>
+            '<div class="k">' + esc(r[0]) + '</div><div class="v">' + esc(r[1] == null || r[1] === '' ? '—' : r[1]) + '</div>'
+        ).join('');
+        $('detailModal').style.display = '';
+    }
+
     $('searchInput').addEventListener('input', render);
     $('btnAdd').addEventListener('click', () => openModal(null));
     $('btnCancel').addEventListener('click', closeModal);
     $('btnSave').addEventListener('click', save);
+    $('btnPhoto').addEventListener('click', () => $('photoFile').click());
+    $('photoFile').addEventListener('change', async () => {
+        const file = $('photoFile').files[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('dir', 'vehicles');
+        try {
+            const res = await api('/api/upload', { method: 'POST', body: fd });
+            renderPhotoBox(res.url);
+            toast('照片已上传');
+        } catch (err) { toast('上传失败：' + err.message, true); }
+    });
+    $('btnPhotoClear').addEventListener('click', () => renderPhotoBox(null));
+    $('btnDetailClose').addEventListener('click', () => $('detailModal').style.display = 'none');
+    $('detailModal').addEventListener('click', e => { if (e.target === $('detailModal')) $('detailModal').style.display = 'none'; });
     $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
     $('btnCols').addEventListener('click', e => {
         e.stopPropagation();

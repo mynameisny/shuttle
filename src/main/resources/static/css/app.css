@@ -299,7 +299,7 @@ html.sb-collapsed .sb-toggle:hover {
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 18px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
 }
 
@@ -514,6 +514,12 @@ html.sb-collapsed .sb-toggle:hover {
     background-size: 14px 14px;
     padding-right: 34px;
     cursor: pointer;
+}
+/* 只读/禁用的表单控件置灰（如编辑弹窗里不可改的唯一标识、所属机构） */
+.input[readonly], .select:disabled {
+    background-color: #f1f3f5;
+    color: var(--c-text-3);
+    border-color: var(--c-border);
 }
 .input:focus, .select:focus, .search:focus {
     outline: none;
@@ -766,3 +772,14 @@ table.tbl .mono { font-variant-numeric: tabular-nums; }
     .sidebar .sb-item { padding: 9px 15.5px; }
     .page { padding: 16px 14px 24px; }
 }
+
+/* 深链定位高亮（跳转后短暂闪烁定位行） */
+.row-flash { animation: row-flash 2.2s ease-out; }
+@keyframes row-flash {
+    0% { background: #fff3d6; }
+    70% { background: #fff3d6; }
+    100% { background: transparent; }
+}
+/* 列表内跳转链接（继承文字颜色） */
+.plain-link { color: inherit; text-decoration: none; }
+.plain-link:hover { text-decoration: underline; color: var(--c-primary); }

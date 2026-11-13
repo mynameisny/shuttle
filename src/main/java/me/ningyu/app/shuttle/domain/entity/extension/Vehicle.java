@@ -105,4 +105,10 @@ public class Vehicle extends AbstractAuditable
      */
     @Column(name = "inspection_expiry", columnDefinition = "DATE COMMENT '年检到期日'")
     private LocalDate inspectionExpiry;
+
+    /**
+     * 车辆照片 URL（相对路径，如 /uploads/vehicles/2026/11/xxx.jpg）。
+     */
+    @Column(name = "photo_url", columnDefinition = "VARCHAR(255) COMMENT '车辆照片 URL'")
+    private String photoUrl;
 }

@@ -58,4 +58,7 @@ public class VehicleUpsertRequest
     private LocalDate insuranceExpiry;
 
     private LocalDate inspectionExpiry;
+
+    @Size(max = 255, message = "照片 URL 长度不能超过255")
+    private String photoUrl;
 }
