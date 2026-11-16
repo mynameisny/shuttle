@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发车记录 · 班车调度管理</title>
+    <meta name="nav" content="ops.records">
+    <meta name="desc" content="实际到发记录与准点率">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .mono { font-variant-numeric: tabular-nums; }
+        /* 方向角标（去/返） */
+        .dir-tag {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 20px; height: 18px; padding: 0 5px; border-radius: 4px;
+            font-size: 11px; margin-left: 6px; flex-shrink: 0; vertical-align: middle;
+        }
+        .dir-out { background: var(--c-info-soft, #e7f1ff); color: var(--c-info, #1971c2); }
+        .dir-in { background: #f3ecff; color: #7048e8; }
+        /* 来源标签 */
+        .src-tag {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 30px; height: 20px; padding: 0 8px; border-radius: 10px; font-size: 11px;
+        }
+        .src-manual { background: #f1f3f5; color: var(--c-text-2, #495057); }
+        .src-device { background: #e6fcf5; color: #0b7285; }
+        /* 偏差徽章 */
+        .delay-badge {
+            display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px;
+            font-variant-numeric: tabular-nums; margin: 1px 0;
+        }
+        .delay-ok { background: #f1f3f5; color: var(--c-text-3, #868e96); }
+        .delay-late { background: #fff0e0; color: #e8590c; }
+        .delay-early { background: #e9faf0; color: #2b8a3e; }
+        .delay-none { background: transparent; color: var(--c-text-3, #adb5bd); }
+        /* 上报弹窗里的计划时刻提示 */
+        .stop-hint {
+            margin-top: 6px; font-size: 12px; color: var(--c-text-3, #868e96);
+        }
+        .stop-hint b { color: var(--c-text-1, #212529); font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">发车记录</h1>
+                </div>
+                <div class="page-actions">
+                    <input type="date" class="input" id="fDate" style="width:150px">
+                    <select class="select" id="fTrip" style="width:230px">
+                        <option value="">全部班次</option>
+                    </select>
+                    <button class="btn btn-primary" id="btnReport">
+                        <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
+                        上报到发
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>班次</th>
+                            <th>站点</th>
+                            <th>计划到</th>
+                            <th>实际到</th>
+                            <th>计划发</th>
+                            <th>实际发</th>
+                            <th>偏差</th>
+                            <th>车辆</th>
+                            <th>司机</th>
+                            <th>来源</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="modalTitle">上报到发</h3>
+        <div class="field">
+            <label>班次<span class="req">*</span></label>
+            <select class="select" id="rTrip"></select>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>运营日期<span class="req">*</span></label>
+                <input type="date" class="input" id="rDate">
+            </div>
+            <div class="field">
+                <label>事件类型<span class="req">*</span></label>
+                <select class="select" id="rType">
+                    <option value="DEPARTURE">发车</option>
+                    <option value="ARRIVAL">到站</option>
+                </select>
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>站点<span class="req">*</span></label>
+                <select class="select" id="rStop"></select>
+            </div>
+            <div class="field">
+                <label>实际时刻<span class="req">*</span></label>
+                <input type="time" class="input" id="rTime">
+            </div>
+        </div>
+        <div class="stop-hint" id="stopHint"></div>
+        <div class="field-row">
+            <div class="field">
+                <label>上报人</label>
+                <input type="text" class="input" id="rReporter" maxlength="50" placeholder="司机/车长姓名（可选）">
+            </div>
+            <div class="field">
+                <label>备注</label>
+                <input type="text" class="input" id="rRemark" maxlength="200" placeholder="如：堵车晚点 5 分钟">
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSave">提交上报</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    let events = [];
+    let trips = [];   // 全部班次（含 stopTimes），供班次/站点下拉
+
+    function today() {
+        const d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function nowHM() {
+        const d = new Date();
+        return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
+    function fmtTime(t) {
+        if (!t) return '<span class="muted">—</span>';
+        return esc(String(t).slice(0, 5));
+    }
+
+    function dirTag(dir) {
+        return dir === 1
+            ? '<span class="dir-tag dir-in" title="返程">返</span>'
+            : '<span class="dir-tag dir-out" title="去程">去</span>';
+    }
+
+    function tripLabel(t) {
+        const hs = t.tripHeadsign ? ' → ' + t.tripHeadsign : '';
+        return (t.tripShortName || t.tripId) + hs;
+    }
+
+    function fmtDelay(sec) {
+        if (sec == null) return '<span class="delay-badge delay-none">—</span>';
+        if (sec === 0) return '<span class="delay-badge delay-ok">准点</span>';
+        const sign = sec > 0 ? '+' : '-';
+        const abs = Math.abs(sec);
+        const txt = abs < 60 ? (sign + abs + '秒') : (sign + Math.round(abs / 60) + '分');
+        const cls = sec > 0 ? 'delay-late' : 'delay-early';
+        return '<span class="delay-badge ' + cls + '">' + txt + '</span>';
+    }
+
+    async function loadTrips() {
+        trips = await api('/api/trips') || [];
+        const fTrip = $('fTrip'), rTrip = $('rTrip');
+        const opts = trips.map(t =>
+            '<option value="' + esc(t.tripId) + '">' + esc(tripLabel(t)) + '</option>').join('');
+        // 过滤下拉保留「全部班次」；上报下拉直接填充
+        fTrip.innerHTML = '<option value="">全部班次</option>' + opts;
+        rTrip.innerHTML = opts;
+        if (trips.length) onTripChange();
+    }
+
+    async function loadEvents() {
+        const date = $('fDate').value;
+        const tripId = $('fTrip').value;
+        const params = [];
+        if (tripId) params.push('tripId=' + encodeURIComponent(tripId));
+        if (date) params.push('eventDate=' + date);
+        const url = '/api/stop-events' + (params.length ? '?' + params.join('&') : '');
+        try {
+            events = await api(url) || [];
+            render();
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function render() {
+        const tbody = $('tbody');
+        if (!events.length) {
+            tbody.innerHTML = '<tr><td colspan="12"><div class="empty-state">' +
+                '<div class="em-title">暂无到发记录</div>' +
+                '<div class="em-desc">点击右上角「上报到发」记录一次实际到站/发车</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = events.map(e => {
+            const delayCell =
+                '<div>' + fmtDelay(e.arrivalDelaySec) + '</div>' +
+                '<div style="margin-top:2px">' + fmtDelay(e.departureDelaySec) + '</div>';
+            const src = e.source === 'DEVICE'
+                ? '<span class="src-tag src-device">设备</span>'
+                : '<span class="src-tag src-manual">手动</span>';
+            return '<tr data-id="' + e.id + '">' +
+                '<td class="mono">' + esc(e.eventDate || '—') + '</td>' +
+                '<td class="strong">' + esc(e.tripLabel || e.tripId || '—') + dirTag(e.directionId) + '</td>' +
+                '<td>' + esc((e.stopSequence != null ? e.stopSequence + '. ' : '') + (e.stopName || '—')) + '</td>' +
+                '<td class="mono">' + fmtTime(e.scheduledArrival) + '</td>' +
+                '<td class="mono">' + fmtTime(e.actualArrival) + '</td>' +
+                '<td class="mono">' + fmtTime(e.scheduledDeparture) + '</td>' +
+                '<td class="mono">' + fmtTime(e.actualDeparture) + '</td>' +
+                '<td>' + delayCell + '</td>' +
+                '<td>' + (e.vehiclePlate ? esc(e.vehiclePlate) : '<span class="muted">—</span>') + '</td>' +
+                '<td>' + (e.driverName ? esc(e.driverName) : '<span class="muted">—</span>') + '</td>' +
+                '<td>' + src + '</td>' +
+                '<td class="col-actions">' +
+                '<button class="btn btn-sm btn-danger" data-del="' + e.id + '">删除</button></td>' +
+                '</tr>';
+        }).join('');
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    // ---------- 上报弹窗 ----------
+    function openReport() {
+        $('modalTitle').textContent = '上报到发';
+        $('rDate').value = today();
+        $('rType').value = 'DEPARTURE';
+        $('rTime').value = nowHM();
+        $('rReporter').value = '';
+        $('rRemark').value = '';
+        $('modal').style.display = '';
+        onTripChange();
+        if (trips.length) $('rTrip').focus();
+    }
+
+    function closeModal() { $('modal').style.display = 'none'; }
+
+    function onTripChange() {
+        const tripId = $('rTrip').value;
+        const t = trips.find(x => x.tripId === tripId);
+        const stops = (t && t.stopTimes) ? t.stopTimes : [];
+        $('rStop').innerHTML = stops.map(st =>
+            '<option value="' + st.stopSequence + '">' +
+            st.stopSequence + '. ' + esc(st.stop ? st.stop.stopName : '未命名站') + '</option>').join('');
+        onStopChange();
+    }
+
+    function onStopChange() {
+        const tripId = $('rTrip').value;
+        const seq = parseInt($('rStop').value);
+        const t = trips.find(x => x.tripId === tripId);
+        const st = t && t.stopTimes ? t.stopTimes.find(s => s.stopSequence === seq) : null;
+        if (!st) { $('stopHint').innerHTML = ''; return; }
+        const arr = st.arrivalTime ? String(st.arrivalTime).slice(0, 5) : '—';
+        const dep = st.departureTime ? String(st.departureTime).slice(0, 5) : '—';
+        $('stopHint').innerHTML = '计划：到站 <b>' + arr + '</b> · 发车 <b>' + dep + '</b>';
+    }
+
+    async function save() {
+        const tripId = $('rTrip').value;
+        const eventDate = $('rDate').value;
+        const stopSequence = $('rStop').value;
+        const eventType = $('rType').value;
+        const actualTime = $('rTime').value;
+        if (!tripId) { toast('请选择班次', true); return; }
+        if (!eventDate) { toast('请选择运营日期', true); return; }
+        if (!stopSequence) { toast('请选择站点', true); return; }
+        if (!actualTime) { toast('请填写实际时刻', true); return; }
+        const body = {
+            tripId: tripId,
+            eventDate: eventDate,
+            stopSequence: parseInt(stopSequence),
+            eventType: eventType,
+            actualTime: actualTime + ':00',
+            source: 'MANUAL',
+            reportedBy: $('rReporter').value.trim() || null,
+            remark: $('rRemark').value.trim() || null
+        };
+        try {
+            await api('/api/stop-events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            toast('已上报');
+            closeModal();
+            await loadEvents();
+        } catch (err) { toast('上报失败：' + err.message, true); }
+    }
+
+    async function remove(id) {
+        if (!confirm('确定删除这条到发记录？此操作不可恢复。')) return;
+        try {
+            await api('/api/stop-events/' + id, { method: 'DELETE' });
+            toast('已删除');
+            await loadEvents();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
+    $('btnReport').addEventListener('click', openReport);
+    $('btnCancel').addEventListener('click', closeModal);
+    $('btnSave').addEventListener('click', save);
+    $('fDate').addEventListener('change', loadEvents);
+    $('fTrip').addEventListener('change', loadEvents);
+    $('rTrip').addEventListener('change', onTripChange);
+    $('rStop').addEventListener('change', onStopChange);
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
+
+    (async () => {
+        try {
+            await loadTrips();
+            await loadEvents();
+        } catch (err) { toast('初始化失败：' + err.message, true); }
+    })();
+</script>
+</body>
+</html>
