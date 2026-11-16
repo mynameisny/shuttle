@@ -107,8 +107,8 @@ public class Vehicle extends AbstractAuditable
     private LocalDate inspectionExpiry;
 
     /**
-     * 车辆照片 URL（相对路径，如 /uploads/vehicles/2026/11/xxx.jpg）。
+     * 车辆照片 URL（多张，逗号分隔的相对路径，如 /uploads/vehicles/2026/11/a.jpg,/uploads/vehicles/2026/11/b.jpg）。
      */
-    @Column(name = "photo_url", columnDefinition = "VARCHAR(255) COMMENT '车辆照片 URL'")
-    private String photoUrl;
+    @Column(name = "photos", columnDefinition = "VARCHAR(2000) COMMENT '车辆照片 URL（逗号分隔，多张）'")
+    private String photos;
 }

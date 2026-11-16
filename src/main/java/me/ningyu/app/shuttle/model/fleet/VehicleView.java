@@ -33,7 +33,7 @@ public class VehicleView
     private String supplier;
     private LocalDate insuranceExpiry;
     private LocalDate inspectionExpiry;
-    private String photoUrl;
+    private String photos;
 
     public static VehicleView of(Vehicle v)
     {
@@ -52,7 +52,7 @@ public class VehicleView
                 .supplier(v.getSupplier())
                 .insuranceExpiry(v.getInsuranceExpiry())
                 .inspectionExpiry(v.getInspectionExpiry())
-                .photoUrl(v.getPhotoUrl())
+                .photos(v.getPhotos())
                 .build();
     }
 }

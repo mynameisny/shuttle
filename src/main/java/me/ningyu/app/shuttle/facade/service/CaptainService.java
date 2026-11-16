@@ -27,6 +27,7 @@ public class CaptainService
                 .name(req.getName())
                 .phone(req.getPhone())
                 .gender(req.getGender())
+                .idCardNumber(req.getIdCardNumber())
                 .build());
     }
 
@@ -38,6 +39,7 @@ public class CaptainService
         c.setName(req.getName());
         c.setPhone(req.getPhone());
         c.setGender(req.getGender());
+        c.setIdCardNumber(req.getIdCardNumber());
         return captainRepository.save(c);
     }
 

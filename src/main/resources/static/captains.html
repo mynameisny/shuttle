@@ -21,6 +21,19 @@
         .gender-m { background: var(--c-info-soft); color: var(--c-info); }
         .gender-f { background: #fdeef4; color: #d63384; }
         .gender-none { background: #f1f3f5; color: var(--c-text-3); }
+        /* 防窥打码 */
+        .mask-wrap { display: inline-flex; align-items: center; gap: 6px; }
+        .mask-txt { font-variant-numeric: tabular-nums; min-width: 18ch; }
+        .mask-toggle {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border: none; background: transparent;
+            color: var(--c-text-3); cursor: pointer; border-radius: 5px; padding: 0; flex-shrink: 0;
+        }
+        .mask-toggle:hover { background: #f1f3f5; color: var(--c-text-2); }
+        .mask-toggle .ico {
+            width: 14px; height: 14px; stroke: currentColor; fill: none;
+            stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+        }
     </style>
 </head>
 <body>
@@ -53,6 +66,7 @@
                         <tr>
                             <th>姓名</th>
                             <th>电话</th>
+                            <th>身份证号</th>
                             <th class="col-actions">操作</th>
                         </tr>
                         </thead>
@@ -86,6 +100,10 @@
             <label>电话</label>
             <input type="text" class="input" id="fPhone" maxlength="20" placeholder="11 位手机号">
         </div>
+        <div class="field">
+            <label>身份证号</label>
+            <input type="text" class="input" id="fIdCard" maxlength="18" placeholder="18 位身份证号">
+        </div>
         <div class="btn-row">
             <button class="btn" id="btnCancel">取消</button>
             <button class="btn btn-primary" id="btnSave">保存</button>
@@ -113,6 +131,28 @@
         return '<span class="gender-ico gender-none" title="未填写">—</span>';
     }
 
+    function maskText(s) {
+        const n = s.length;
+        if (n <= 4) return '****';
+        let front, back;
+        if (n >= 16) { front = 6; back = 4; }
+        else if (n >= 10) { front = 4; back = 4; }
+        else if (n >= 7) { front = 3; back = 3; }
+        else { front = 2; back = 2; }
+        const stars = Math.min(4, n - front - back);
+        return s.slice(0, front) + '*'.repeat(stars) + s.slice(-back);
+    }
+
+    function maskedCell(v) {
+        const eyeSvg = '<svg class="ico" viewBox="0 0 20 20"><path d="M1.8 10S5.2 5 10 5s8.2 5 8.2 5-3.4 5-8.2 5-8.2-5-8.2-5z"/><circle cx="10" cy="10" r="2.6"/></svg>';
+        if (!v) {
+            return '<span class="mask-wrap"><span class="mask-txt mono muted">—</span>' +
+                '<span class="mask-toggle" aria-hidden="true" style="visibility:hidden">' + eyeSvg + '</span></span>';
+        }
+        return '<span class="mask-wrap"><span class="mask-txt mono">' + esc(maskText(v)) + '</span>' +
+            '<button type="button" class="mask-toggle" data-full="' + esc(v) + '" title="显示/隐藏">' + eyeSvg + '</button></span>';
+    }
+
     async function load() {
         try {
             captains = await api('/api/captains') || [];
@@ -137,7 +177,7 @@
             (c.name || '').toLowerCase().includes(kw) || (c.phone || '').toLowerCase().includes(kw));
         const tbody = $('tbody');
         if (!list.length) {
-            tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state">' +
+            tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">' +
                 '<div class="em-title">没有匹配的车长</div>' +
                 '<div class="em-desc">点击右上角「新增车长」创建</div></div></td></tr>';
             return;
@@ -146,6 +186,7 @@
             '<tr data-id="' + c.id + '">' +
             '<td class="strong">' + genderIcon(c.gender) + esc(c.name || '—') + '</td>' +
             '<td class="mono">' + (c.phone ? esc(c.phone) : '<span class="muted">—</span>') + '</td>' +
+            '<td>' + maskedCell(c.idCardNumber) + '</td>' +
             '<td class="col-actions">' +
             '<button class="btn btn-sm" data-edit="' + c.id + '">编辑</button> ' +
             '<button class="btn btn-sm btn-danger" data-del="' + c.id + '">删除</button></td>' +
@@ -162,6 +203,7 @@
         $('fName').value = c ? (c.name || '') : '';
         $('fGender').value = c ? (c.gender || '') : '';
         $('fPhone').value = c ? (c.phone || '') : '';
+        $('fIdCard').value = c ? (c.idCardNumber || '') : '';
         $('modal').style.display = '';
         $('fName').focus();
     }
@@ -172,8 +214,10 @@
         const name = $('fName').value.trim();
         const phone = $('fPhone').value.trim() || null;
         const gender = $('fGender').value || null;
+        const idCard = $('fIdCard').value.trim() || null;
         if (!name) { toast('姓名不能为空', true); return; }
-        const body = { name: name, phone: phone, gender: gender };
+        if (idCard && !/^\d{17}[\dXx]$/.test(idCard)) { toast('身份证号格式不正确（应为 18 位，末位可为 X）', true); return; }
+        const body = { name: name, phone: phone, gender: gender, idCardNumber: idCard };
         try {
             if (editingId) {
                 await api('/api/captains/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -199,6 +243,14 @@
     }
 
     $('searchInput').addEventListener('input', render);
+    $('tbody').addEventListener('click', e => {
+        const t = e.target.closest('.mask-toggle');
+        if (!t) return;
+        const txt = t.parentElement.querySelector('.mask-txt');
+        const showing = t.dataset.showing === '1';
+        txt.textContent = showing ? maskText(t.dataset.full) : t.dataset.full;
+        t.dataset.showing = showing ? '0' : '1';
+    });
     $('btnAdd').addEventListener('click', () => openModal(null));
     $('btnCancel').addEventListener('click', closeModal);
     $('btnSave').addEventListener('click', save);

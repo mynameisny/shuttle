@@ -44,4 +44,11 @@ public class Captain extends AbstractAuditable
      */
     @Column(name = "gender", columnDefinition = "VARCHAR(10) COMMENT '性别'")
     private String gender;
+
+    /**
+     * 身份证号。
+     */
+    @Pattern(regexp = "^\\d{17}[\\dXx]$", message = "身份证号格式不正确（应为 18 位，末位可为 X）")
+    @Column(name = "id_card_number", columnDefinition = "VARCHAR(18) COMMENT '身份证号'")
+    private String idCardNumber;
 }
