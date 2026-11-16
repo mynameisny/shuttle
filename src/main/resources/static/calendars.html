@@ -17,6 +17,8 @@
             font-size: 13px; color: var(--c-text-2); cursor: pointer; user-select: none;
         }
         .week-grid input { margin: 0; accent-color: var(--c-primary); }
+        .type-removed { color: #e8590c; font-weight: 600; }
+        .type-added { color: #2b8a3e; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -106,6 +108,38 @@
     </div>
 </div>
 
+<div id="dateModal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="dateModalTitle">例外日期</h3>
+        <p class="modal-desc">法定假日填「停运」，调休上班的周末填「加开」，用于覆盖上面的星期规则</p>
+        <div class="field-row">
+            <div class="field">
+                <label>日期<span class="req">*</span></label>
+                <input type="date" class="input" id="dDate">
+            </div>
+            <div class="field">
+                <label>类型<span class="req">*</span></label>
+                <select class="select" id="dType">
+                    <option value="REMOVED">停运</option>
+                    <option value="ADDED">加开</option>
+                </select>
+            </div>
+            <div class="field" style="align-self:flex-end">
+                <button class="btn btn-primary" id="btnAddDate">添加</button>
+            </div>
+        </div>
+        <div class="table-wrap" style="margin-top:14px;max-height:300px;overflow:auto">
+            <table class="tbl">
+                <thead><tr><th>日期</th><th>类型</th><th class="col-actions">操作</th></tr></thead>
+                <tbody id="dateTbody"></tbody>
+            </table>
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnDateClose">关闭</button>
+        </div>
+    </div>
+</div>
+
 <div id="toast"></div>
 <script src="js/map-common.js"></script>
 <script src="js/layout.js"></script>
@@ -150,10 +184,12 @@
             '<td class="mono">' + esc(c.startDate || '—') + '</td>' +
             '<td class="mono">' + esc(c.endDate || '—') + '</td>' +
             '<td class="col-actions">' +
+            '<button class="btn btn-sm" data-dates="' + c.id + '">例外</button> ' +
             '<button class="btn btn-sm" data-edit="' + c.id + '">编辑</button> ' +
             '<button class="btn btn-sm btn-danger" data-del="' + c.id + '">删除</button></td>' +
             '</tr>'
         ).join('');
+        tbody.querySelectorAll('[data-dates]').forEach(b => b.addEventListener('click', () => openDateModal(parseInt(b.dataset.dates))));
         tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
         tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
     }
@@ -222,12 +258,85 @@
         } catch (err) { toast('删除失败：' + err.message, true); }
     }
 
+    // ---------- 例外日期（calendar_dates：法定假日 / 调休 / 临时停运） ----------
+    let dateModalCalendarId = null;
+    let calendarDates = [];
+
+    async function openDateModal(id) {
+        dateModalCalendarId = id;
+        const c = calendars.find(x => x.id === id);
+        $('dateModalTitle').textContent = '例外日期 - ' + (c ? c.serviceId : '');
+        $('dDate').value = '';
+        $('dType').value = 'REMOVED';
+        await loadDates();
+        $('dateModal').style.display = '';
+    }
+
+    function closeDateModal() { $('dateModal').style.display = 'none'; }
+
+    async function loadDates() {
+        try {
+            calendarDates = await api(API.calendars + '/' + dateModalCalendarId + '/dates') || [];
+            renderDates();
+        } catch (err) { toast('加载例外日期失败：' + err.message, true); }
+    }
+
+    function renderDates() {
+        const tbody = $('dateTbody');
+        if (!calendarDates.length) {
+            tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state">' +
+                '<div class="em-title">暂无例外日期</div>' +
+                '<div class="em-desc">法定假日 / 调休日在上方添加</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = calendarDates.map(d =>
+            '<tr>' +
+            '<td class="mono">' + esc(d.date || '') + '</td>' +
+            '<td>' + (d.exceptionType === 'REMOVED'
+                ? '<span class="type-removed">停运</span>'
+                : '<span class="type-added">加开</span>') + '</td>' +
+            '<td class="col-actions"><button class="btn btn-sm btn-danger" data-deld="' + d.id + '">删除</button></td>' +
+            '</tr>'
+        ).join('');
+        tbody.querySelectorAll('[data-deld]').forEach(b => b.addEventListener('click', () => removeDate(parseInt(b.dataset.deld))));
+    }
+
+    async function addDate() {
+        const date = $('dDate').value;
+        const exceptionType = $('dType').value;
+        if (!date) { toast('请选择日期', true); return; }
+        try {
+            await api(API.calendars + '/' + dateModalCalendarId + '/dates', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date: date, exceptionType: exceptionType })
+            });
+            toast('已添加');
+            await loadDates();
+        } catch (err) { toast('添加失败：' + err.message, true); }
+    }
+
+    async function removeDate(id) {
+        if (!confirm('确定删除该例外日期？')) return;
+        try {
+            await api('/api/calendars/dates/' + id, { method: 'DELETE' });
+            toast('已删除');
+            await loadDates();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
     $('searchInput').addEventListener('input', render);
     $('btnAdd').addEventListener('click', () => openModal(null));
     $('btnCancel').addEventListener('click', closeModal);
     $('btnSave').addEventListener('click', save);
+    $('btnAddDate').addEventListener('click', addDate);
+    $('btnDateClose').addEventListener('click', closeDateModal);
     $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
+    $('dateModal').addEventListener('click', e => { if (e.target === $('dateModal')) closeDateModal(); });
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if ($('dateModal').style.display !== 'none') closeDateModal();
+        else if ($('modal').style.display !== 'none') closeModal();
+    });
 
     load();
 </script>

@@ -11,7 +11,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Calendar;
+import me.ningyu.app.shuttle.domain.entity.gtfs.CalendarDate;
 import me.ningyu.app.shuttle.facade.service.CalendarService;
+import me.ningyu.app.shuttle.model.calendar.AddCalendarDateRequest;
 import me.ningyu.app.shuttle.model.calendar.CreateCalendarRequest;
 import me.ningyu.app.shuttle.model.calendar.UpdateCalendarRequest;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -101,5 +103,36 @@ public class CalendarController
     public ResponseEntity<Calendar> getById(@PathVariable Long id)
     {
         return ResponseEntity.ok(calendarService.getCalendarById(id));
+    }
+
+    // ---------- 例外日期（calendar_dates：法定假日 / 调休 / 临时停运） ----------
+
+    @GetMapping("/{id}/dates")
+    @Operation(summary = "某日历的例外日期列表")
+    public ResponseEntity<List<CalendarDate>> listDates(
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "日历ID", schema = @Schema(type = "long"))
+            @PathVariable Long id)
+    {
+        return ResponseEntity.ok(calendarService.listCalendarDates(id));
+    }
+
+    @PostMapping("/{id}/dates")
+    @Operation(summary = "添加例外日期（法定假日停运 / 调休加开）")
+    public ResponseEntity<CalendarDate> addDate(
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "日历ID", schema = @Schema(type = "long"))
+            @PathVariable Long id,
+            @Valid @RequestBody AddCalendarDateRequest request)
+    {
+        return ResponseEntity.ok(calendarService.addCalendarDate(id, request));
+    }
+
+    @DeleteMapping("/dates/{dateId}")
+    @Operation(summary = "删除例外日期")
+    public ResponseEntity<Void> deleteDate(
+            @Parameter(name = "dateId", in = ParameterIn.PATH, required = true, description = "例外日期主键", schema = @Schema(type = "long"))
+            @PathVariable Long dateId)
+    {
+        calendarService.deleteCalendarDate(dateId);
+        return ResponseEntity.noContent().build();
     }
 }

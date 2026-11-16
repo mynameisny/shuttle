@@ -4,11 +4,16 @@ import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Calendar;
+import me.ningyu.app.shuttle.domain.entity.gtfs.CalendarDate;
+import me.ningyu.app.shuttle.domain.repo.CalendarDateRepository;
 import me.ningyu.app.shuttle.domain.repo.CalendarRepository;
+import me.ningyu.app.shuttle.model.calendar.AddCalendarDateRequest;
 import me.ningyu.app.shuttle.model.calendar.CreateCalendarRequest;
 import me.ningyu.app.shuttle.model.calendar.UpdateCalendarRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,6 +25,7 @@ import java.util.List;
 public class CalendarService
 {
     private final CalendarRepository calendarRepository;
+    private final CalendarDateRepository calendarDateRepository;
 
     @Nonnull
     public Calendar createCalendar(CreateCalendarRequest request)
@@ -98,5 +104,46 @@ public class CalendarService
     public List<Calendar> getCalendarsActiveOn(LocalDate date)
     {
         return calendarRepository.findByStartDateLessThanEqualAndEndDateGreaterThanEqual(date, date);
+    }
+
+    // ---------- 例外日期（calendar_dates：法定假日 / 调休 / 临时停运） ----------
+
+    /**
+     * 某服务日历的全部例外日期。
+     */
+    @Nonnull
+    public List<CalendarDate> listCalendarDates(Long calendarId)
+    {
+        return calendarDateRepository.findByServiceCalendarId(calendarId);
+    }
+
+    /**
+     * 给某服务日历添加一条例外日期（同日期已存在则拒绝，避免覆盖歧义）。
+     */
+    @Nonnull
+    public CalendarDate addCalendarDate(Long calendarId, AddCalendarDateRequest request)
+    {
+        Calendar c = calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "服务日历不存在: id=" + calendarId));
+        calendarDateRepository.findByServiceCalendarIdAndDate(calendarId, request.getDate())
+                .ifPresent(existing -> {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "该日历已存在 " + request.getDate() + " 的例外，请先删除再改");
+                });
+        CalendarDate cd = CalendarDate.builder()
+                .serviceCalendar(c)
+                .date(request.getDate())
+                .exceptionType(request.getExceptionType())
+                .build();
+        return calendarDateRepository.save(cd);
+    }
+
+    /**
+     * 删除一条例外日期。
+     */
+    public void deleteCalendarDate(Long calendarDateId)
+    {
+        calendarDateRepository.deleteById(calendarDateId);
     }
 }

@@ -8,10 +8,13 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface CalendarDateRepository extends JpaRepository<CalendarDate, Long>, PagingAndSortingRepository<CalendarDate, Long>, JpaSpecificationExecutor<CalendarDate>
 {
     List<CalendarDate> findByServiceCalendarId(Long serviceCalendarId);
+
+    Optional<CalendarDate> findByServiceCalendarIdAndDate(Long serviceCalendarId, LocalDate date);
 
     List<CalendarDate> findByDate(LocalDate date);
 
