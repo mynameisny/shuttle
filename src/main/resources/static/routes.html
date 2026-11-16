@@ -97,15 +97,9 @@
     <div class="modal">
         <h3 id="modalTitle">新增线路</h3>
         <p class="modal-desc">线路 ID 唯一，对应 GTFS routes.txt</p>
-        <div class="field-row">
-            <div class="field">
-                <label>所属机构<span class="req">*</span></label>
-                <select class="select" id="fAgency"></select>
-            </div>
-            <div class="field">
-                <label>线路 ID<span class="req">*</span></label>
-                <input type="text" class="input" id="fRouteId" maxlength="50" placeholder="如 42">
-            </div>
+        <div class="field">
+            <label>线路 ID<span class="req">*</span></label>
+            <input type="text" class="input" id="fRouteId" maxlength="50" placeholder="如 42">
         </div>
         <div class="field-row">
             <div class="field">
@@ -149,7 +143,6 @@
     initShell();
 
     let routes = [];
-    let agencies = [];
     let networks = [];
     let editingId = null;
     let tagsByPk = {};
@@ -180,13 +173,11 @@
 
     async function load() {
         try {
-            const [a, r, t, n] = await Promise.all([
-                api('/api/agencies'),
+            const [r, t, n] = await Promise.all([
                 api('/api/routes'),
                 api('/api/routes?withTags=true'),
                 api('/api/networks')
             ]);
-            agencies = a || [];
             routes = r || [];
             networks = n || [];
             tagsByPk = {};
@@ -278,9 +269,6 @@
         editingId = id || null;
         $('modalTitle').textContent = id ? '编辑线路' : '新增线路';
         const r = id ? routes.find(x => x.id === id) : null;
-        $('fAgency').innerHTML = agencies.map(a => '<option value="' + a.id + '">' + esc(a.agencyName || a.agencyId) + '</option>').join('');
-        $('fAgency').value = r && r.agency ? String(r.agency.id) : (agencies[0] ? String(agencies[0].id) : '');
-        $('fAgency').disabled = !!r;
         $('fRouteId').value = r ? r.routeId : '';
         $('fRouteId').readOnly = !!r;
         $('fLongName').value = r ? (r.routeLongName || '') : '';
@@ -305,10 +293,8 @@
     async function save() {
         const routeId = $('fRouteId').value.trim();
         const longName = $('fLongName').value.trim();
-        const agencyId = $('fAgency').value;
         if (!routeId) { toast('线路 ID 不能为空', true); return; }
         if (!longName) { toast('线路名称不能为空', true); return; }
-        if (!agencyId) { toast('请选择所属机构', true); return; }
         const color = parseColorToHex($('fColor').value);
         const tagIds = [...$('fTags').querySelectorAll('input:checked')].map(i => i.value);
         const body = {
@@ -323,7 +309,7 @@
                 await api('/api/networks/routes/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tagIds) });
                 toast('已更新：' + longName);
             } else {
-                const created = await api('/api/routes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ agencyId: parseInt(agencyId), routeId: routeId }, body)) });
+                const created = await api('/api/routes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ routeId: routeId }, body)) });
                 if (tagIds.length && created && created.id) {
                     await api('/api/networks/routes/' + created.id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tagIds) });
                 }

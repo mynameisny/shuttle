@@ -16,6 +16,7 @@ import me.ningyu.app.shuttle.model.route.CreateRouteRequest;
 import me.ningyu.app.shuttle.model.route.RouteStopsView;
 import me.ningyu.app.shuttle.model.route.UpdateRouteRequest;
 import me.ningyu.app.shuttle.model.network.RouteNetworkTagsView;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,11 +40,23 @@ public class RouteService
     private final TripRepository tripRepository;
     private final NetworkService networkService;
 
+    /**
+     * 默认归属机构（缺省 KD）。机构是归属标识，不应由业务用户在表单里手选；
+     * 采用 Silo 部署（每公司一套实例）时，通过配置/环境变量注入各自机构，例如
+     * 环境变量 DEFAULT_AGENCY_ID=BAIDU 或配置 app.default-agency-id=BAIDU。
+     * 将来若迁移到 SaaS 多租户，改为从登录态 / token 解析租户后注入，不再用此配置。
+     */
+    @Value("${app.default-agency-id:KD}")
+    private String defaultAgencyId;
+
     @Nonnull
     public Route createRoute(CreateRouteRequest request)
     {
-        Agency agency = agencyRepository.findById(request.getAgencyId())
-                .orElseThrow(() -> new IllegalArgumentException("机构不存在"));
+        Agency agency = request.getAgencyId() != null
+                ? agencyRepository.findById(request.getAgencyId())
+                        .orElseThrow(() -> new IllegalArgumentException("机构不存在"))
+                : agencyRepository.findByAgencyId(defaultAgencyId)
+                        .orElseThrow(() -> new IllegalStateException("默认机构不存在: " + defaultAgencyId));
 
         Route route = Route.builder()
                 .routeId(request.getRouteId())

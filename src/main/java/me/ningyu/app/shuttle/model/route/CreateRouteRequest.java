@@ -13,7 +13,10 @@ import me.ningyu.app.shuttle.enums.RouteType;
 @AllArgsConstructor
 public class CreateRouteRequest
 {
-    @NotNull(message = "机构ID不能为空")
+    /**
+     * 所属机构（可选）。机构归属由服务端隐式注入（当前单机构运营，默认 KD），
+     * 前端不再让用户选择；保留此字段仅为兼容既有调用，为空时由服务端取默认机构。
+     */
     private Long agencyId;
 
     @NotBlank(message = "线路ID不能为空")

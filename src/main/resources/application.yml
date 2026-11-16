@@ -30,6 +30,7 @@ app:
     max-width: 1024
     max-height: 1024
     quality: 0.8
+  default-agency-id: ${DEFAULT_AGENCY_ID:KD}
 
 springdoc:
   swagger-ui:
