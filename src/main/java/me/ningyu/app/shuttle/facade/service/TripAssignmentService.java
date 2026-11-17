@@ -44,6 +44,19 @@ public class TripAssignmentService
                 .toList();
     }
 
+    /**
+     * 按线路主键查当班信息（车辆/司机/车长），供乘客端时刻表等展示。
+     */
+    @Transactional(readOnly = true)
+    public TripAssignmentView getByRoutePk(Long routePk)
+    {
+        Route route = routeRepository.findById(routePk)
+                .orElseThrow(() -> new IllegalArgumentException("线路不存在: id=" + routePk));
+        TripAssignment a = tripAssignmentRepository.findByRouteRouteId(route.getRouteId())
+                .orElseThrow(() -> new IllegalArgumentException("该线路未配置车辆/司机/车长: " + route.getRouteId()));
+        return toView(a);
+    }
+
     @Transactional
     public TripAssignmentView create(CreateAssignmentRequest req)
     {
@@ -140,6 +153,8 @@ public class TripAssignmentService
                 .inboundTripId(inbound)
                 .vehicleId(v != null ? v.getId() : null)
                 .vehiclePlate(v != null ? v.getPlateNumber() : null)
+                .vehicleType(v != null ? v.getVehicleType() : null)
+                .seatCount(v != null ? v.getSeatCount() : null)
                 .driverId(d != null ? d.getId() : null)
                 .driverName(d != null ? d.getName() : null)
                 .captainId(c != null ? c.getId() : null)

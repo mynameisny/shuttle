@@ -40,6 +40,14 @@ public class TripAssignmentController
         return ResponseEntity.ok(tripAssignmentService.list());
     }
 
+    @GetMapping("/route/{routePk}")
+    @Operation(summary = "按线路查当班信息（车辆/司机/车长）")
+    public ResponseEntity<TripAssignmentView> getByRoutePk(
+            @Parameter(description = "线路主键") @PathVariable Long routePk)
+    {
+        return ResponseEntity.ok(tripAssignmentService.getByRoutePk(routePk));
+    }
+
     @PostMapping
     @Operation(summary = "新增线路分配")
     public ResponseEntity<TripAssignmentView> create(@Valid @RequestBody CreateAssignmentRequest request)

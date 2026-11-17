@@ -24,6 +24,8 @@ public class TripAssignmentView
     private String inboundTripId;
     private Long vehicleId;
     private String vehiclePlate;
+    private String vehicleType;
+    private Integer seatCount;
     private Long driverId;
     private String driverName;
     private Long captainId;
