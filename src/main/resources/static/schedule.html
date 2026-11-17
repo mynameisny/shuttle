@@ -44,6 +44,7 @@
         .st-main { font-size: 13px; font-weight: 600; }
         .st-line { font-size: 12px; }
         .st-line i { font-style: normal; font-size: 10px; color: var(--c-text-3, #868e96); margin-right: 3px; }
+        .approx-tag { font-size: 10px; padding: 1px 5px; border-radius: 6px; background: #f1f3f5; color: var(--c-text-3, #868e96); flex-shrink: 0; }
         .stop-dot {
             width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
             background: var(--c-text-3, #adb5bd); position: relative; z-index: 1;
@@ -303,6 +304,8 @@
                 const dotCls = isFirst ? ' stop-dot-first' : (isLast ? ' stop-dot-last' : '');
                 const tag = isFirst ? '<span class="stop-tag stop-tag-first">发车</span>'
                           : (isLast ? '<span class="stop-tag stop-tag-last">到达</span>' : '');
+                const approx = !isFirst && !isLast && s.timepoint === 'APPROXIMATE';
+                const approxTag = approx ? '<span class="approx-tag">约</span>' : '';
                 let times;
                 if (isFirst) {
                     times = '<span class="stop-times"><span class="st-main mono">' + fmt(s.departureTime || s.arrivalTime) + '</span></span>';
@@ -320,6 +323,7 @@
                     times +
                     '<span class="stop-dot' + dotCls + '"></span>' +
                     '<span class="stop-name">' + esc(name) + '</span>' +
+                    approxTag +
                     tag + '</div>';
             }).join('');
             return '<div class="trip-card">' +
