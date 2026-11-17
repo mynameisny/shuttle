@@ -51,4 +51,10 @@ public class Captain extends AbstractAuditable
     @Pattern(regexp = "^\\d{17}[\\dXx]$", message = "身份证号格式不正确（应为 18 位，末位可为 X）")
     @Column(name = "id_card_number", columnDefinition = "VARCHAR(18) COMMENT '身份证号'")
     private String idCardNumber;
+
+    /**
+     * 车长头像 URL（相对路径，如 /uploads/avatars/2026/11/xxx.jpg）。
+     */
+    @Column(name = "avatar_url", columnDefinition = "VARCHAR(255) COMMENT '车长头像 URL'")
+    private String avatarUrl;
 }
