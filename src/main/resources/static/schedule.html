@@ -29,6 +29,28 @@
         .tc-stop { color: var(--c-text-2, #495057); font-size: 13px; }
         .tc-arrow { color: var(--c-text-3, #adb5bd); }
         .tc-note { color: var(--c-text-3, #868e96); font-size: 12px; margin-top: 6px; }
+        /* 站点时间线 */
+        .tc-count { margin-left: auto; font-size: 12px; color: var(--c-text-3, #868e96); flex-shrink: 0; }
+        .stops-timeline { padding: 4px 0 0; }
+        .stop-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 0; position: relative;
+        }
+        .stop-row:not(:last-child)::before {
+            content: ''; position: absolute; left: 59px; top: 22px; bottom: -8px;
+            width: 2px; background: var(--c-border, #e9ecef);
+        }
+        .stop-time { width: 46px; text-align: right; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+        .stop-dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+            background: var(--c-text-3, #adb5bd); position: relative; z-index: 1;
+        }
+        .stop-dot-first { background: var(--c-info, #1971c2); }
+        .stop-dot-last { background: #e8590c; }
+        .stop-name { font-size: 13px; flex: 1; }
+        .stop-tag { font-size: 11px; padding: 1px 7px; border-radius: 8px; flex-shrink: 0; }
+        .stop-tag-first { background: #e7f1ff; color: #1971c2; }
+        .stop-tag-last { background: #fff0e0; color: #e8590c; }
         .no-service {
             display: flex; flex-direction: column; align-items: center; gap: 10px;
             padding: 40px 0; color: var(--c-text-2, #495057);
@@ -47,6 +69,71 @@
         .crew-item .ci-value { font-size: 15px; font-weight: 600; }
         .crew-item .ci-sub { font-size: 12px; color: var(--c-text-3, #868e96); margin-top: 2px; }
         .crew-empty { color: var(--c-text-3, #adb5bd); }
+        .crew-vehicle { background: #eaf2fd; border-color: #bcd6f3; }
+        .crew-vehicle .ci-label { color: #185fa5; }
+        .crew-driver { background: #e9f7ef; border-color: #b8e0c8; }
+        .crew-driver .ci-label { color: #2b8a3e; }
+        .crew-captain { background: #f2ecfd; border-color: #d4c4f5; }
+        .crew-captain .ci-label { color: #7048e8; }
+        /* 带颜色的线路下拉 */
+        .route-select { position: relative; }
+        .route-select-btn {
+            display: flex; align-items: center; gap: 8px; width: 100%;
+            height: 38px; padding: 0 12px;
+            border: 1px solid var(--c-border-strong, #d5dae0); border-radius: 8px;
+            background: #fff; cursor: pointer; font-size: 13px; color: var(--c-text-1, #212529);
+        }
+        .route-select-btn:focus { outline: none; border-color: var(--c-primary); }
+        .rs-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .rs-text { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rs-arrow { width: 14px; height: 14px; color: var(--c-text-3, #adb5bd); flex-shrink: 0; transition: transform .15s; }
+        .route-select.open .rs-arrow { transform: rotate(180deg); }
+        .route-select-panel {
+            position: absolute; top: 100%; left: 0; right: 0; z-index: 30;
+            margin-top: 4px; max-height: 300px; overflow-y: auto;
+            border: 1px solid var(--c-border, #eef1f4); border-radius: 8px;
+            background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+        }
+        .rs-option {
+            display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+            cursor: pointer; font-size: 13px; color: var(--c-text-1, #212529);
+        }
+        .rs-option:hover { background: #f6f8fa; }
+        .rs-option .rs-dot { width: 10px; height: 10px; }
+        /* 头像与照片 */
+        .ci-avatar {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+            cursor: pointer; flex-shrink: 0; display: block;
+            border: 1px solid var(--c-border, #eef1f4);
+        }
+        .ci-avatar-empty {
+            display: flex; align-items: center; justify-content: center;
+            background: #f1f3f5; color: var(--c-text-3, #adb5bd);
+            font-size: 16px; font-weight: 600; cursor: default;
+        }
+        .ci-bus {
+            width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0;
+            object-fit: contain; cursor: pointer; display: block;
+            background: #fff; border: 1px solid var(--c-border, #eef1f4); padding: 2px;
+        }
+        .crew-item .ci-head { display: flex; align-items: center; gap: 10px; }
+        .crew-item .ci-info { flex: 1; min-width: 0; }
+        .ci-photos-btn { margin-top: 8px; }
+        /* lightbox */
+        .lightbox {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
+            background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center;
+        }
+        .lightbox img { max-width: 90%; max-height: 85%; border-radius: 8px; }
+        .lb-btn {
+            position: absolute; background: rgba(255,255,255,0.15); color: #fff; border: none;
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px;
+            display: flex; align-items: center; justify-content: center; line-height: 1;
+        }
+        .lb-btn:hover { background: rgba(255,255,255,0.3); }
+        .lb-prev { left: 20px; top: 50%; transform: translateY(-50%); }
+        .lb-next { right: 20px; top: 50%; transform: translateY(-50%); }
+        .lb-close { top: 20px; right: 20px; }
     </style>
 </head>
 <body>
@@ -70,9 +157,14 @@
                     </div>
                     <div class="field" style="margin:0; flex:1; min-width:240px">
                         <label>线路<span class="req">*</span></label>
-                        <select class="select" id="fRoute">
-                            <option value="">请选择线路</option>
-                        </select>
+                        <div class="route-select" id="routeSelect">
+                            <button type="button" class="route-select-btn" id="routeSelectBtn">
+                                <span class="rs-dot" id="rsDot" style="background:#9aa3b0"></span>
+                                <span class="rs-text" id="rsText">请选择线路</span>
+                                <svg class="rs-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8l4 4 4-4"/></svg>
+                            </button>
+                            <div class="route-select-panel" id="routeSelectPanel" style="display:none"></div>
+                        </div>
                     </div>
                     <button class="btn btn-primary" id="btnQuery" style="margin-bottom:2px">
                         <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
@@ -93,12 +185,19 @@
 </div>
 
 <div id="toast"></div>
+<div id="lightbox" class="lightbox" style="display:none">
+    <button class="lb-btn lb-prev" id="lbPrev" type="button">‹</button>
+    <img id="lbImg" src="" alt="">
+    <button class="lb-btn lb-next" id="lbNext" type="button">›</button>
+    <button class="lb-btn lb-close" id="lbClose" type="button">×</button>
+</div>
 <script src="js/map-common.js"></script>
 <script src="js/layout.js"></script>
 <script>
     initShell();
 
     let routes = [];
+    let selectedRoutePk = null;
 
     function today() {
         const d = new Date();
@@ -113,17 +212,50 @@
         return ['日', '一', '二', '三', '四', '五', '六'][new Date(date + 'T00:00:00').getDay()];
     }
 
+    function routeColor(r) {
+        return r && r.routeColor ? '#' + String(r.routeColor).replace('#', '') : '#9aa3b0';
+    }
+
+    function routeDisplayName(r) {
+        return r ? (r.routeLongName || r.routeShortName || r.routeId) : '';
+    }
+
     async function loadRoutes() {
         try {
             routes = await api('/api/routes') || [];
-            $('fRoute').innerHTML = '<option value="">请选择线路</option>' +
-                routes.map(r => '<option value="' + r.id + '">' +
-                    esc(r.routeLongName || r.routeShortName || r.routeId) + '</option>').join('');
+            $('routeSelectPanel').innerHTML = routes.map(r =>
+                '<div class="rs-option" data-id="' + r.id + '">' +
+                '<span class="rs-dot" style="background:' + esc(routeColor(r)) + '"></span>' +
+                '<span>' + esc(routeDisplayName(r)) + '</span>' +
+                '</div>').join('');
+            $('routeSelectPanel').querySelectorAll('.rs-option').forEach(o =>
+                o.addEventListener('click', () => selectRoute(o.dataset.id)));
         } catch (err) { toast('加载线路失败：' + err.message, true); }
     }
 
+    function selectRoute(id) {
+        selectedRoutePk = id;
+        const r = routes.find(x => String(x.id) === String(id));
+        $('rsDot').style.background = routeColor(r);
+        $('rsText').textContent = routeDisplayName(r) || '请选择线路';
+        closePanel();
+        query();
+    }
+
+    function togglePanel() {
+        const p = $('routeSelectPanel');
+        const open = p.style.display !== 'none';
+        p.style.display = open ? 'none' : '';
+        $('routeSelect').classList.toggle('open', !open);
+    }
+
+    function closePanel() {
+        $('routeSelectPanel').style.display = 'none';
+        $('routeSelect').classList.remove('open');
+    }
+
     async function query() {
-        const routePk = $('fRoute').value;
+        const routePk = selectedRoutePk;
         const date = $('fDate').value;
         if (!routePk) { toast('请选择线路', true); return; }
         if (!date) { toast('请选择日期', true); return; }
@@ -156,50 +288,116 @@
         }
         box.innerHTML = renderCrew(assignment) + trips.map(t => {
             const st = t.stopTimes || [];
-            const first = st[0], last = st[st.length - 1];
             const dir = t.directionId === 1;
             const dirTag = dir
                 ? '<span class="dir-tag dir-in">返程</span>'
                 : '<span class="dir-tag dir-out">去程</span>';
-            const dep = first ? first.departureTime : null;
-            const arr = last ? last.arrivalTime : null;
-            const firstStop = first && first.stop ? first.stop.stopName : '—';
-            const lastStop = last && last.stop ? last.stop.stopName : '—';
-            const stopCount = st.length;
+            const stopRows = st.map((s, idx) => {
+                const name = s.stop ? s.stop.stopName : '未命名站';
+                const time = s.departureTime || s.arrivalTime;
+                const isFirst = idx === 0;
+                const isLast = idx === st.length - 1;
+                const dotCls = isFirst ? ' stop-dot-first' : (isLast ? ' stop-dot-last' : '');
+                const tag = isFirst ? '<span class="stop-tag stop-tag-first">发车</span>'
+                          : (isLast ? '<span class="stop-tag stop-tag-last">到达</span>' : '');
+                return '<div class="stop-row">' +
+                    '<span class="stop-time mono">' + fmt(time) + '</span>' +
+                    '<span class="stop-dot' + dotCls + '"></span>' +
+                    '<span class="stop-name">' + esc(name) + '</span>' +
+                    tag + '</div>';
+            }).join('');
             return '<div class="trip-card">' +
                 '<div class="tc-head">' + dirTag +
                 '<span class="tc-name">' + esc(t.tripShortName || t.tripId) + '</span>' +
                 '<span class="tc-hs">' + (t.tripHeadsign ? '→ ' + esc(t.tripHeadsign) : '') + '</span>' +
+                '<span class="tc-count mono">' + st.length + ' 站</span>' +
                 '</div>' +
-                '<div class="tc-route">' +
-                '<span class="tc-time mono">' + fmt(dep) + '</span>' +
-                '<span class="tc-stop">' + esc(firstStop) + '</span>' +
-                '<span class="tc-arrow">——</span>' +
-                '<span class="tc-time mono">' + fmt(arr) + '</span>' +
-                '<span class="tc-stop">' + esc(lastStop) + '</span>' +
-                '</div>' +
-                '<div class="tc-note">首站发车 · 末站到达 · 经停 ' + stopCount + ' 站</div>' +
+                '<div class="stops-timeline">' + stopRows + '</div>' +
                 '</div>';
         }).join('');
         $('resultCard').style.display = '';
+    }
+
+    function avatarHtml(url, name) {
+        if (url) {
+            return '<img class="ci-avatar" src="' + esc(url) + '" alt="' + esc(name || '') + '" data-full="' + esc(url) + '">';
+        }
+        return '<img class="ci-avatar" src="/img/user.png" alt="' + esc(name || '') + '" title="未设置头像">';
+    }
+
+    function vehicleThumb(a) {
+        const photos = (a.vehiclePhotos || '').split(',').map(s => s.trim()).filter(Boolean);
+        const title = photos.length ? '查看照片（' + photos.length + '）' : '暂无照片';
+        const attr = photos.length ? ' data-photos="' + esc(a.vehiclePhotos) + '"' : '';
+        return '<img class="ci-bus" src="/img/transport.png" alt="班车" title="' + title + '"' + attr + '>';
     }
 
     function renderCrew(a) {
         if (!a) return '';
         const sub = [a.vehicleType, a.seatCount != null ? a.seatCount + '座' : null].filter(Boolean).join(' · ');
         return '<div class="crew-grid">' +
-            '<div class="crew-item"><div class="ci-label">班车</div>' +
-            '<div class="ci-value">' + esc(a.vehiclePlate || '—') + '</div>' +
-            (sub ? '<div class="ci-sub">' + esc(sub) + '</div>' : '') + '</div>' +
-            '<div class="crew-item"><div class="ci-label">司机</div>' +
-            '<div class="ci-value">' + esc(a.driverName || '—') + '</div></div>' +
-            '<div class="crew-item"><div class="ci-label">车长</div>' +
-            '<div class="ci-value">' + (a.captainName ? esc(a.captainName) : '<span class="crew-empty">未配置</span>') + '</div></div>' +
+            '<div class="crew-item crew-vehicle"><div class="ci-label">班车</div>' +
+            '<div class="ci-head">' + vehicleThumb(a) +
+            '<div class="ci-info"><div class="ci-value">' + esc(a.vehiclePlate || '—') + '</div>' +
+            (sub ? '<div class="ci-sub">' + esc(sub) + '</div>' : '') + '</div></div>' +
+            '</div>' +
+            '<div class="crew-item crew-driver"><div class="ci-label">司机</div>' +
+            '<div class="ci-head">' + avatarHtml(a.driverAvatar, a.driverName) +
+            '<div class="ci-info"><div class="ci-value">' + esc(a.driverName || '—') + '</div>' +
+            (a.driverPhone ? '<div class="ci-sub">' + esc(a.driverPhone) + '</div>' : '') + '</div></div>' +
+            '</div>' +
+            '<div class="crew-item crew-captain"><div class="ci-label">车长</div>' +
+            '<div class="ci-head">' + avatarHtml(a.captainAvatar, a.captainName) +
+            '<div class="ci-info"><div class="ci-value">' + (a.captainName ? esc(a.captainName) : '<span class="crew-empty">未配置</span>') + '</div>' +
+            (a.captainPhone ? '<div class="ci-sub">' + esc(a.captainPhone) + '</div>' : '') + '</div></div>' +
+            '</div>' +
             '</div>';
     }
 
+    // ---------- lightbox ----------
+    let lbImages = [];
+    let lbIndex = 0;
+
+    function openLightbox(images, index) {
+        lbImages = (images || []).filter(Boolean);
+        if (!lbImages.length) return;
+        lbIndex = index || 0;
+        renderLb();
+        $('lightbox').style.display = '';
+    }
+
+    function renderLb() {
+        $('lbImg').src = lbImages[lbIndex];
+        $('lbPrev').style.display = lbImages.length > 1 ? '' : 'none';
+        $('lbNext').style.display = lbImages.length > 1 ? '' : 'none';
+    }
+
+    function closeLightbox() { $('lightbox').style.display = 'none'; }
+
     $('btnQuery').addEventListener('click', query);
-    $('fRoute').addEventListener('change', () => { if ($('fRoute').value) query(); });
+    $('routeSelectBtn').addEventListener('click', togglePanel);
+    document.addEventListener('click', e => {
+        const sel = $('routeSelect');
+        if (sel && !sel.contains(e.target)) closePanel();
+    });
+
+    // lightbox 事件
+    $('lbPrev').addEventListener('click', () => { lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length; renderLb(); });
+    $('lbNext').addEventListener('click', () => { lbIndex = (lbIndex + 1) % lbImages.length; renderLb(); });
+    $('lbClose').addEventListener('click', closeLightbox);
+    $('lightbox').addEventListener('click', e => { if (e.target === $('lightbox')) closeLightbox(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('lightbox').style.display !== 'none') closeLightbox(); });
+
+    // result 内头像 / 车辆照片点击（事件委托）
+    $('result').addEventListener('click', e => {
+        const avatar = e.target.closest('.ci-avatar');
+        if (avatar && avatar.dataset.full) { openLightbox([avatar.dataset.full], 0); return; }
+        const btn = e.target.closest('[data-photos]');
+        if (btn) {
+            const photos = (btn.dataset.photos || '').split(',').map(s => s.trim()).filter(Boolean);
+            openLightbox(photos, 0);
+        }
+    });
 
     (async () => {
         $('fDate').value = today();
@@ -210,8 +408,7 @@
         const date = params.get('date');
         if (routePk) {
             if (date) $('fDate').value = date;
-            $('fRoute').value = routePk;
-            query();
+            selectRoute(routePk);
         }
     })();
 </script>
