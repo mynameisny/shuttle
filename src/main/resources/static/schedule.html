@@ -40,7 +40,10 @@
             content: ''; position: absolute; left: 59px; top: 22px; bottom: -8px;
             width: 2px; background: var(--c-border, #e9ecef);
         }
-        .stop-time { width: 46px; text-align: right; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+        .stop-times { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; min-width: 46px; }
+        .st-main { font-size: 13px; font-weight: 600; }
+        .st-line { font-size: 12px; }
+        .st-line i { font-style: normal; font-size: 10px; color: var(--c-text-3, #868e96); margin-right: 3px; }
         .stop-dot {
             width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
             background: var(--c-text-3, #adb5bd); position: relative; z-index: 1;
@@ -287,21 +290,34 @@
             return;
         }
         box.innerHTML = renderCrew(assignment) + trips.map(t => {
-            const st = t.stopTimes || [];
+            // 后端 stopTimes 未排序（Trip.stopTimes 无 @OrderBy，JPA 按主键 id 返回），这里按 stop_sequence 排序
+            const st = (t.stopTimes || []).slice().sort((a, b) => (a.stopSequence || 0) - (b.stopSequence || 0));
             const dir = t.directionId === 1;
             const dirTag = dir
                 ? '<span class="dir-tag dir-in">返程</span>'
                 : '<span class="dir-tag dir-out">去程</span>';
             const stopRows = st.map((s, idx) => {
                 const name = s.stop ? s.stop.stopName : '未命名站';
-                const time = s.departureTime || s.arrivalTime;
                 const isFirst = idx === 0;
                 const isLast = idx === st.length - 1;
                 const dotCls = isFirst ? ' stop-dot-first' : (isLast ? ' stop-dot-last' : '');
                 const tag = isFirst ? '<span class="stop-tag stop-tag-first">发车</span>'
                           : (isLast ? '<span class="stop-tag stop-tag-last">到达</span>' : '');
+                let times;
+                if (isFirst) {
+                    times = '<span class="stop-times"><span class="st-main mono">' + fmt(s.departureTime || s.arrivalTime) + '</span></span>';
+                } else if (isLast) {
+                    times = '<span class="stop-times"><span class="st-main mono">' + fmt(s.arrivalTime || s.departureTime) + '</span></span>';
+                } else if (s.arrivalTime && s.departureTime && s.arrivalTime !== s.departureTime) {
+                    times = '<span class="stop-times">' +
+                        '<span class="st-line"><i>到</i><span class="mono">' + fmt(s.arrivalTime) + '</span></span>' +
+                        '<span class="st-line"><i>发</i><span class="mono">' + fmt(s.departureTime) + '</span></span>' +
+                        '</span>';
+                } else {
+                    times = '<span class="stop-times"><span class="st-main mono">' + fmt(s.arrivalTime || s.departureTime) + '</span></span>';
+                }
                 return '<div class="stop-row">' +
-                    '<span class="stop-time mono">' + fmt(time) + '</span>' +
+                    times +
                     '<span class="stop-dot' + dotCls + '"></span>' +
                     '<span class="stop-name">' + esc(name) + '</span>' +
                     tag + '</div>';
