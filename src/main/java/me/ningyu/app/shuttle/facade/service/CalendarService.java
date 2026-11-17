@@ -7,6 +7,7 @@ import me.ningyu.app.shuttle.domain.entity.gtfs.Calendar;
 import me.ningyu.app.shuttle.domain.entity.gtfs.CalendarDate;
 import me.ningyu.app.shuttle.domain.repo.CalendarDateRepository;
 import me.ningyu.app.shuttle.domain.repo.CalendarRepository;
+import me.ningyu.app.shuttle.enums.ExceptionType;
 import me.ningyu.app.shuttle.model.calendar.AddCalendarDateRequest;
 import me.ningyu.app.shuttle.model.calendar.CreateCalendarRequest;
 import me.ningyu.app.shuttle.model.calendar.UpdateCalendarRequest;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -145,5 +147,51 @@ public class CalendarService
     public void deleteCalendarDate(Long calendarDateId)
     {
         calendarDateRepository.deleteById(calendarDateId);
+    }
+
+    // ---------- 运营日判定（calendar + calendar_dates 的消费点） ----------
+
+    /**
+     * 判定某服务日历在指定日期是否运营。
+     *
+     * <p>三段判定（GTFS 语义）：
+     * <ol>
+     *   <li>calendar_dates 例外优先：当日 REMOVED → 停运；ADDED → 运营；</li>
+     *   <li>否则看起止日期：date 不在 [startDate, endDate] 内 → 停运；</li>
+     *   <li>否则看星期规则：date 是周几、该日历当天是否为运营日。</li>
+     * </ol>
+     */
+    public boolean isServiceActive(String serviceId, LocalDate date)
+    {
+        Calendar c = calendarRepository.findByServiceId(serviceId)
+                .orElseThrow(() -> new IllegalArgumentException("服务日历不存在: " + serviceId));
+        return isServiceActive(c, date);
+    }
+
+    /**
+     * 判定某日历（已加载实体）在指定日期是否运营。
+     */
+    public boolean isServiceActive(Calendar c, LocalDate date)
+    {
+        // 1. 例外日期优先
+        return calendarDateRepository.findByServiceCalendarIdAndDate(c.getId(), date)
+                .map(cd -> cd.getExceptionType() == ExceptionType.ADDED)
+                // 2 + 3. 起止日期 + 星期规则
+                .orElseGet(() -> !date.isBefore(c.getStartDate()) && !date.isAfter(c.getEndDate())
+                        && weekdayActive(c, date.getDayOfWeek()));
+    }
+
+    private boolean weekdayActive(Calendar c, DayOfWeek dow)
+    {
+        return switch (dow)
+        {
+            case MONDAY -> Boolean.TRUE.equals(c.getMonday());
+            case TUESDAY -> Boolean.TRUE.equals(c.getTuesday());
+            case WEDNESDAY -> Boolean.TRUE.equals(c.getWednesday());
+            case THURSDAY -> Boolean.TRUE.equals(c.getThursday());
+            case FRIDAY -> Boolean.TRUE.equals(c.getFriday());
+            case SATURDAY -> Boolean.TRUE.equals(c.getSaturday());
+            case SUNDAY -> Boolean.TRUE.equals(c.getSunday());
+        };
     }
 }

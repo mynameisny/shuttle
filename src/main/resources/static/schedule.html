@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班车时刻 · 班车调度管理</title>
+    <meta name="nav" content="passenger.schedule">
+    <meta name="desc" content="查询某天某线路的班车时刻">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .mono { font-variant-numeric: tabular-nums; }
+        .dir-tag {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 34px; height: 20px; padding: 0 8px; border-radius: 10px;
+            font-size: 11px; font-weight: 600;
+        }
+        .dir-out { background: var(--c-info-soft, #e7f1ff); color: var(--c-info, #1971c2); }
+        .dir-in { background: #f3ecff; color: #7048e8; }
+        .trip-card {
+            border: 1px solid var(--c-border, #eef1f4); border-radius: var(--radius-md, 10px);
+            padding: 14px 16px; margin-bottom: 10px;
+        }
+        .trip-card .tc-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .trip-card .tc-name { font-weight: 600; font-size: 14px; }
+        .trip-card .tc-hs { color: var(--c-text-3, #868e96); font-size: 12.5px; margin-left: 2px; }
+        .tc-route { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .tc-time { font-size: 20px; font-weight: 600; }
+        .tc-stop { color: var(--c-text-2, #495057); font-size: 13px; }
+        .tc-arrow { color: var(--c-text-3, #adb5bd); }
+        .tc-note { color: var(--c-text-3, #868e96); font-size: 12px; margin-top: 6px; }
+        .no-service {
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            padding: 40px 0; color: var(--c-text-2, #495057);
+        }
+        .no-service .ico { width: 40px; height: 40px; color: var(--c-text-3, #adb5bd); }
+        .result-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .result-head .rh-title { font-size: 14px; font-weight: 600; }
+        .result-head .rh-count { color: var(--c-text-3, #868e96); font-size: 12.5px; }
+        /* 当班信息 */
+        .crew-grid { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+        .crew-item {
+            flex: 1; min-width: 150px;
+            border: 1px solid var(--c-border, #eef1f4); border-radius: 10px; padding: 12px 14px;
+        }
+        .crew-item .ci-label { font-size: 11px; color: var(--c-text-3, #868e96); margin-bottom: 4px; }
+        .crew-item .ci-value { font-size: 15px; font-weight: 600; }
+        .crew-item .ci-sub { font-size: 12px; color: var(--c-text-3, #868e96); margin-top: 2px; }
+        .crew-empty { color: var(--c-text-3, #adb5bd); }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">班车时刻</h1>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body" style="display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap">
+                    <div class="field" style="margin:0">
+                        <label>日期<span class="req">*</span></label>
+                        <input type="date" class="input" id="fDate" style="width:160px">
+                    </div>
+                    <div class="field" style="margin:0; flex:1; min-width:240px">
+                        <label>线路<span class="req">*</span></label>
+                        <select class="select" id="fRoute">
+                            <option value="">请选择线路</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="btnQuery" style="margin-bottom:2px">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        查询
+                    </button>
+                </div>
+            </div>
+
+            <div class="card" id="resultCard" style="display:none; margin-top:16px">
+                <div class="card-body">
+                    <div class="result-head" id="resultHead"></div>
+                    <div id="result"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    let routes = [];
+
+    function today() {
+        const d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function fmt(t) {
+        return t ? String(t).slice(0, 5) : '—';
+    }
+
+    function weekdayCn(date) {
+        return ['日', '一', '二', '三', '四', '五', '六'][new Date(date + 'T00:00:00').getDay()];
+    }
+
+    async function loadRoutes() {
+        try {
+            routes = await api('/api/routes') || [];
+            $('fRoute').innerHTML = '<option value="">请选择线路</option>' +
+                routes.map(r => '<option value="' + r.id + '">' +
+                    esc(r.routeLongName || r.routeShortName || r.routeId) + '</option>').join('');
+        } catch (err) { toast('加载线路失败：' + err.message, true); }
+    }
+
+    async function query() {
+        const routePk = $('fRoute').value;
+        const date = $('fDate').value;
+        if (!routePk) { toast('请选择线路', true); return; }
+        if (!date) { toast('请选择日期', true); return; }
+        try {
+            const [trips, assignment] = await Promise.all([
+                api('/api/trips/active-on/' + date + '?routePk=' + routePk),
+                api('/api/assignments/route/' + routePk).catch(() => null)
+            ]);
+            render(routePk, date, trips || [], assignment);
+        } catch (err) { toast('查询失败：' + err.message, true); }
+    }
+
+    function render(routePk, date, trips, assignment) {
+        const route = routes.find(r => String(r.id) === String(routePk));
+        const lineName = route ? (route.routeLongName || route.routeShortName || route.routeId) : '';
+        const head = $('resultHead');
+        head.innerHTML = '<span class="rh-title">' + esc(lineName) + '</span>' +
+            '<span class="rh-count mono">' + date + ' · 星期' + weekdayCn(date) + '</span>';
+
+        const box = $('result');
+        if (!trips.length) {
+            box.innerHTML = '<div class="no-service">' +
+                '<svg class="ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">' +
+                '<circle cx="10" cy="10" r="7"/><path d="M6 10h8"/></svg>' +
+                '<div style="font-size:15px;font-weight:600">当天停运</div>' +
+                '<div style="font-size:12.5px;color:var(--c-text-3)">该线路在 ' + date + ' 无运营班次（法定假日或非运营日）</div>' +
+                '</div>';
+            $('resultCard').style.display = '';
+            return;
+        }
+        box.innerHTML = renderCrew(assignment) + trips.map(t => {
+            const st = t.stopTimes || [];
+            const first = st[0], last = st[st.length - 1];
+            const dir = t.directionId === 1;
+            const dirTag = dir
+                ? '<span class="dir-tag dir-in">返程</span>'
+                : '<span class="dir-tag dir-out">去程</span>';
+            const dep = first ? first.departureTime : null;
+            const arr = last ? last.arrivalTime : null;
+            const firstStop = first && first.stop ? first.stop.stopName : '—';
+            const lastStop = last && last.stop ? last.stop.stopName : '—';
+            const stopCount = st.length;
+            return '<div class="trip-card">' +
+                '<div class="tc-head">' + dirTag +
+                '<span class="tc-name">' + esc(t.tripShortName || t.tripId) + '</span>' +
+                '<span class="tc-hs">' + (t.tripHeadsign ? '→ ' + esc(t.tripHeadsign) : '') + '</span>' +
+                '</div>' +
+                '<div class="tc-route">' +
+                '<span class="tc-time mono">' + fmt(dep) + '</span>' +
+                '<span class="tc-stop">' + esc(firstStop) + '</span>' +
+                '<span class="tc-arrow">——</span>' +
+                '<span class="tc-time mono">' + fmt(arr) + '</span>' +
+                '<span class="tc-stop">' + esc(lastStop) + '</span>' +
+                '</div>' +
+                '<div class="tc-note">首站发车 · 末站到达 · 经停 ' + stopCount + ' 站</div>' +
+                '</div>';
+        }).join('');
+        $('resultCard').style.display = '';
+    }
+
+    function renderCrew(a) {
+        if (!a) return '';
+        const sub = [a.vehicleType, a.seatCount != null ? a.seatCount + '座' : null].filter(Boolean).join(' · ');
+        return '<div class="crew-grid">' +
+            '<div class="crew-item"><div class="ci-label">班车</div>' +
+            '<div class="ci-value">' + esc(a.vehiclePlate || '—') + '</div>' +
+            (sub ? '<div class="ci-sub">' + esc(sub) + '</div>' : '') + '</div>' +
+            '<div class="crew-item"><div class="ci-label">司机</div>' +
+            '<div class="ci-value">' + esc(a.driverName || '—') + '</div></div>' +
+            '<div class="crew-item"><div class="ci-label">车长</div>' +
+            '<div class="ci-value">' + (a.captainName ? esc(a.captainName) : '<span class="crew-empty">未配置</span>') + '</div></div>' +
+            '</div>';
+    }
+
+    $('btnQuery').addEventListener('click', query);
+    $('fRoute').addEventListener('change', () => { if ($('fRoute').value) query(); });
+
+    (async () => {
+        $('fDate').value = today();
+        await loadRoutes();
+        // 支持 URL 深链：?routePk=1&date=2026-11-17 自动查询（便于分享某线路时刻表）
+        const params = new URLSearchParams(location.search);
+        const routePk = params.get('routePk');
+        const date = params.get('date');
+        if (routePk) {
+            if (date) $('fDate').value = date;
+            $('fRoute').value = routePk;
+            query();
+        }
+    })();
+</script>
+</body>
+</html>

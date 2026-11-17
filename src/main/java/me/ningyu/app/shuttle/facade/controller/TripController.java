@@ -18,11 +18,13 @@ import me.ningyu.app.shuttle.model.schedule.UpdateTripRequest;
 import me.ningyu.app.shuttle.model.shape.SaveShapeRequest;
 import me.ningyu.app.shuttle.model.shape.TripShapeView;
 import me.ningyu.app.shuttle.model.stop.StopUsageView;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -97,6 +99,15 @@ public class TripController
         }
         List<Trip> trips = tripService.getAllTrips();
         return ResponseEntity.ok(trips);
+    }
+
+    @GetMapping("/active-on/{date}")
+    @Operation(summary = "查询某运营日运营的班次", description = "结合服务日历（calendar + calendar_dates 例外）判定当天实际运营的班次，可按线路过滤")
+    public ResponseEntity<List<Trip>> getActiveOn(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) Long routePk)
+    {
+        return ResponseEntity.ok(tripService.getTripsActiveOn(date, routePk));
     }
 
     // ---------- 班次的形状（1:1 单例子资源） ----------

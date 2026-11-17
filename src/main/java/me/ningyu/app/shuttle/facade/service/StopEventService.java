@@ -21,8 +21,10 @@ import me.ningyu.app.shuttle.enums.ReportSource;
 import me.ningyu.app.shuttle.enums.StopEventType;
 import me.ningyu.app.shuttle.model.fleet.ReportStopEventRequest;
 import me.ningyu.app.shuttle.model.fleet.StopEventView;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -44,6 +46,7 @@ public class StopEventService
     private final TripAssignmentRepository tripAssignmentRepository;
     private final TripSubstitutionRepository tripSubstitutionRepository;
     private final VehicleRepository vehicleRepository;
+    private final CalendarService calendarService;
 
     @Transactional(readOnly = true)
     public List<StopEventView> list(String tripId, LocalDate eventDate)
@@ -68,6 +71,13 @@ public class StopEventService
     {
         Trip trip = tripRepository.findByTripId(req.getTripId())
                 .orElseThrow(() -> new IllegalArgumentException("班次不存在: " + req.getTripId()));
+
+        // 校验当天该班次是否运营（calendar + calendar_dates 例外）
+        if (!calendarService.isServiceActive(trip.getServiceId(), req.getEventDate()))
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "该班次在 " + req.getEventDate() + " 不运营（服务日历停运或非运营日）");
+        }
 
         // 定位站点与站序（stopId 或 stopSequence 至少给一个），并顺带取计划时刻
         List<StopTime> stopTimes = stopTimeRepository.findByTripOrderByStopSequenceAsc(trip);

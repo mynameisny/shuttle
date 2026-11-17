@@ -86,6 +86,16 @@ const MENU = [
         ]
     },
     {
+        group: '乘客服务',
+        items: [
+            {
+                key: 'passenger', name: '班车时刻', icon: 'search', children: [
+                    { key: 'passenger.schedule', name: '时刻表', href: 'schedule.html', ready: true }
+                ]
+            }
+        ]
+    },
+    {
         group: '系统',
         items: [
             {

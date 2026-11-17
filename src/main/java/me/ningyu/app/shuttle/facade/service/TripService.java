@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -49,6 +50,7 @@ public class TripService
     private final RouteRepository routeRepository;
     private final StopTimeRepository stopTimeRepository;
     private final StopRepository stopRepository;
+    private final CalendarService calendarService;
 
     /**
      * 追加停站到班次末尾（管理端站点维护页"线路下加站"）。
@@ -373,5 +375,22 @@ public class TripService
     public List<Trip> getAllTrips()
     {
         return tripRepository.findAll();
+    }
+
+    /**
+     * 查询某运营日实际运营的班次（结合 calendar + calendar_dates 判定）。
+     *
+     * <p>供行程查询 / 运营报表使用：返回 serviceId 对应日历在指定日期「运营」的班次。
+     * 可按线路过滤（routePk）。数据量小（班车场景），逐班次判定即可，无需批量预载优化。
+     */
+    @Nonnull
+    public List<Trip> getTripsActiveOn(LocalDate date, Long routePk)
+    {
+        List<Trip> trips = routePk != null
+                ? tripRepository.findByRouteId(routePk)
+                : tripRepository.findAll();
+        return trips.stream()
+                .filter(t -> calendarService.isServiceActive(t.getServiceId(), date))
+                .toList();
     }
 }
