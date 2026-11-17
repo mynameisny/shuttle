@@ -89,4 +89,13 @@ public class TripAssignmentController
         tripAssignmentService.deleteSubstitution(substitutionId);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "删除线路分配")
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "分配主键") @PathVariable Long id)
+    {
+        tripAssignmentService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

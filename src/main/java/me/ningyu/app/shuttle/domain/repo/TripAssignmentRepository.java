@@ -19,4 +19,14 @@ public interface TripAssignmentRepository extends JpaRepository<TripAssignment, 
      * 按车辆查询分配（一辆车可绑定多个线路，或复用）。
      */
     List<TripAssignment> findByVehicleId(Long vehicleId);
+
+    /**
+     * 按司机查询分配（一人一线，用于校验是否已被分配）。
+     */
+    List<TripAssignment> findByDriverId(Long driverId);
+
+    /**
+     * 按车长查询分配（一人一线，用于校验是否已被分配）。
+     */
+    List<TripAssignment> findByCaptainId(Long captainId);
 }

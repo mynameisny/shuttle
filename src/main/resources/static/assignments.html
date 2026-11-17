@@ -15,6 +15,37 @@
             display: flex; align-items: center; justify-content: space-between; gap: 10px;
             padding: 6px 10px; border-radius: 6px; background: #f7f8fa; font-size: 12.5px;
         }
+        .assign-preview { display: flex; gap: 8px; margin: 12px 0 2px; flex-wrap: wrap; }
+        .ap-item {
+            flex: 1; min-width: 120px; padding: 8px 10px; border-radius: 8px;
+            background: #f7f8fa; border: 1px solid #eef1f4;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .ap-item .ap-label { font-size: 11px; color: #8a919c; margin-bottom: 2px; }
+        .ap-item .ap-value { font-size: 13px; font-weight: 600; }
+        .ap-item .ap-sub { font-size: 11px; color: #8a919c; margin-top: 2px; }
+        .ap-item .ap-empty { font-size: 12px; color: #b4bac2; }
+        .ap-head { display: flex; align-items: center; gap: 8px; }
+        .ap-info { flex: 1; min-width: 0; }
+        .ap-avatar {
+            width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+            border: 1px solid #eef1f4; background: #fff;
+        }
+        .ap-photo { cursor: pointer; }
+        .lightbox {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
+            background: rgba(0,0,0,0.82); display: flex; align-items: center; justify-content: center;
+        }
+        .lightbox img { max-width: 90%; max-height: 85%; border-radius: 8px; }
+        .lb-btn {
+            position: absolute; background: rgba(255,255,255,0.15); color: #fff; border: none;
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px;
+            display: flex; align-items: center; justify-content: center; line-height: 1;
+        }
+        .lb-btn:hover { background: rgba(255,255,255,0.3); }
+        .lb-prev { left: 20px; top: 50%; transform: translateY(-50%); }
+        .lb-next { right: 20px; top: 50%; transform: translateY(-50%); }
+        .lb-close { top: 20px; right: 20px; }
     </style>
 </head>
 <body>
@@ -80,6 +111,7 @@
             <label>车长</label>
             <select class="select" id="fCaptain"></select>
         </div>
+        <div class="assign-preview" id="assignPreview"></div>
         <div class="btn-row">
             <button class="btn" id="btnCancel">取消</button>
             <button class="btn btn-primary" id="btnSave">保存</button>
@@ -121,6 +153,13 @@
             <button class="btn btn-primary" id="btnSubSave">新增代班</button>
         </div>
     </div>
+</div>
+
+<div id="lightbox" class="lightbox" style="display:none">
+    <button class="lb-btn lb-prev" id="lbPrev" type="button">‹</button>
+    <img id="lbImg" src="" alt="">
+    <button class="lb-btn lb-next" id="lbNext" type="button">›</button>
+    <button class="lb-btn lb-close" id="lbClose" type="button">×</button>
 </div>
 
 <div id="toast"></div>
@@ -177,17 +216,31 @@
             '<td>' + (a.captainId ? '<a class="plain-link" href="captains.html?pk=' + a.captainId + '">' + esc(a.captainName) + '</a>' : '<span class="muted">—</span>') + '</td>' +
             '<td class="col-actions">' +
             '<button class="btn btn-sm" data-edit="' + a.id + '">编辑</button> ' +
-            '<button class="btn btn-sm" data-sub="' + a.id + '">代班</button></td>' +
+            '<button class="btn btn-sm" data-sub="' + a.id + '">代班</button> ' +
+            '<button class="btn btn-sm btn-danger" data-del="' + a.id + '">删除</button></td>' +
             '</tr>'
         ).join('');
         tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openEdit(parseInt(b.dataset.edit))));
         tbody.querySelectorAll('[data-sub]').forEach(b => b.addEventListener('click', () => openSub(parseInt(b.dataset.sub))));
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
     }
 
     function optionHtml(list, val, nameFn, selectedId) {
         return list.map(x =>
             '<option value="' + x.id + '"' + (x.id === selectedId ? ' selected' : '') + '>' +
             esc(nameFn(x)) + '</option>').join('');
+    }
+
+    // 下拉选项富文本：车牌+车型座位 / 姓名+电话
+    function vehicleOpt(x) {
+        const sub = [x.vehicleType, x.seatCount != null ? x.seatCount + '座' : null].filter(Boolean).join(' · ');
+        return (x.plateNumber || ('车辆 ' + x.id)) + (sub ? ' ｜ ' + sub : '');
+    }
+    function driverOpt(x) {
+        return (x.name || ('司机 ' + x.id)) + (x.phone ? ' ｜ ' + x.phone : '');
+    }
+    function captainOpt(x) {
+        return (x.name || ('车长 ' + x.id)) + (x.phone ? ' ｜ ' + x.phone : '');
     }
 
     function openCreate() {
@@ -199,9 +252,10 @@
         $('fRoute').innerHTML = free.length
             ? free.map(r => '<option value="' + esc(r.routeId) + '">' + esc(r.routeLongName || r.routeId) + '</option>').join('')
             : '<option value="">（无未分配线路）</option>';
-        $('fVehicle').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(vehicles, null, x => x.plateNumber || ('车辆 ' + x.id), null);
-        $('fDriver').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(drivers, null, x => x.name || ('司机 ' + x.id), null);
-        $('fCaptain').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(captains, null, x => x.name || ('车长 ' + x.id), null);
+        $('fVehicle').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(vehicles, null, vehicleOpt, null);
+        $('fDriver').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(drivers, null, driverOpt, null);
+        $('fCaptain').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(captains, null, captainOpt, null);
+        updatePreview();
         $('modal').style.display = '';
     }
 
@@ -211,10 +265,35 @@
         if (!a) return;
         $('modalTitle').textContent = '编辑班次安排';
         $('routeField').style.display = 'none';
-        $('fVehicle').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(vehicles, null, x => x.plateNumber || ('车辆 ' + x.id), a.vehicleId);
-        $('fDriver').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(drivers, null, x => x.name || ('司机 ' + x.id), a.driverId);
-        $('fCaptain').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(captains, null, x => x.name || ('车长 ' + x.id), a.captainId);
+        $('fVehicle').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(vehicles, null, vehicleOpt, a.vehicleId);
+        $('fDriver').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(drivers, null, driverOpt, a.driverId);
+        $('fCaptain').innerHTML = '<option value="">— 不指定 —</option>' + optionHtml(captains, null, captainOpt, a.captainId);
+        updatePreview();
         $('modal').style.display = '';
+    }
+
+    // 选中车辆/司机/车长后，实时预览详情（含头像/照片）
+    function updatePreview() {
+        const v = vehicles.find(x => String(x.id) === $('fVehicle').value);
+        const d = drivers.find(x => String(x.id) === $('fDriver').value);
+        const c = captains.find(x => String(x.id) === $('fCaptain').value);
+        const img = (url, fallback) => '<img class="ap-avatar" src="' + esc(url || fallback) + '">';
+        const vPhotos = v && v.photos ? v.photos.split(',').map(s => s.trim()).filter(Boolean) : [];
+        const vImg = vPhotos.length
+            ? '<img class="ap-avatar ap-photo" src="' + esc(vPhotos[0]) + '" data-photos="' + esc(v.photos) + '" title="点击查看照片">'
+            : '<img class="ap-avatar" src="/img/transport.png">';
+        const dImg = img(d && d.avatarUrl, '/img/user.png');
+        const cImg = img(c && c.avatarUrl, '/img/user.png');
+        const item = (label, value, sub, avatarImg) =>
+            '<div class="ap-item"><div class="ap-head">' + avatarImg +
+            '<div class="ap-info"><div class="ap-label">' + label + '</div>' +
+            '<div class="ap-value">' + (value || '<span class="ap-empty">未指定</span>') + '</div>' +
+            '<div class="ap-sub">' + (sub ? esc(sub) : '&nbsp;') + '</div>' + '</div></div></div>';
+        const vSub = v ? [v.vehicleType, v.seatCount != null ? v.seatCount + '座' : null].filter(Boolean).join(' · ') : '';
+        $('assignPreview').innerHTML =
+            item('车辆', v ? esc(v.plateNumber) : '', vSub, vImg) +
+            item('司机', d ? esc(d.name) : '', d && d.phone ? d.phone : '', dImg) +
+            item('车长', c ? esc(c.name) : '', c && c.phone ? c.phone : '', cImg);
     }
 
     function openSub(id) {
@@ -309,7 +388,21 @@
         } catch (err) { toast('删除失败：' + err.message, true); }
     }
 
+    async function remove(id) {
+        const a = assignments.find(x => x.id === id);
+        if (!a) return;
+        if (!confirm('确定删除线路「' + (a.routeLabel || a.routeId) + '」的班次安排？此操作不可恢复。')) return;
+        try {
+            await api('/api/assignments/' + id, { method: 'DELETE' });
+            toast('已删除安排');
+            await load();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
     $('searchInput').addEventListener('input', render);
+    $('fVehicle').addEventListener('change', updatePreview);
+    $('fDriver').addEventListener('change', updatePreview);
+    $('fCaptain').addEventListener('change', updatePreview);
     $('btnAdd').addEventListener('click', openCreate);
     $('btnCancel').addEventListener('click', () => $('modal').style.display = 'none');
     $('btnSave').addEventListener('click', save);
@@ -317,8 +410,37 @@
     $('btnSubSave').addEventListener('click', addSub);
     $('modal').addEventListener('click', e => { if (e.target === $('modal')) $('modal').style.display = 'none'; });
     $('subModal').addEventListener('click', e => { if (e.target === $('subModal')) $('subModal').style.display = 'none'; });
+
+    // ---------- 车辆照片 lightbox ----------
+    let lbImages = [];
+    let lbIndex = 0;
+    function openLightbox(images, index) {
+        lbImages = (images || []).filter(Boolean);
+        if (!lbImages.length) return;
+        lbIndex = index || 0;
+        renderLb();
+        $('lightbox').style.display = '';
+    }
+    function renderLb() {
+        $('lbImg').src = lbImages[lbIndex];
+        $('lbPrev').style.display = lbImages.length > 1 ? '' : 'none';
+        $('lbNext').style.display = lbImages.length > 1 ? '' : 'none';
+    }
+    function closeLightbox() { $('lightbox').style.display = 'none'; }
+    $('lbPrev').addEventListener('click', () => { lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length; renderLb(); });
+    $('lbNext').addEventListener('click', () => { lbIndex = (lbIndex + 1) % lbImages.length; renderLb(); });
+    $('lbClose').addEventListener('click', closeLightbox);
+    $('lightbox').addEventListener('click', e => { if (e.target === $('lightbox')) closeLightbox(); });
+    $('modal').addEventListener('click', e => {
+        const photo = e.target.closest('.ap-photo');
+        if (photo && photo.dataset.photos) {
+            openLightbox(photo.dataset.photos.split(',').map(s => s.trim()).filter(Boolean), 0);
+        }
+    });
+
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
+            $('lightbox').style.display = 'none';
             $('modal').style.display = 'none';
             $('subModal').style.display = 'none';
         }

@@ -19,8 +19,10 @@ import me.ningyu.app.shuttle.model.fleet.CreateAssignmentRequest;
 import me.ningyu.app.shuttle.model.fleet.SubstituteDriverRequest;
 import me.ningyu.app.shuttle.model.fleet.TripAssignmentView;
 import me.ningyu.app.shuttle.model.fleet.UpdateAssignmentRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -74,6 +76,8 @@ public class TripAssignmentService
         Captain c = req.getCaptainId() != null
                 ? captainRepository.findById(req.getCaptainId()).orElseThrow(() -> new IllegalArgumentException("车长不存在")) : null;
 
+        validateDriverAndCaptain(d, c, null);
+
         TripAssignment a = tripAssignmentRepository.save(TripAssignment.builder()
                 .route(route)
                 .vehicle(v)
@@ -88,16 +92,52 @@ public class TripAssignmentService
     {
         TripAssignment a = tripAssignmentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("线路分配不存在: id=" + id));
-        if (req.getVehicleId() != null)
-            a.setVehicle(vehicleRepository.findById(req.getVehicleId())
-                    .orElseThrow(() -> new IllegalArgumentException("车辆不存在")));
-        if (req.getDriverId() != null)
-            a.setDriver(driverRepository.findById(req.getDriverId())
-                    .orElseThrow(() -> new IllegalArgumentException("司机不存在")));
-        if (req.getCaptainId() != null)
-            a.setCaptain(captainRepository.findById(req.getCaptainId())
-                    .orElseThrow(() -> new IllegalArgumentException("车长不存在")));
+        Vehicle v = req.getVehicleId() != null
+                ? vehicleRepository.findById(req.getVehicleId()).orElseThrow(() -> new IllegalArgumentException("车辆不存在")) : a.getVehicle();
+        Driver d = req.getDriverId() != null
+                ? driverRepository.findById(req.getDriverId()).orElseThrow(() -> new IllegalArgumentException("司机不存在")) : a.getDriver();
+        Captain c = req.getCaptainId() != null
+                ? captainRepository.findById(req.getCaptainId()).orElseThrow(() -> new IllegalArgumentException("车长不存在")) : a.getCaptain();
+
+        validateDriverAndCaptain(d, c, id);
+
+        a.setVehicle(v);
+        a.setDriver(d);
+        a.setCaptain(c);
         return toView(tripAssignmentRepository.save(a));
+    }
+
+    /**
+     * 校验司机 / 车长是否已被其他线路分配（一人一线，禁止重复）。
+     *
+     * @param excludeId 排除当前分配的 id（新增时传 null）
+     */
+    private void validateDriverAndCaptain(Driver d, Captain c, Long excludeId)
+    {
+        if (d != null)
+        {
+            tripAssignmentRepository.findByDriverId(d.getId()).stream()
+                    .filter(a -> excludeId == null || !a.getId().equals(excludeId))
+                    .findFirst()
+                    .ifPresent(a -> { throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "司机 " + d.getName() + " 已被线路「" + routeLabel(a.getRoute()) + "」分配"); });
+        }
+        if (c != null)
+        {
+            tripAssignmentRepository.findByCaptainId(c.getId()).stream()
+                    .filter(a -> excludeId == null || !a.getId().equals(excludeId))
+                    .findFirst()
+                    .ifPresent(a -> { throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "车长 " + c.getName() + " 已被线路「" + routeLabel(a.getRoute()) + "」分配"); });
+        }
+    }
+
+    private String routeLabel(Route r)
+    {
+        if (r == null) return "未知";
+        if (r.getRouteLongName() != null && !r.getRouteLongName().isBlank()) return r.getRouteLongName();
+        if (r.getRouteShortName() != null && !r.getRouteShortName().isBlank()) return r.getRouteShortName();
+        return r.getRouteId();
     }
 
     @Transactional(readOnly = true)
@@ -125,6 +165,15 @@ public class TripAssignmentService
     public void deleteSubstitution(Long id)
     {
         tripSubstitutionRepository.deleteById(id);
+    }
+
+    /**
+     * 删除一条线路分配（解除线路 → 车辆/司机/车长 的绑定）。
+     */
+    @Transactional
+    public void delete(Long id)
+    {
+        tripAssignmentRepository.deleteById(id);
     }
 
     private TripAssignmentView toView(TripAssignment a)
