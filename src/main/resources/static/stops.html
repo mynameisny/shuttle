@@ -97,7 +97,9 @@
         /* 方向标题（块外常显，每组跟随一个独立 .list 块；不再 sticky——标题不随块内滚动消失） */
         .dir-head {
             margin: 14px 0 6px; padding: 0 2px; font-size: 12px; font-weight: 600; color: #174ea6;
+            display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none;
         }
+        .dir-head .df-fold { color: #9aa0a6; font-size: 10px; width: 10px; text-align: center; flex: none; }
         #stopList .dir-head:first-child { margin-top: 0; }
         /* 线路筛选模式：#stopList 退化为纯容器（自带边框/限高中和掉，样式由内层方向块承担） */
         .list.stacked { border: none; border-radius: 0; background: transparent; max-height: none; overflow: visible; padding: 0; }
@@ -443,6 +445,7 @@
         picking: false,   // 编辑站点「地图选点」模式
         pickMarker: null, // 选点后的临时预览标记（保存/取消后清除）
         foldedTrips: {},  // 线路视图里被收起的班次（tripPk -> true），切换线路时清空
+        foldedDirs: {},   // 线路视图里被收起的方向（directionId -> true），切换线路时清空
         reordering: false,// 停站顺序保存中（锁：PUT 完成前禁止再次拖拽，防连续操作竞态）
         normalLayer: L.layerGroup().addTo(map), // 普通站点橙色圆点
         selMarker: null   // 选中站点的可拖拽蓝色圆点
@@ -872,6 +875,7 @@
         bindListClicks();
         bindDnd();
         bindTripFold();
+        bindDirFold();
     }
 
     const dirName = id => id === 1 ? '返程' : '去程';
@@ -879,7 +883,10 @@
     // 按班次：方向标题 + 每个班次一个折叠块（标题 = 班次名 · 首末时刻 · 站数）
     function renderDirectionByTrip(d) {
         const trips = d.trips || [];
-        const head = '<div class="dir-head"><div>' + dirName(d.directionId)
+        const folded = !!state.foldedDirs[d.directionId];
+        const head = '<div class="dir-head" data-dir-fold="' + d.directionId + '">'
+            + '<span class="df-fold">' + (folded ? '▸' : '▾') + '</span>'
+            + '<div>' + dirName(d.directionId)
             + ' · ' + (d.tripCount || trips.length) + ' 个班次'
             + (trips.length ? ' · 共 ' + trips.reduce((n, t) => n + (t.stops || []).length, 0) + ' 站次' : '')
             + '</div></div>';
@@ -888,15 +895,17 @@
             return head + '<div class="empty-box mini">该方向暂无班次，点上方「＋ 新建班次」创建一个</div>';
         }
 
+        if (folded) return head; // 方向折叠：只保留标题行
+
         return head + trips.map(t => {
             const stops = t.stops || [];
-            const folded = !!state.foldedTrips[t.tripPk];
+            const tFolded = !!state.foldedTrips[t.tripPk];
             const span = (t.firstDeparture && t.lastArrival)
                 ? hhmm(t.firstDeparture) + ' – ' + hhmm(t.lastArrival) : '';
             const meta = [span, stops.length + ' 站'].filter(Boolean).join(' · ');
-            return '<div class="trip-block' + (folded ? ' folded' : '') + '">'
+            return '<div class="trip-block' + (tFolded ? ' folded' : '') + '">'
                 + '<div class="trip-head" data-trip-fold="' + t.tripPk + '">'
-                + '<span class="th-fold">' + (folded ? '▸' : '▾') + '</span>'
+                + '<span class="th-fold">' + (tFolded ? '▸' : '▾') + '</span>'
                 + '<span class="th-name" title="' + esc(t.tripId || '') + '">' + esc(t.label || ('班次 ' + t.tripPk)) + '</span>'
                 + '<span class="th-meta">' + esc(meta) + '</span></div>'
                 + '<div class="list trip-body" data-trip-pk="' + t.tripPk + '">'
@@ -923,6 +932,18 @@
                 const pk = parseInt(el.dataset.tripFold);
                 if (state.foldedTrips[pk]) delete state.foldedTrips[pk];
                 else state.foldedTrips[pk] = true;
+                renderList();
+            })
+        );
+    }
+
+    // 方向折叠/展开（去程/返程整体收起，只保留标题行）
+    function bindDirFold() {
+        $('stopList').querySelectorAll('[data-dir-fold]').forEach(el =>
+            el.addEventListener('click', () => {
+                const dir = parseInt(el.dataset.dirFold);
+                if (state.foldedDirs[dir]) delete state.foldedDirs[dir];
+                else state.foldedDirs[dir] = true;
                 renderList();
             })
         );
