@@ -33,4 +33,8 @@ public class UpdateStopRequest
     @DecimalMin(value = "-180", message = "经度范围 [-180, 180]")
     @DecimalMax(value = "180", message = "经度范围 [-180, 180]")
     private BigDecimal lng;
+
+    /** 站点描述（GTFS stop_desc，非必填；传空串/null 表示清除） */
+    @Size(max = 1000, message = "站点描述长度不能超过1000")
+    private String stopDesc;
 }

@@ -147,7 +147,15 @@
 
         /* 时刻维护浮层（地图 popup，编辑控件复用 .usage-edit） */
         .stop-time-popup { font-size: 12px; color: #333; min-width: 250px; }
-        .stp-title { font-weight: 600; color: #1a73e8; margin-bottom: 6px; }
+        .stp-title { font-weight: 600; color: #1a73e8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .stp-title > span { flex-shrink: 0; }
+        .stp-name-input {
+            flex: 1; min-width: 0; padding: 2px 6px; font-size: 13px; font-weight: 600;
+            color: #1a73e8; border: 1px solid transparent; border-radius: 4px; background: transparent;
+        }
+        .stp-name-input:not([readonly]) { border-color: #1a73e8; background: #fff; color: #333; }
+        .stp-name-input[readonly] { cursor: default; }
+        .stp-title .stp-photo-add { flex-shrink: 0; padding: 2px 6px; }
         .stp-empty { color: #9aa0a6; font-size: 11px; padding: 4px 0; }
         .stp-block { border-top: 1px dashed #e0e3e8; padding: 7px 0 3px; }
         .stp-block:first-of-type { border-top: none; padding-top: 2px; }
@@ -210,6 +218,74 @@
         .modal-title { font-size: 14px; font-weight: 600; color: #1a73e8; margin-bottom: 2px; }
         .modal-coord { font-size: 11px; color: #9aa0a6; margin-bottom: 10px; }
         .modal.wide { width: 340px; }
+
+        /* ---------- 站点照片 ---------- */
+        .photo-grid { display: flex; flex-wrap: wrap; gap: 8px; border: 1px solid #e0e3e8; border-radius: 6px; background: #fff; padding: 8px; min-height: 40px; }
+        .photo-grid .empty { font-size: 11px; color: #9aa0a6; padding: 4px 0; }
+        .photo-item {
+            position: relative; width: 64px; height: 64px; border-radius: 6px;
+            overflow: hidden; border: 1px solid #e0e3e8; cursor: zoom-in; background: #f1f3f4;
+        }
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .photo-item .rm-btn {
+            position: absolute; top: 2px; right: 2px; width: 16px; height: 16px;
+            line-height: 15px; text-align: center; border-radius: 50%;
+            background: rgba(0,0,0,.55); color: #fff; font-size: 11px; cursor: pointer; user-select: none;
+        }
+        .photo-item .rm-btn:hover { background: #d93025; }
+        #lightboxStop {
+            position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,.82);
+            display: flex; align-items: center; justify-content: center; cursor: zoom-out;
+        }
+        #lightboxStop img { max-width: 90%; max-height: 85%; border-radius: 8px; }
+        /* 时刻维护浮层里的照片维护区 */
+        /* 站点描述折叠域 */
+        .desc-fold {
+            display: flex; align-items: center; gap: 6px; margin-top: 8px;
+            font-size: 12px; font-weight: 600; color: #5f6368; cursor: pointer; user-select: none;
+        }
+        .desc-fold:hover { color: #1a73e8; }
+        .desc-fold .desc-opt {
+            font-size: 11px; font-weight: 400; color: #9aa0a6;
+            background: #f1f3f4; border-radius: 8px; padding: 0 6px; line-height: 16px;
+        }
+        #editDesc {
+            width: 100%; box-sizing: border-box; margin-top: 6px; padding: 6px 8px;
+            font-size: 12px; font-family: inherit; color: #333; line-height: 1.5;
+            border: 1px solid #e0e3e8; border-radius: 6px; resize: vertical; background: #fff;
+        }
+        #editDesc:focus { outline: none; border-color: #1a73e8; }
+        .stp-photo-head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin: 8px 0 4px; padding-top: 6px; border-top: 1px dashed #e0e3e8;
+        }
+        .stp-photo-head .stp-name { font-weight: 600; color: #5f6368; font-size: 12px; }
+        .stp-photo-add {
+            font-size: 11px; color: #1a73e8; background: #e8f0fe; border: none;
+            border-radius: 4px; padding: 3px 8px; cursor: pointer;
+        }
+        .stp-photo-add:hover { background: #d2e3fc; }
+        .stp-photo-grid .photo-item { width: 52px; height: 52px; }
+        .stp-save {
+            display: block; width: 100%; margin-top: 10px; padding: 6px 0;
+            font-size: 13px; font-weight: 600; color: #fff; background: #1a73e8;
+            border: none; border-radius: 6px; cursor: pointer;
+        }
+        .stp-save:hover { background: #1765cc; }
+        /* 浮层里的经纬度行 */
+        .stp-coord-row {
+            display: flex; align-items: flex-end; gap: 8px; margin-top: 8px;
+            padding-top: 6px; border-top: 1px dashed #e0e3e8;
+        }
+        .stp-coord-field { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+        .stp-coord-field span { font-size: 11px; color: #9aa0a6; }
+        .stp-coord-field input {
+            width: 100%; box-sizing: border-box; padding: 3px 6px; font-size: 12px;
+            border: 1px solid #e0e3e8; border-radius: 4px; background: #fff; color: #333;
+        }
+        .stp-coord-field input:focus { outline: none; border-color: #1a73e8; }
+        .stp-coord-row .stp-photo-add { height: 26px; white-space: nowrap; }
+        .stp-coord-field input[readonly] { background: #f6f7f8; color: #444; cursor: default; }
 
         /* ---------- 线路视图：按班次分组 ---------- */
         .trip-block { margin-bottom: 10px; }
@@ -288,24 +364,7 @@
             <div id="editEmpty" class="empty-box">从列表或地图选择一个站点开始编辑</div>
             <div id="editArea" style="display:none">
                 <div class="meta-line">站点ID：<span id="editMeta"></span></div>
-                <div class="field">
-                    <label>站点名称</label>
-                    <input type="text" id="editName" maxlength="100">
-                </div>
-                <div class="field-row">
-                    <div class="field">
-                        <label>纬度</label>
-                        <input type="number" id="editLat" step="0.0000001" min="-90" max="90">
-                    </div>
-                    <div class="field">
-                        <label>经度</label>
-                        <input type="number" id="editLng" step="0.0000001" min="-180" max="180">
-                    </div>
-                </div>
-                <div class="tip">拖动地图上的蓝色圆点调整位置；或点「地图选点」后在地图上点击定位，坐标自动回填；也可直接输入经纬度。</div>
                 <div class="btn-row">
-                    <button id="btnPick" type="button">地图选点</button>
-                    <button id="btnSave" class="primary">保存修改</button>
                     <button id="btnDelete" class="danger">删除站点</button>
                     <button id="btnCancel">取消选择</button>
                 </div>
@@ -412,6 +471,7 @@
         stops: '/api/stops',
         stop: id => '/api/stops/' + id,
         stopUsage: id => '/api/stops/' + id + '/usage',
+        stopPhotos: id => '/api/stops/' + id + '/photos',
         usageSummary: '/api/stops/usage-summary',
         routes: '/api/routes',
         routeStops: pk => '/api/routes/' + pk + '/stops',
@@ -912,7 +972,7 @@
                 + (stops.length ? stops.map((s, i) =>
                     '<div class="item" data-id="' + s.stopPk + '" draggable="true" title="按住拖拽调整停靠顺序">'
                     + '<span class="name" title="' + esc(s.stopName || '') + '"><span class="seq">' + s.stopSequence + '</span> ' + esc(s.stopName || '(未命名)') + '</span>'
-                    + '<span class="coord">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span>'
+                    + '<span class="coord" title="' + parseFloat(s.lat).toFixed(7) + ',' + parseFloat(s.lng).toFixed(7) + '">' + parseFloat(s.lat).toFixed(5) + ',' + parseFloat(s.lng).toFixed(5) + '</span>'
                     + '<span class="rm-btn" data-seq="' + s.stopSequence + '" data-name="' + esc(s.stopName || '') + '" title="从该班次移除此站">✕</span>'
                     + '</div>'
                 ).join('') : '<div class="empty">空班次，用「＋ 新增站点」往里加第一站</div>')
@@ -1116,11 +1176,22 @@
             draggable: true, autoPan: true,
             icon: L.divIcon({ className: 'sel-stop-icon', html: '<div class="sel-dot"></div>', iconSize: [16, 16], iconAnchor: [8, 8] })
         }).bindTooltip(stop.stopName || stop.stopId, { direction: 'top' }).addTo(map);
-        state.selMarker.on('dragend', e => {
+        // 点蓝点随时重开悬浮层（保存/选点后 marker 重建，popup 需重新挂载）
+        state.selMarker.on('click', () => openStopTimePopup(stop));
+        state.selMarker.on('dragend', async e => {
             const ll = e.target.getLatLng();
-            $('editLat').value = ll.lat.toFixed(7);
-            $('editLng').value = ll.lng.toFixed(7);
-            toast('位置已拖动，点击「保存修改」生效');
+            const lat = ll.lat.toFixed(7), lng = ll.lng.toFixed(7);
+            // 拖动时 Leaflet 会关闭 popup：输入框若不存在则重开浮层再回填
+            let latI = document.getElementById('editLat');
+            if (!latI) {
+                await openStopTimePopup(stop);
+                latI = document.getElementById('editLat');
+            }
+            if (latI) {
+                latI.value = lat;
+                document.getElementById('editLng').value = lng;
+            }
+            toast('位置已拖动，点「保存」生效');
         });
     }
 
@@ -1132,6 +1203,103 @@
     }
 
     // ---------- 选中与编辑 ----------
+    // ---------- 站点照片（扩展表 stop_photo，上传即持久化；UI 只在地图悬浮层） ----------
+    let photoUrls = [];
+
+    // 隐藏上传 input（悬浮层「＋ 上传」触发，替代原编辑面板里的 input）
+    const photoFile = document.createElement('input');
+    photoFile.type = 'file';
+    photoFile.id = 'photoFile';
+    photoFile.accept = 'image/*';
+    photoFile.multiple = true;
+    photoFile.style.display = 'none';
+    document.body.appendChild(photoFile);
+
+    function clearPhotoPanel() {
+        photoUrls = [];
+        renderPhotos();
+    }
+
+    function renderPhotos() {
+        // 照片区只存在于时刻维护浮层（若已打开则同步刷新）
+        const popGrid = document.getElementById('popupPhotoGrid');
+        if (popGrid) renderStrip(popGrid, '暂无照片，点「＋ 上传」添加（可多选）');
+    }
+
+    // 照片缩略图网格渲染（编辑面板与地图浮层共用）
+    function renderStrip(grid, emptyText) {
+        if (!photoUrls.length) {
+            grid.innerHTML = '<div class="empty">' + esc(emptyText) + '</div>';
+            return;
+        }
+        grid.innerHTML = photoUrls.map((u, i) =>
+            '<div class="photo-item" data-pi="' + i + '" title="点击放大预览">' +
+            '<img src="' + esc(u) + '" alt="">' +
+            '<span class="rm-btn" data-prm="' + i + '" title="删除此照片">✕</span>' +
+            '</div>'
+        ).join('');
+    }
+
+    // 删除 / 放大预览（悬浮层照片区事件处理）
+    function handlePhotoGridClick(e) {
+        const rm = e.target.closest('.rm-btn');
+        if (rm) {
+            const i = parseInt(rm.dataset.prm);
+            if (!confirm('确定删除这张站点照片？')) return;
+            photoUrls.splice(i, 1);
+            renderPhotos();
+            savePhotos();
+            return;
+        }
+        const item = e.target.closest('.photo-item');
+        if (item) {
+            const src = photoUrls[parseInt(item.dataset.pi)];
+            const lb = document.createElement('div');
+            lb.id = 'lightboxStop';
+            lb.innerHTML = '<img src="' + esc(src) + '" alt="">';
+            lb.addEventListener('click', () => lb.remove());
+            document.body.appendChild(lb);
+        }
+    }
+
+    async function loadPhotos(stopPk) {
+        try {
+            photoUrls = await api(API.stopPhotos(stopPk)) || [];
+            renderPhotos();
+        } catch (err) { photoUrls = []; renderPhotos(); }
+    }
+
+    // 全量覆盖保存当前站点的照片列表
+    async function savePhotos() {
+        const stop = findSelected();
+        if (!stop) return;
+        try {
+            await api(API.stopPhotos(stop.id), {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ urls: photoUrls })
+            });
+        } catch (err) { toast('照片保存失败：' + err.message, true); }
+    }
+
+    photoFile.addEventListener('change', async () => {
+        const stop = findSelected();
+        const files = Array.from(photoFile.files || []);
+        photoFile.value = '';
+        if (!stop || !files.length) return;
+        for (const file of files) {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('dir', 'stops');
+            try {
+                const res = await api('/api/upload', { method: 'POST', body: fd });
+                photoUrls.push(res.url);
+            } catch (err) { toast('上传失败：' + err.message, true); }
+        }
+        renderPhotos();
+        await savePhotos();
+        toast('已保存 ' + photoUrls.length + ' 张照片');
+    });
+
     function selectStop(id, tripPk) {
         state.selectedId = id;
         state.selectedTripPk = tripPk || null;
@@ -1147,9 +1315,6 @@
         $('editEmpty').style.display = 'none';
         $('editArea').style.display = '';
         $('editMeta').textContent = stop.stopId;
-        $('editName').value = stop.stopName || '';
-        $('editLat').value = parseFloat(stop.stopLat).toFixed(7);
-        $('editLng').value = parseFloat(stop.stopLon).toFixed(7);
         renderList();     // 刷新列表高亮
         renderMarkers();  // 橙点换蓝点
         clearPickMarker();
@@ -1162,6 +1327,7 @@
             toast('该站点暂无坐标，点「地图选点」在地图上定位');
         }
         loadUsage(id);        // 引用面板（影响面）
+        loadPhotos(id);       // 站点照片面板
         openStopTimePopup(stop); // 时刻维护浮层（须在 renderMarkers 之后，蓝点已就位）
     }
 
@@ -1174,13 +1340,15 @@
         $('editArea').style.display = 'none';
         $('usageCount').textContent = 0;
         $('usageList').innerHTML = '<div class="empty">未选择站点</div>';
+        clearPhotoPanel();
         renderList();
         renderMarkers();
     }
 
     $('btnCancel').addEventListener('click', deselect);
 
-    $('btnSave').addEventListener('click', async () => {
+    // 统一保存：先提交有改动的到/发时刻，再保存站点信息（名称/坐标/描述）；按钮在浮层底部
+    async function saveStopEdits() {
         const stop = findSelected();
         if (!stop) return;
         const name = $('editName').value.trim();
@@ -1190,10 +1358,29 @@
         if (!isFinite(latN) || latN < -90 || latN > 90) { toast('纬度范围 [-90, 90]', true); return; }
         if (!isFinite(lngN) || lngN < -180 || lngN > 180) { toast('经度范围 [-180, 180]', true); return; }
         try {
-            // 坐标以字符串传输，保住 toFixed(7) 精度交给后端 BigDecimal 解析
+            // 1) 到/发时刻：只提交有改动的行（值与 HH:MM 字典序比较，time input 固定 HH:MM）
+            let nTimes = 0;
+            for (const { row, u } of popupTimeRows) {
+                const arr = row.querySelector('.u-arr').value;
+                const dep = row.querySelector('.u-dep').value;
+                const tp = row.querySelector('.u-tp').value;
+                if (arr === (u.arrivalTime || '').slice(0, 5)
+                    && dep === (u.departureTime || '').slice(0, 5)
+                    && tp === u.timepoint) continue; // 未改动，跳过
+                if (arr && dep && arr > dep) {
+                    toast('到站时间不能晚于发车时间：' + (u.tripId || '班次') + ' 第' + u.stopSequence + '站', true);
+                    return;
+                }
+                await api(API.stopTime(u.tripPk, u.stopSequence), {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ arrivalTime: arr, departureTime: dep, timepoint: tp })
+                });
+                nTimes++;
+            }
+            // 2) 站点信息：坐标以字符串传输，保住 toFixed(7) 精度交给后端 BigDecimal 解析
             const updated = await api(API.stop(stop.id), {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stopName: name, lat: lat, lng: lng })
+                body: JSON.stringify({ stopName: name, lat: lat, lng: lng, stopDesc: $('editDesc').value.trim() || null })
             });
             // 就地更新权威数据与展示集，再刷新列表与蓝点
             const i = state.allStops.findIndex(s => s.id === stop.id);
@@ -1206,9 +1393,11 @@
             refreshSelMarker();
             const nl = parseLatLng(updated.stopLat, updated.stopLon);
             if (nl) map.panTo(nl);
-            toast('已保存：' + updated.stopName);
+            toast((nTimes ? '已更新 ' + nTimes + ' 条时刻；' : '') + '已保存：' + updated.stopName);
+            // 蓝点已重建：重新弹出浮层（带最新坐标/描述），否则保存后点蓝点无响应
+            openStopTimePopup(updated);
         } catch (err) { toast('保存失败：' + err.message, true); }
-    });
+    }
 
     // ---------- 新建站点：须先选线路；选点后弹表单，创建并追加班次停站 ----------
     function updateCreateBtn() {
@@ -1233,16 +1422,12 @@
         setCreating(!state.creating);
     });
 
-    // ---------- 编辑站点「地图选点」：点击地图定位，坐标回填经纬度输入框 ----------
+    // ---------- 编辑站点「地图选点」：点击地图定位，坐标回填浮层输入框（按钮在浮层里） ----------
     function setPicking(on) {
         state.picking = on;
-        const btn = $('btnPick');
-        if (btn) btn.classList.toggle('picking', on);
         map.getContainer().style.cursor = on ? 'crosshair' : '';
         if (on) toast('在地图上点击站点位置（Esc 取消）');
     }
-
-    $('btnPick').addEventListener('click', () => setPicking(!state.picking));
 
     // 清除选点预览标记（保存/取消/切换站点时调用）
     function clearPickMarker() {
@@ -1257,12 +1442,42 @@
         }).addTo(map);
     }
 
-    // 选点结果回填（地图点击 / 搜索定位共用）：退出选点模式，坐标写入输入框并放预览圈
+    // 选点结果回填（地图点击 / 搜索定位共用）：退出选点模式，坐标写入浮层输入框并放预览圈
     function pickLocation(lat, lng) {
         setPicking(false);
-        $('editLat').value = lat.toFixed(7);
-        $('editLng').value = lng.toFixed(7);
         refreshPickMarker([lat, lng]);
+        // 回填悬浮层经纬度输入框（若浮层已打开）
+        const latI = $('editLat'), lngI = $('editLng');
+        if (latI) { latI.value = lat.toFixed(7); lngI.value = lng.toFixed(7); }
+        // 点击地图会关闭 Leaflet popup：选点完成后重新打开浮层，坐标已回填，可直接保存
+        if (state.selMarker) state.selMarker.openPopup();
+        // (0,0) 占位站无蓝点无浮层：选点后直接落库定位
+        const stop = findSelected();
+        if (stop && !parseLatLng(stop.stopLat, stop.stopLon)) {
+            saveStopCoords(lat.toFixed(7), lng.toFixed(7));
+        }
+    }
+
+    // 占位站定位：不改名称/描述，直接写入坐标
+    async function saveStopCoords(lat, lng) {
+        const stop = findSelected();
+        if (!stop) return;
+        try {
+            const updated = await api(API.stop(stop.id), {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stopName: stop.stopName, lat: lat, lng: lng, stopDesc: stop.stopDesc || null })
+            });
+            const i = state.allStops.findIndex(s => s.id === stop.id);
+            if (i >= 0) state.allStops[i] = updated;
+            const j = state.stops.findIndex(s => s.id === stop.id);
+            if (j >= 0) state.stops[j] = updated;
+            syncRouteStops(stop.id, updated);
+            renderList();
+            clearPickMarker();
+            refreshSelMarker();
+            openStopTimePopup(updated); // 蓝点就位后弹出浮层，可继续维护
+            toast('站点已定位：' + updated.stopName);
+        } catch (err) { toast('定位保存失败：' + err.message, true); }
     }
 
     // ---------- 地图地名搜索（辅助选点定位，Nominatim WGS-84） ----------
@@ -1563,6 +1778,7 @@
     }
 
     // ---------- 时刻维护浮层（地图 popup，选中站点自动弹出） ----------
+    let popupTimeRows = [];  // 当前浮层里的时刻行（{row,u}），底部「保存」统一提交
     function el(tag, cls, text) {
         const e = document.createElement(tag);
         if (cls) e.className = cls;
@@ -1589,14 +1805,100 @@
         }
 
         const box = el('div', 'stop-time-popup');
-        box.appendChild(el('div', 'stp-title',
-            (scoped ? '到发时刻 · ' : '时刻维护 · ') + (stop.stopName || stop.stopId)));
+        // 标题行 = 前缀 + 站点名称（默认只读，✏️ 切换编辑态），底部「保存」统一提交
+        const title = el('div', 'stp-title');
+        title.appendChild(el('span', null, (scoped ? '到发时刻 · ' : '时刻维护 · ')));
+        const ninput = el('input');
+        ninput.type = 'text';
+        ninput.id = 'editName';
+        ninput.maxLength = 100;
+        ninput.value = stop.stopName || '';
+        ninput.placeholder = '(未命名)';
+        ninput.readOnly = true;
+        ninput.className = 'stp-name-input';
+        title.appendChild(ninput);
+        const nbtn = el('button', 'stp-photo-add', '✏️');
+        nbtn.type = 'button';
+        nbtn.title = '编辑站点名称';
+        nbtn.addEventListener('click', () => {
+            ninput.readOnly = !ninput.readOnly;
+            nbtn.textContent = ninput.readOnly ? '✏️' : '✓';
+            if (!ninput.readOnly) ninput.focus();
+            else ninput.blur();
+        });
+        title.appendChild(nbtn);
+        box.appendChild(title);
         if (!usage.length) {
             box.appendChild(el('div', 'stp-empty',
                 scoped ? '该班次未停靠此站点' : '暂无班次引用此站点（可在「线路描图」页为班次添加停站）'));
         }
+        // 时刻行登记表：底部统一保存时逐条比对提交（每次重建浮层时清空，须先于 forEach）
+        popupTimeRows = [];
         usage.forEach(u => box.appendChild(buildStopTimeBlock(u)));
+
+        // 经纬度行（可编辑；拖蓝点/地图选点回填，点底部保存生效）
+        const crow = el('div', 'stp-coord-row');
+        const mkCoord = (label, id, val) => {
+            const lab = el('label', 'stp-coord-field');
+            lab.appendChild(el('span', null, label));
+            const inp = el('input');
+            inp.type = 'number';
+            inp.id = id;
+            inp.step = '0.0000001';
+            if (label === '纬度') { inp.min = -90; inp.max = 90; } else { inp.min = -180; inp.max = 180; }
+            inp.value = parseFloat(val).toFixed(7);
+            lab.appendChild(inp);
+            return lab;
+        };
+        crow.appendChild(mkCoord('纬度', 'editLat', stop.stopLat));
+        crow.appendChild(mkCoord('经度', 'editLng', stop.stopLon));
+        const pick = el('button', 'stp-photo-add', '📍 选点');
+        pick.type = 'button';
+        pick.addEventListener('click', () => setPicking(!state.picking));
+        crow.appendChild(pick);
+        box.appendChild(crow);
+
+        // 照片维护区：与右侧编辑面板共享同一份 photoUrls，任何一处改动双端同步
+        const photoHead = el('div', 'stp-photo-head');
+        photoHead.appendChild(el('span', 'stp-name', '站点照片'));
+        const pbtn = el('button', 'stp-photo-add', '＋ 上传');
+        pbtn.type = 'button';
+        pbtn.addEventListener('click', () => photoFile.click()); // 复用隐藏 input 与上传/持久化流程
+        photoHead.appendChild(pbtn);
+        box.appendChild(photoHead);
+        const pgrid = el('div', 'photo-grid stp-photo-grid');
+        pgrid.id = 'popupPhotoGrid';
+        box.appendChild(pgrid);
+        pgrid.addEventListener('click', handlePhotoGridClick);
+
+        // 站点描述（非必填，默认折叠）
+        const dhead = el('div', 'desc-fold');
+        const dtext = el('span', null, '▸ 站点描述 ');
+        dhead.appendChild(dtext);
+        dhead.appendChild(el('span', 'desc-opt', '非必填'));
+        box.appendChild(dhead);
+        const dbody = el('div');
+        dbody.style.display = 'none';
+        const dta = el('textarea');
+        dta.id = 'editDesc'; dta.maxLength = 1000; dta.rows = 4;
+        dta.placeholder = '补充说明，如停靠位置/出入口';
+        dta.value = stop.stopDesc || '';
+        dbody.appendChild(dta);
+        box.appendChild(dbody);
+        dhead.addEventListener('click', () => {
+            const open = dbody.style.display === 'none';
+            dbody.style.display = open ? '' : 'none';
+            dtext.textContent = (open ? '▾' : '▸') + ' 站点描述 ';
+        });
+
+        // 统一保存（时刻 + 站点信息），置于浮层最底部
+        const sbtn = el('button', 'stp-save', '保存');
+        sbtn.type = 'button';
+        sbtn.addEventListener('click', saveStopEdits);
+        box.appendChild(sbtn);
+
         state.selMarker.bindPopup(box, { maxWidth: 340, minWidth: 270, closeButton: true }).openPopup();
+        renderStrip(pgrid, '暂无照片，点「＋ 上传」添加（可多选）');
     }
 
     function buildStopTimeBlock(u) {
@@ -1630,34 +1932,10 @@
             sel.appendChild(opt);
         });
         row.appendChild(sel);
-        const btn = el('button', 'u-save', '保存');
-        btn.addEventListener('click', () => saveStopTime(row, u));
-        row.appendChild(btn);
         block.appendChild(row);
+        // 不再放单条保存按钮：时刻改动由底部「保存」统一提交（popupTimeRows 登记）
+        popupTimeRows.push({ row, u });
         return block;
-    }
-
-    async function saveStopTime(row, u) {
-        const body = {
-            arrivalTime: row.querySelector('.u-arr').value,
-            departureTime: row.querySelector('.u-dep').value,
-            timepoint: row.querySelector('.u-tp').value
-        };
-        // time input 值固定 HH:MM，字典序即时间序
-        if (body.arrivalTime && body.departureTime && body.arrivalTime > body.departureTime) {
-            toast('到站时间不能晚于发车时间', true);
-            return;
-        }
-        try {
-            const updated = await api(API.stopTime(u.tripPk, u.stopSequence), {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            row.querySelector('.u-arr').value = (updated.arrivalTime || '').slice(0, 5);
-            row.querySelector('.u-dep').value = (updated.departureTime || '').slice(0, 5);
-            toast('已保存：' + (updated.tripId || '班次') + ' 第' + updated.stopSequence + '站 '
-                + (updated.arrivalTime || '—').slice(0, 5) + '（' + (updated.timepoint === 'EXACT' ? '精确' : '近似') + '）');
-        } catch (err) { toast('保存失败：' + err.message, true); }
     }
 
     // ---------- 工具 ----------

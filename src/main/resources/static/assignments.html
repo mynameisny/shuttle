@@ -231,10 +231,18 @@
             esc(nameFn(x)) + '</option>').join('');
     }
 
-    // 下拉选项富文本：车牌+车型座位 / 姓名+电话
+    // 下拉选项富文本：车牌｜品牌 车系 车型 · 车辆类别 · 座数 · 能源（用分隔符分段，段间留空更易扫读）
+    function vehicleBrand(v) {
+        return [v.brand, v.series, v.model].filter(Boolean).join(' ');
+    }
     function vehicleOpt(x) {
-        const sub = [x.vehicleType, x.seatCount != null ? x.seatCount + '座' : null].filter(Boolean).join(' · ');
-        return (x.plateNumber || ('车辆 ' + x.id)) + (sub ? ' ｜ ' + sub : '');
+        const segs = [
+            vehicleBrand(x),
+            x.vehicleType,
+            x.seatCount != null ? x.seatCount + '座' : null,
+            x.energyType
+        ].filter(Boolean);
+        return (x.plateNumber || ('车辆 ' + x.id)) + (segs.length ? ' ｜ ' + segs.join(' · ') : '');
     }
     function driverOpt(x) {
         return (x.name || ('司机 ' + x.id)) + (x.phone ? ' ｜ ' + x.phone : '');
@@ -289,7 +297,7 @@
             '<div class="ap-info"><div class="ap-label">' + label + '</div>' +
             '<div class="ap-value">' + (value || '<span class="ap-empty">未指定</span>') + '</div>' +
             '<div class="ap-sub">' + (sub ? esc(sub) : '&nbsp;') + '</div>' + '</div></div></div>';
-        const vSub = v ? [v.vehicleType, v.seatCount != null ? v.seatCount + '座' : null].filter(Boolean).join(' · ') : '';
+        const vSub = v ? [vehicleBrand(v), v.seatCount != null ? v.seatCount + '座' : null, v.energyType].filter(Boolean).join(' · ') : '';
         $('assignPreview').innerHTML =
             item('车辆', v ? esc(v.plateNumber) : '', vSub, vImg) +
             item('司机', d ? esc(d.name) : '', d && d.phone ? d.phone : '', dImg) +

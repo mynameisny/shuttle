@@ -310,16 +310,19 @@
         { key: 'plateNumber', label: '车牌号', required: true, cell: v =>
             '<td><div class="cell-stack"><a class="plate-cell plain-link" href="#" data-detail="' + v.id + '">' + esc(v.plateNumber) + '</a>' +
             '<span class="sub">ID ' + v.id + '</span></div></td>' },
-        { key: 'brand', label: '品牌 / 车系 / 款型', cell: v =>
-            '<td>' + (v.brand || v.series || v.model
-                ? '<div class="cell-stack"><span>' + esc(v.brand || '—') + (v.series ? ' ' + esc(v.series) : '') + '</span>' +
-                  '<span class="sub">' + esc(v.model || '—') + '</span></div>'
-                : '<span class="muted">未填写</span>') + '</td>' },
-        { key: 'vin', label: 'VIN / 发动机号', cell: v =>
-            '<td>' + (v.vin || v.engineNumber
-                ? '<div class="cell-stack"><span class="mono">' + esc(v.vin || '—') + '</span>' +
-                  '<span class="sub mono">' + esc(v.engineNumber || '—') + '</span></div>'
-                : '<span class="muted">—</span>') + '</td>' },
+        { key: 'brand', label: '品牌 / 车系 / 款型', cell: v => {
+            const top = [v.brand, v.series].filter(Boolean).join(' ');
+            const lines = [];
+            if (top) lines.push('<span>' + esc(top) + '</span>');
+            if (v.model) lines.push('<span class="sub">' + esc(v.model) + '</span>');
+            return '<td>' + (lines.length ? '<div class="cell-stack">' + lines.join('') + '</div>' : '<span class="muted">未填写</span>') + '</td>';
+        } },
+        { key: 'vin', label: 'VIN / 发动机号', cell: v => {
+            const lines = [];
+            if (v.vin) lines.push('<span class="mono">' + esc(v.vin) + '</span>');
+            if (v.engineNumber) lines.push('<span class="sub mono">' + esc(v.engineNumber) + '</span>');
+            return '<td>' + (lines.length ? '<div class="cell-stack">' + lines.join('') + '</div>' : '<span class="muted">—</span>') + '</td>';
+        } },
         { key: 'vehicleType', label: '车型', cell: v => '<td>' + typePill(v.vehicleType) + '</td>' },
         { key: 'seatCount', label: '座位', cell: v => '<td class="mono">' + (v.seatCount != null ? v.seatCount : '<span class="muted">—</span>') + '</td>' },
         { key: 'energyType', label: '能源', cell: v => '<td>' + (v.energyType ? esc(v.energyType) : '<span class="muted">—</span>') + '</td>' },

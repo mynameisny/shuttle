@@ -34,6 +34,48 @@
             width: 14px; height: 14px; stroke: currentColor; fill: none;
             stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
         }
+        /* 头像上传与显示（与 drivers.html 同一套） */
+        .avatar-upload { display: flex; align-items: center; gap: 10px; }
+        .avatar-box {
+            width: 56px; height: 56px; border-radius: 50%;
+            border: 1px solid var(--c-border); background: #f7f8fa;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; flex-shrink: 0;
+            color: var(--c-text-3); font-size: 12px;
+        }
+        .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-img {
+            width: 26px; height: 26px; border-radius: 50%;
+            overflow: hidden; flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .avatar-img img { width: 100%; height: 100%; object-fit: cover; }
+        /* 有头像时：头像右下角叠性别角标 */
+        .avatar-wrap { position: relative; display: inline-flex; flex-shrink: 0; }
+        .gender-badge {
+            position: absolute;
+            right: -3px; bottom: -3px;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+        .gender-badge svg {
+            width: 8px; height: 8px;
+            fill: none; stroke: currentColor;
+            stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+        }
+        /* 头像悬浮大图预览浮层 */
+        .avatar-float {
+            position: fixed;
+            z-index: 300;
+            pointer-events: none;
+            width: 120px; height: 120px;
+            padding: 3px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(16, 24, 40, .22);
+        }
+        .avatar-float img { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; }
     </style>
 </head>
 <body>
@@ -82,6 +124,16 @@
 <div id="modal" class="modal-mask" style="display:none">
     <div class="modal">
         <h3 id="modalTitle">新增车长</h3>
+        <div class="field">
+            <label>头像</label>
+            <div class="avatar-upload">
+                <div class="avatar-box" id="avatarBox">无头像</div>
+                <button type="button" class="btn btn-sm" id="btnAvatar">上传头像</button>
+                <button type="button" class="btn btn-sm" id="btnAvatarClear" style="display:none">移除</button>
+                <input type="file" id="avatarFile" accept="image/*" style="display:none">
+                <input type="hidden" id="fAvatar">
+            </div>
+        </div>
         <div class="field-row">
             <div class="field">
                 <label>姓名<span class="req">*</span></label>
@@ -111,6 +163,7 @@
     </div>
 </div>
 
+<div id="avatarFloat" class="avatar-float" style="display:none"></div>
 <div id="toast"></div>
 <script src="js/map-common.js"></script>
 <script src="js/layout.js"></script>
@@ -129,6 +182,22 @@
         if (g === '男') return '<span class="gender-ico gender-m" title="男">' + GENDER_SVG.male + '</span>';
         if (g === '女') return '<span class="gender-ico gender-f" title="女">' + GENDER_SVG.female + '</span>';
         return '<span class="gender-ico gender-none" title="未填写">—</span>';
+    }
+
+    function genderBadge(g) {
+        if (g === '男') return '<span class="gender-badge gender-m" title="男">' + GENDER_SVG.male + '</span>';
+        if (g === '女') return '<span class="gender-badge gender-f" title="女">' + GENDER_SVG.female + '</span>';
+        return '';
+    }
+
+    function captainAvatar(c) {
+        if (c.avatarUrl) {
+            return '<span class="avatar-wrap">' +
+                '<span class="avatar-img"><img src="' + esc(c.avatarUrl) + '" alt=""></span>' +
+                genderBadge(c.gender) +
+                '</span>';
+        }
+        return genderIcon(c.gender);
     }
 
     function maskText(s) {
@@ -184,7 +253,7 @@
         }
         tbody.innerHTML = list.map(c =>
             '<tr data-id="' + c.id + '">' +
-            '<td class="strong">' + genderIcon(c.gender) + esc(c.name || '—') + '</td>' +
+            '<td class="strong">' + captainAvatar(c) + esc(c.name || '—') + '</td>' +
             '<td class="mono">' + (c.phone ? esc(c.phone) : '<span class="muted">—</span>') + '</td>' +
             '<td>' + maskedCell(c.idCardNumber) + '</td>' +
             '<td class="col-actions">' +
@@ -204,8 +273,21 @@
         $('fGender').value = c ? (c.gender || '') : '';
         $('fPhone').value = c ? (c.phone || '') : '';
         $('fIdCard').value = c ? (c.idCardNumber || '') : '';
+        renderAvatarBox(c ? c.avatarUrl : null);
         $('modal').style.display = '';
         $('fName').focus();
+    }
+
+    function renderAvatarBox(url) {
+        $('fAvatar').value = url || '';
+        const box = $('avatarBox');
+        if (url) {
+            box.innerHTML = '<img src="' + esc(url) + '" alt="">';
+            $('btnAvatarClear').style.display = '';
+        } else {
+            box.textContent = '无头像';
+            $('btnAvatarClear').style.display = 'none';
+        }
     }
 
     function closeModal() { $('modal').style.display = 'none'; }
@@ -217,7 +299,7 @@
         const idCard = $('fIdCard').value.trim() || null;
         if (!name) { toast('姓名不能为空', true); return; }
         if (idCard && !/^\d{17}[\dXx]$/.test(idCard)) { toast('身份证号格式不正确（应为 18 位，末位可为 X）', true); return; }
-        const body = { name: name, phone: phone, gender: gender, idCardNumber: idCard };
+        const body = { name: name, phone: phone, gender: gender, idCardNumber: idCard, avatarUrl: $('fAvatar').value || null };
         try {
             if (editingId) {
                 await api('/api/captains/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -254,8 +336,51 @@
     $('btnAdd').addEventListener('click', () => openModal(null));
     $('btnCancel').addEventListener('click', closeModal);
     $('btnSave').addEventListener('click', save);
+    $('btnAvatar').addEventListener('click', () => $('avatarFile').click());
+    $('avatarFile').addEventListener('change', async () => {
+        const file = $('avatarFile').files[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('dir', 'avatars');
+        try {
+            const res = await api('/api/upload', { method: 'POST', body: fd });
+            renderAvatarBox(res.url);
+            toast('头像已上传');
+        } catch (err) { toast('上传失败：' + err.message, true); }
+    });
+    $('btnAvatarClear').addEventListener('click', () => renderAvatarBox(null));
     $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('modal').style.display !== 'none') closeModal(); });
+
+    // 头像悬浮大图预览（事件委托，悬停 400ms 后才显示，避免划过误触）
+    const floatEl = $('avatarFloat');
+    let showTimer = null, hideTimer = null;
+    function hideFloat() {
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => { floatEl.style.display = 'none'; }, 120);
+    }
+    $('tbody').addEventListener('mouseover', e => {
+        const img = e.target.closest('.avatar-img img');
+        if (!img) return;
+        clearTimeout(hideTimer);
+        clearTimeout(showTimer);
+        const src = img.getAttribute('src');
+        const r = img.getBoundingClientRect();
+        showTimer = setTimeout(() => {
+            floatEl.innerHTML = '<img src="' + esc(src) + '" alt="">';
+            let left = r.right + 8, top = r.top + r.height / 2 - 60;
+            if (left + 126 > window.innerWidth) left = r.left - 128;
+            floatEl.style.left = left + 'px';
+            floatEl.style.top = top + 'px';
+            floatEl.style.display = '';
+        }, 400);
+    });
+    $('tbody').addEventListener('mouseout', e => {
+        if (!e.target.closest('.avatar-img img')) return;
+        clearTimeout(showTimer);
+        hideFloat();
+    });
 
     load();
 </script>

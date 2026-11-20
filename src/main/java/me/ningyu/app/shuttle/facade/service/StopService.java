@@ -70,6 +70,9 @@ public class StopService
         stop.setStopName(request.getStopName().trim());
         stop.setStopLat(request.getLat());
         stop.setStopLon(request.getLng());
+        // 描述非必填：空串/null 视为清除
+        stop.setStopDesc(request.getStopDesc() != null && !request.getStopDesc().isBlank()
+                ? request.getStopDesc().trim() : null);
         return stopRepository.save(stop);
     }
 
