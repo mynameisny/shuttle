@@ -88,11 +88,7 @@ const MENU = [
     {
         group: '乘客服务',
         items: [
-            {
-                key: 'passenger', name: '班车时刻', icon: 'search', children: [
-                    { key: 'passenger.schedule', name: '时刻表', href: 'schedule.html', ready: true }
-                ]
-            }
+            { key: 'passenger.schedule', name: '班车时刻', icon: 'search', href: 'schedule.html', ready: true }
         ]
     },
     {
@@ -155,7 +151,7 @@ function buildSidebar(mount, activeKey) {
 
     let html = '' +
         '<a class="sb-brand" href="dashboard.html">' +
-        '  <span class="logo">班</span>' +
+        '  <img class="logo" src="/img/placeholder.png" alt="班车调度管理">' +
         '  <span class="brand-text"><span class="brand-name">班车调度管理</span>' +
         '  <span class="brand-sub">Shuttle Ops</span></span>' +
         '</a>' +

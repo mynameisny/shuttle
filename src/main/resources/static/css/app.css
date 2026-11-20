@@ -95,11 +95,7 @@ body {
 }
 .sb-brand .logo {
     width: 28px; height: 28px; flex-shrink: 0;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #16c2ad, #0f9f90);
-    color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 700;
+    object-fit: contain;
 }
 .sb-brand .brand-text { display: flex; flex-direction: column; min-width: 0; }
 .sb-brand .brand-name { font-size: 13.5px; font-weight: 650; letter-spacing: .2px; white-space: nowrap; }
