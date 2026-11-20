@@ -6,6 +6,7 @@
     <title>班车时刻 · 班车调度管理</title>
     <meta name="nav" content="passenger.schedule">
     <meta name="desc" content="查询某天某线路的班车时刻">
+    <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="css/app.css">
     <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
     <style>
@@ -20,6 +21,18 @@
         .trip-card {
             border: 1px solid var(--c-border, #eef1f4); border-radius: var(--radius-md, 10px);
             padding: 14px 16px; margin-bottom: 10px;
+            cursor: pointer; transition: border-color .15s, box-shadow .15s;
+        }
+        .trip-card:hover { border-color: var(--c-primary, #1971c2); }
+        .trip-card.selected { border-color: var(--c-primary, #1971c2); box-shadow: 0 0 0 3px rgba(25,113,194,.12); }
+        .tc-span { font-size: 20px; font-weight: 600; margin-top: 2px; }
+        /* 班次横向排列：去程左、返程右，平均分 */
+        .trip-row { display: flex; gap: 12px; align-items: stretch; }
+        .trip-row .trip-card { flex: 1; min-width: 0; margin-bottom: 0; }
+        /* 描线地图 */
+        #scheduleMap {
+            height: 340px; margin-top: 16px; border-radius: 10px; overflow: hidden;
+            border: 1px solid var(--c-border, #eef1f4);
         }
         .trip-card .tc-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .trip-card .tc-name { font-weight: 600; font-size: 14px; }
@@ -52,6 +65,9 @@
         .stop-dot-first { background: var(--c-info, #1971c2); }
         .stop-dot-last { background: #e8590c; }
         .stop-name { font-size: 13px; flex: 1; }
+        .stop-clickable { cursor: pointer; border-radius: 6px; }
+        .stop-clickable:hover { background: #f6f8fa; }
+        .stop-clickable:hover .stop-name { color: #1971c2; }
         .stop-tag { font-size: 11px; padding: 1px 7px; border-radius: 8px; flex-shrink: 0; }
         .stop-tag-first { background: #e7f1ff; color: #1971c2; }
         .stop-tag-last { background: #fff0e0; color: #e8590c; }
@@ -149,7 +165,6 @@
             <div class="page-head">
                 <div>
                     <div class="crumbs" data-auto-crumbs></div>
-                    <h1 class="page-title">班车时刻</h1>
                 </div>
             </div>
 
@@ -181,6 +196,7 @@
                 <div class="card-body">
                     <div class="result-head" id="resultHead"></div>
                     <div id="result"></div>
+                    <div id="scheduleMap" style="display:none"></div>
                 </div>
             </div>
 
@@ -195,6 +211,7 @@
     <button class="lb-btn lb-next" id="lbNext" type="button">›</button>
     <button class="lb-btn lb-close" id="lbClose" type="button">×</button>
 </div>
+<script src="vendor/leaflet/leaflet.js"></script>
 <script src="js/map-common.js"></script>
 <script src="js/layout.js"></script>
 <script>
@@ -202,6 +219,10 @@
 
     let routes = [];
     let selectedRoutePk = null;
+    let lastTrips = [];
+    let lastDate = '';
+    let lastAssignment = null;
+    let selectedTripId = null;
 
     function today() {
         const d = new Date();
@@ -268,7 +289,11 @@
                 api('/api/trips/active-on/' + date + '?routePk=' + routePk),
                 api('/api/assignments/route/' + routePk).catch(() => null)
             ]);
-            render(routePk, date, trips || [], assignment);
+            lastTrips = trips || [];
+            lastDate = date;
+            lastAssignment = assignment;
+            selectedTripId = null; // 每次查询重置班次选中
+            render(routePk, date, lastTrips, assignment);
         } catch (err) { toast('查询失败：' + err.message, true); }
     }
 
@@ -290,7 +315,9 @@
             $('resultCard').style.display = '';
             return;
         }
-        box.innerHTML = renderCrew(assignment) + trips.map(t => {
+        // 班次按方向排序：去程(0)在前、返程(1)在后，横向平均排布
+        const sorted = trips.slice().sort((a, b) => (a.directionId || 0) - (b.directionId || 0));
+        box.innerHTML = renderCrew(assignment) + '<div class="trip-row">' + sorted.map(t => {
             // 后端 stopTimes 未排序（Trip.stopTimes 无 @OrderBy，JPA 按主键 id 返回），这里按 stop_sequence 排序
             const st = (t.stopTimes || []).slice().sort((a, b) => (a.stopSequence || 0) - (b.stopSequence || 0));
             const dir = t.directionId === 1;
@@ -299,6 +326,12 @@
                 : '<span class="dir-tag dir-out">去程</span>';
             const stopRows = st.map((s, idx) => {
                 const name = s.stop ? s.stop.stopName : '未命名站';
+                const lat = s.stop ? s.stop.stopLat : null;
+                const lng = s.stop ? s.stop.stopLon : null;
+                const hasCoord = parseLatLng(lat, lng) != null;
+                const coordAttr = hasCoord
+                    ? ' data-lat="' + lat + '" data-lng="' + lng + '" data-name="' + esc(name) + '"'
+                    : '';
                 const isFirst = idx === 0;
                 const isLast = idx === st.length - 1;
                 const dotCls = isFirst ? ' stop-dot-first' : (isLast ? ' stop-dot-last' : '');
@@ -319,14 +352,15 @@
                 } else {
                     times = '<span class="stop-times"><span class="st-main mono">' + fmt(s.arrivalTime || s.departureTime) + '</span></span>';
                 }
-                return '<div class="stop-row">' +
+                return '<div class="stop-row' + (hasCoord ? ' stop-clickable' : '') + '"' + coordAttr + '>' +
                     times +
                     '<span class="stop-dot' + dotCls + '"></span>' +
                     '<span class="stop-name">' + esc(name) + '</span>' +
                     approxTag +
                     tag + '</div>';
             }).join('');
-            return '<div class="trip-card">' +
+            const isSelected = selectedTripId === t.tripId;
+            return '<div class="trip-card' + (isSelected ? ' selected' : '') + '" data-trip="' + esc(t.tripId) + '">' +
                 '<div class="tc-head">' + dirTag +
                 '<span class="tc-name">' + esc(t.tripShortName || t.tripId) + '</span>' +
                 '<span class="tc-hs">' + (t.tripHeadsign ? '→ ' + esc(t.tripHeadsign) : '') + '</span>' +
@@ -334,8 +368,74 @@
                 '</div>' +
                 '<div class="stops-timeline">' + stopRows + '</div>' +
                 '</div>';
-        }).join('');
+        }).join('') + '</div>';
         $('resultCard').style.display = '';
+        // 地图：默认隐藏，选中班次后才显示该班次的描线
+        const sel = selectedTripId ? sorted.find(t => t.tripId === selectedTripId) : null;
+        if (sel) drawMap([sel]);
+        else clearMap();
+    }
+
+    // ---------- 描线地图 ----------
+    let schedMap = null;
+    let schedShapeLayers = [];
+
+    async function drawMap(trips) {
+        const el = $('scheduleMap');
+        if (!el) return;
+        el.style.display = '';
+        if (!schedMap) {
+            schedMap = createMap('scheduleMap');
+        }
+        const map = schedMap.map;
+        // 清除上一轮的轨迹线
+        schedShapeLayers.forEach(l => map.removeLayer(l));
+        schedShapeLayers = [];
+
+        const bounds = [];
+        for (const t of trips) {
+            if (!t.shapeId) continue;
+            try {
+                const points = await api('/api/shapes/' + encodeURIComponent(t.shapeId));
+                if (!points || !points.length) continue;
+                const latlngs = points
+                    .map(p => parseLatLng(p.shapePtLat, p.shapePtLon))
+                    .filter(Boolean);
+                if (latlngs.length < 2) continue;
+                const color = t.directionId === 1 ? '#7048e8' : '#1971c2'; // 返程紫、去程蓝
+                const line = L.polyline(latlngs, { color, weight: 4, opacity: .85 }).addTo(map);
+                schedShapeLayers.push(line);
+                bounds.push(latlngs[0], latlngs[latlngs.length - 1]);
+            } catch (e) { /* 无轨迹忽略 */ }
+        }
+        if (bounds.length) map.fitBounds(bounds, { padding: [24, 24] });
+        // 容器刚从 display:none 变为可见，需重新计算尺寸
+        setTimeout(() => map.invalidateSize(), 100);
+    }
+
+    function clearMap() {
+        const el = $('scheduleMap');
+        if (!el) return;
+        el.style.display = 'none';
+        if (schedMap) {
+            schedShapeLayers.forEach(l => schedMap.map.removeLayer(l));
+            schedShapeLayers = [];
+            if (focusMarker) { schedMap.map.removeLayer(focusMarker); focusMarker = null; }
+        }
+    }
+
+    // ---------- 站点定位：点击站点 → 地图跳转 + 悬浮显示站名/坐标 ----------
+    let focusMarker = null;
+    function focusStop(lat, lng, name) {
+        const ll = parseLatLng(lat, lng);
+        if (!ll || !schedMap) return;
+        const map = schedMap.map;
+        map.flyTo(ll, Math.max(map.getZoom(), 14));
+        if (focusMarker) map.removeLayer(focusMarker);
+        focusMarker = L.marker(ll).addTo(map)
+            .bindPopup('<b>' + esc(name || '站点') + '</b><br><span class="mono">' +
+                ll[0].toFixed(5) + ', ' + ll[1].toFixed(5) + '</span>')
+            .openPopup();
     }
 
     function avatarHtml(url, name) {
@@ -416,6 +516,18 @@
         if (btn) {
             const photos = (btn.dataset.photos || '').split(',').map(s => s.trim()).filter(Boolean);
             openLightbox(photos, 0);
+            return;
+        }
+        const row = e.target.closest('.stop-row');
+        if (row && row.dataset.lat) {
+            focusStop(row.dataset.lat, row.dataset.lng, row.dataset.name);
+            return;
+        }
+        const card = e.target.closest('.trip-card[data-trip]');
+        if (card) {
+            const tripId = card.dataset.trip;
+            selectedTripId = (selectedTripId === tripId) ? null : tripId;
+            render(selectedRoutePk, lastDate, lastTrips, lastAssignment);
         }
     });
 
