@@ -131,6 +131,23 @@
             background: #f1f3f5; color: var(--c-text-3, #adb5bd);
             font-size: 16px; font-weight: 600; cursor: default;
         }
+        /* 头像右下角性别角标：男=蓝(箭头)、女=粉(圆圈) */
+        .ci-avatar-wrap { position: relative; display: inline-flex; flex-shrink: 0; }
+        .ci-gender-badge {
+            position: absolute;
+            right: -2px; bottom: -2px;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .ci-gender-badge svg {
+            width: 10px; height: 10px;
+            fill: none; stroke: currentColor;
+            stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .ci-gender-m { background: var(--c-info-soft, #e7f1ff); color: var(--c-info, #1971c2); }
+        .ci-gender-f { background: #fdeef4; color: #d63384; }
         .ci-bus {
             width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0;
             object-fit: contain; cursor: pointer; display: block;
@@ -326,11 +343,12 @@
                 : '<span class="dir-tag dir-out">去程</span>';
             const stopRows = st.map((s, idx) => {
                 const name = s.stop ? s.stop.stopName : '未命名站';
+                const desc = s.stop ? s.stop.stopDesc : '';
                 const lat = s.stop ? s.stop.stopLat : null;
                 const lng = s.stop ? s.stop.stopLon : null;
                 const hasCoord = parseLatLng(lat, lng) != null;
                 const coordAttr = hasCoord
-                    ? ' data-lat="' + lat + '" data-lng="' + lng + '" data-name="' + esc(name) + '"'
+                    ? ' data-lat="' + lat + '" data-lng="' + lng + '" data-name="' + esc(name) + '" data-desc="' + esc(desc) + '"'
                     : '';
                 const isFirst = idx === 0;
                 const isLast = idx === st.length - 1;
@@ -426,23 +444,39 @@
 
     // ---------- 站点定位：点击站点 → 地图跳转 + 悬浮显示站名/坐标 ----------
     let focusMarker = null;
-    function focusStop(lat, lng, name) {
+    function focusStop(lat, lng, name, desc) {
         const ll = parseLatLng(lat, lng);
         if (!ll || !schedMap) return;
         const map = schedMap.map;
         map.flyTo(ll, Math.max(map.getZoom(), 14));
         if (focusMarker) map.removeLayer(focusMarker);
-        focusMarker = L.marker(ll).addTo(map)
-            .bindPopup('<b>' + esc(name || '站点') + '</b><br><span class="mono">' +
-                ll[0].toFixed(5) + ', ' + ll[1].toFixed(5) + '</span>')
-            .openPopup();
+        let html = '<b>' + esc(name || '站点') + '</b><br><span class="mono">' +
+            ll[0].toFixed(5) + ', ' + ll[1].toFixed(5) + '</span>';
+        if (desc) html += '<br><span style="color:var(--c-text-3)">' + esc(desc) + '</span>';
+        focusMarker = L.marker(ll).addTo(map).bindPopup(html).openPopup();
     }
 
-    function avatarHtml(url, name) {
+    const GENDER_SVG = {
+        male: '<svg viewBox="0 0 24 24"><circle cx="10" cy="14" r="5.5"/><path d="M14.5 9.5L19 5M19 5h-4M19 5v4"/></svg>',
+        female: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5.5"/><path d="M12 13.5V20M9 17h6"/></svg>'
+    };
+
+    function genderBadge(g) {
+        if (g === '男') return '<span class="ci-gender-badge ci-gender-m" title="男">' + GENDER_SVG.male + '</span>';
+        if (g === '女') return '<span class="ci-gender-badge ci-gender-f" title="女">' + GENDER_SVG.female + '</span>';
+        return '';
+    }
+
+    function avatarHtml(url, name, gender) {
+        const badge = genderBadge(gender);
         if (url) {
-            return '<img class="ci-avatar" src="' + esc(url) + '" alt="' + esc(name || '') + '" data-full="' + esc(url) + '">';
+            return '<span class="ci-avatar-wrap">' +
+                '<img class="ci-avatar" src="' + esc(url) + '" alt="' + esc(name || '') + '" data-full="' + esc(url) + '">' +
+                badge + '</span>';
         }
-        return '<img class="ci-avatar" src="/img/user.png" alt="' + esc(name || '') + '" title="未设置头像">';
+        return '<span class="ci-avatar-wrap">' +
+            '<img class="ci-avatar" src="/img/user.png" alt="' + esc(name || '') + '" title="未设置头像">' +
+            badge + '</span>';
     }
 
     function vehicleThumb(a) {
@@ -462,12 +496,12 @@
             (sub ? '<div class="ci-sub">' + esc(sub) + '</div>' : '') + '</div></div>' +
             '</div>' +
             '<div class="crew-item crew-driver"><div class="ci-label">司机</div>' +
-            '<div class="ci-head">' + avatarHtml(a.driverAvatar, a.driverName) +
+            '<div class="ci-head">' + avatarHtml(a.driverAvatar, a.driverName, a.driverGender) +
             '<div class="ci-info"><div class="ci-value">' + esc(a.driverName || '—') + '</div>' +
             (a.driverPhone ? '<div class="ci-sub">' + esc(a.driverPhone) + '</div>' : '') + '</div></div>' +
             '</div>' +
             '<div class="crew-item crew-captain"><div class="ci-label">车长</div>' +
-            '<div class="ci-head">' + avatarHtml(a.captainAvatar, a.captainName) +
+            '<div class="ci-head">' + avatarHtml(a.captainAvatar, a.captainName, a.captainGender) +
             '<div class="ci-info"><div class="ci-value">' + (a.captainName ? esc(a.captainName) : '<span class="crew-empty">未配置</span>') + '</div>' +
             (a.captainPhone ? '<div class="ci-sub">' + esc(a.captainPhone) + '</div>' : '') + '</div></div>' +
             '</div>' +
@@ -495,6 +529,8 @@
     function closeLightbox() { $('lightbox').style.display = 'none'; }
 
     $('btnQuery').addEventListener('click', query);
+    // 切换日期后自动按新日期重新查询（已选线路时）；未选线路则等选线时再查
+    $('fDate').addEventListener('change', () => { if (selectedRoutePk) query(); });
     $('routeSelectBtn').addEventListener('click', togglePanel);
     document.addEventListener('click', e => {
         const sel = $('routeSelect');
@@ -520,7 +556,7 @@
         }
         const row = e.target.closest('.stop-row');
         if (row && row.dataset.lat) {
-            focusStop(row.dataset.lat, row.dataset.lng, row.dataset.name);
+            focusStop(row.dataset.lat, row.dataset.lng, row.dataset.name, row.dataset.desc);
             return;
         }
         const card = e.target.closest('.trip-card[data-trip]');

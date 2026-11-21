@@ -207,10 +207,12 @@ public class TripAssignmentService
                 .vehiclePhotos(v != null ? v.getPhotos() : null)
                 .driverId(d != null ? d.getId() : null)
                 .driverName(d != null ? d.getName() : null)
+                .driverGender(d != null ? d.getGender() : null)
                 .driverPhone(d != null ? d.getPhone() : null)
                 .driverAvatar(d != null ? d.getAvatarUrl() : null)
                 .captainId(c != null ? c.getId() : null)
                 .captainName(c != null ? c.getName() : null)
+                .captainGender(c != null ? c.getGender() : null)
                 .captainPhone(c != null ? c.getPhone() : null)
                 .captainAvatar(c != null ? c.getAvatarUrl() : null)
                 .build();

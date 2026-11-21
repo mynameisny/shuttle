@@ -29,10 +29,12 @@ public class TripAssignmentView
     private String vehiclePhotos;
     private Long driverId;
     private String driverName;
+    private String driverGender;
     private String driverPhone;
     private String driverAvatar;
     private Long captainId;
     private String captainName;
+    private String captainGender;
     private String captainPhone;
     private String captainAvatar;
 }
