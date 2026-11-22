@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import me.ningyu.app.shuttle.facade.service.StopEventService;
 import me.ningyu.app.shuttle.model.fleet.ReportStopEventRequest;
 import me.ningyu.app.shuttle.model.fleet.StopEventView;
+import me.ningyu.app.shuttle.model.fleet.TripAnalysisView;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -40,6 +41,18 @@ public class StopEventController
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate eventDate)
     {
         return ResponseEntity.ok(stopEventService.list(tripId, eventDate));
+    }
+
+    @GetMapping("/analysis")
+    @Operation(summary = "班次运营分析", description = "某班次在一段日期内的各运营日站点计划/实际到发明细与逐日准时率统计（±3 分钟为准时阈值，非运营日自动剔除）")
+    public ResponseEntity<TripAnalysisView> analyze(
+            @Parameter(description = "班次 trip_id") @RequestParam String tripId,
+            @Parameter(description = "开始日期（含）") @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @Parameter(description = "结束日期（含）") @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate)
+    {
+        return ResponseEntity.ok(stopEventService.analyze(tripId, startDate, endDate));
     }
 
     @PostMapping

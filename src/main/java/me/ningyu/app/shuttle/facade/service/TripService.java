@@ -393,4 +393,16 @@ public class TripService
                 .filter(t -> calendarService.isServiceActive(t.getServiceId(), date))
                 .toList();
     }
+
+    /**
+     * 某线路的全部班次（不按日期过滤），供运营分析页班次下拉使用。
+     * 班车「一车一线」场景下线路班次固定（去程 + 返程），与运营日无关。
+     */
+    @Nonnull
+    public List<Trip> getTripsByRoute(Long routePk)
+    {
+        return routePk != null
+                ? tripRepository.findByRouteId(routePk)
+                : tripRepository.findAll();
+    }
 }

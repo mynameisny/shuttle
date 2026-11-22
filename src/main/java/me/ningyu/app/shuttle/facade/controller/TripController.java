@@ -110,6 +110,13 @@ public class TripController
         return ResponseEntity.ok(tripService.getTripsActiveOn(date, routePk));
     }
 
+    @GetMapping("/by-route/{routePk}")
+    @Operation(summary = "查询某线路的全部班次", description = "返回某线路下的全部班次（不按日期过滤），供运营分析页班次下拉使用")
+    public ResponseEntity<List<Trip>> getByRoute(@PathVariable Long routePk)
+    {
+        return ResponseEntity.ok(tripService.getTripsByRoute(routePk));
+    }
+
     // ---------- 班次的形状（1:1 单例子资源） ----------
 
     @GetMapping("/{id}/shape")

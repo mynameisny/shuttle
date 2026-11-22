@@ -88,7 +88,8 @@ const MENU = [
     {
         group: '乘客服务',
         items: [
-            { key: 'passenger.schedule', name: '班车时刻', icon: 'search', href: 'schedule.html', ready: true }
+            { key: 'passenger.schedule', name: '班车时刻', icon: 'search', href: 'schedule.html', ready: true },
+            { key: 'passenger.analysis', name: '运营分析', icon: 'activity', href: 'analysis.html', ready: true }
         ]
     },
     {

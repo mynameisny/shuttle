@@ -32,6 +32,12 @@ public interface StopEventRepository extends JpaRepository<StopEvent, Long>
     List<StopEvent> findByTripTripIdAndEventDateOrderByStopSequenceAsc(String tripId, LocalDate eventDate);
 
     /**
+     * 某班次在某日期区间内的到发记录（按日期正序、站序正序）。
+     */
+    List<StopEvent> findByTripTripIdAndEventDateBetweenOrderByEventDateAscStopSequenceAsc(
+            String tripId, LocalDate startDate, LocalDate endDate);
+
+    /**
      * 定位唯一记录：班次 + 日期 + 站序（用于上报 upsert）。
      */
     Optional<StopEvent> findByTripTripIdAndEventDateAndStopSequence(String tripId, LocalDate eventDate, Integer stopSequence);

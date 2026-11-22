@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运营分析 · 班车调度管理</title>
+    <meta name="nav" content="passenger.analysis">
+    <meta name="desc" content="某线路某班次在一段日期内各站点的实际到发与逐日准时率">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .mono { font-variant-numeric: tabular-nums; }
+        /* 左右布局 */
+        .analysis-layout { display: flex; gap: 16px; margin-top: 16px; align-items: flex-start; }
+        .analysis-left { flex: 2; min-width: 0; }
+        .analysis-right { flex: 1; min-width: 300px; position: sticky; top: 16px; }
+        /* 方向角标 */
+        .dir-tag {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 20px; height: 18px; padding: 0 5px; border-radius: 4px;
+            font-size: 11px; margin-left: 6px; flex-shrink: 0; vertical-align: middle;
+        }
+        .dir-out { background: var(--c-info-soft, #e7f1ff); color: var(--c-info, #1971c2); }
+        .dir-in { background: #f3ecff; color: #7048e8; }
+        /* 日期范围分隔 */
+        .range-sep { color: var(--c-text-3, #adb5bd); font-size: 13px; align-self: flex-end; margin-bottom: 8px; }
+        /* 偏差徽章 */
+        .delay-badge {
+            display: inline-block; padding: 1px 6px; border-radius: 9px; font-size: 10.5px;
+            font-variant-numeric: tabular-nums; margin-left: 2px;
+        }
+        .delay-ok { background: #e9faf0; color: #2b8a3e; }
+        .delay-late { background: #fff0e0; color: #e8590c; }
+        .delay-early { background: #e7f1ff; color: #1971c2; }
+        .delay-none { background: #f1f3f5; color: var(--c-text-3, #adb5bd); }
+        /* 按天矩阵表格 */
+        .tbl.day-matrix th, .tbl.day-matrix td { text-align: center; }
+        .tbl.day-matrix th.day-col { padding: 6px 8px; }
+        .day-head { display: block; font-size: 11px; font-weight: 600; color: var(--c-text-1, #212529); }
+        .day-head .dh-week { color: var(--c-text-3, #adb5bd); font-weight: 400; margin-left: 2px; }
+        .dc-line { display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; padding: 1px 0; }
+        .dc-line .dc-label { color: var(--c-text-3, #adb5bd); font-size: 10.5px; }
+        .dc-line .dc-time { font-size: 12px; }
+        /* 报表卡片 */
+        .chart-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+        .chart-legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--c-text-2, #495057); margin-bottom: 10px; flex-wrap: wrap; }
+        .chart-legend .lg-item { display: inline-flex; align-items: center; gap: 5px; }
+        .chart-legend .lg-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+        .chart-note { margin-top: 8px; font-size: 11.5px; color: var(--c-text-3, #adb5bd); }
+        .no-data { padding: 40px 0; text-align: center; color: var(--c-text-3, #adb5bd); }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body" style="display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap">
+                    <div class="field" style="margin:0">
+                        <label>开始日期<span class="req">*</span></label>
+                        <input type="date" class="input" id="fDateStart" style="width:150px">
+                    </div>
+                    <span class="range-sep">至</span>
+                    <div class="field" style="margin:0">
+                        <label>结束日期<span class="req">*</span></label>
+                        <input type="date" class="input" id="fDateEnd" style="width:150px">
+                    </div>
+                    <div class="field" style="margin:0; width:240px">
+                        <label>线路<span class="req">*</span></label>
+                        <select class="select" id="fRoute" style="width:100%">
+                            <option value="">请选择线路</option>
+                        </select>
+                    </div>
+                    <div class="field" style="margin:0; width:240px">
+                        <label>班次<span class="req">*</span></label>
+                        <select class="select" id="fTrip" style="width:100%">
+                            <option value="">请选择班次</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="btnQuery" style="margin-bottom:2px">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        分析
+                    </button>
+                </div>
+            </div>
+
+            <div class="analysis-layout" id="resultWrap" style="display:none">
+                <div class="analysis-left">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="result-head" id="resultHead" style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap"></div>
+                            <div class="table-wrap">
+                                <table class="tbl day-matrix">
+                                    <thead id="thead"></thead>
+                                    <tbody id="tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="analysis-right">
+                    <div class="card">
+                        <div class="card-body" id="reportBody"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    let routes = [];
+
+    function today() {
+        const d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function addDays(dateStr, delta) {
+        const d = new Date(dateStr + 'T00:00:00');
+        d.setDate(d.getDate() + delta);
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function weekdayOf(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        return ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
+    }
+
+    function shortDate(dateStr) {
+        return dateStr ? String(dateStr).slice(5) : '';
+    }
+
+    function fmt(t) {
+        return t ? String(t).slice(0, 5) : '—';
+    }
+
+    function fmtSec(t) {
+        return t ? String(t).slice(0, 8) : '—';
+    }
+
+    function routeDisplayName(r) {
+        return r ? (r.routeLongName || r.routeShortName || r.routeId) : '';
+    }
+
+    function dirTag(dir) {
+        return dir === 1
+            ? '<span class="dir-tag dir-in" title="返程">返</span>'
+            : '<span class="dir-tag dir-out" title="去程">去</span>';
+    }
+
+    function fmtDelay(sec, threshold) {
+        if (sec == null) return '<span class="delay-badge delay-none">未报</span>';
+        const abs = Math.abs(sec);
+        const sign = sec > 0 ? '+' : '-';
+        const txt = sec === 0 ? '准点' : (abs < 60 ? (sign + abs + '秒') : (sign + Math.round(abs / 60) + '分'));
+        const cls = abs <= threshold ? 'delay-ok' : (sec > 0 ? 'delay-late' : 'delay-early');
+        return '<span class="delay-badge ' + cls + '">' + txt + '</span>';
+    }
+
+    async function loadRoutes() {
+        try {
+            routes = await api('/api/routes') || [];
+            $('fRoute').innerHTML = '<option value="">请选择线路</option>' +
+                routes.map(r => '<option value="' + r.id + '">' + esc(routeDisplayName(r)) + '</option>').join('');
+        } catch (err) { toast('加载线路失败：' + err.message, true); }
+    }
+
+    // 选线路后加载该线路的全部班次（不按日期过滤，一车一线 = 去程 + 返程）
+    async function loadTrips() {
+        const routePk = $('fRoute').value;
+        if (!routePk) {
+            $('fTrip').innerHTML = '<option value="">请选择班次</option>';
+            return;
+        }
+        try {
+            const trips = await api('/api/trips/by-route/' + routePk) || [];
+            trips.sort((a, b) => (a.directionId || 0) - (b.directionId || 0));
+            if (!trips.length) {
+                $('fTrip').innerHTML = '<option value="">该线路无班次</option>';
+                return;
+            }
+            $('fTrip').innerHTML = '<option value="">请选择班次</option>' +
+                trips.map(t => {
+                    const dir = t.directionId === 1 ? '返程' : '去程';
+                    const label = (t.tripShortName || t.tripId) + ' · ' + dir;
+                    return '<option value="' + esc(t.tripId) + '">' + esc(label) + '</option>';
+                }).join('');
+        } catch (err) {
+            $('fTrip').innerHTML = '<option value="">请选择班次</option>';
+            toast('加载班次失败：' + err.message, true);
+        }
+    }
+
+    async function query() {
+        const tripId = $('fTrip').value;
+        const startDate = $('fDateStart').value;
+        const endDate = $('fDateEnd').value;
+        if (!tripId) { toast('请选择班次', true); return; }
+        if (!startDate || !endDate) { toast('请选择日期范围', true); return; }
+        if (startDate > endDate) { toast('开始日期不能晚于结束日期', true); return; }
+        try {
+            const data = await api('/api/stop-events/analysis?tripId=' + encodeURIComponent(tripId) +
+                '&startDate=' + startDate + '&endDate=' + endDate);
+            render(data);
+        } catch (err) { toast('分析失败：' + err.message, true); }
+    }
+
+    function render(data) {
+        $('resultWrap').style.display = '';
+        const activeDates = data.activeDates || [];
+        const daily = (data.summary && data.summary.daily) || [];
+
+        // 标题
+        const head = $('resultHead');
+        head.innerHTML = '<span class="rh-title" style="font-size:14px;font-weight:600">' + esc(data.routeLabel || '') + '</span>' +
+            '<span style="color:var(--c-text-2);font-size:13px">' + esc(data.tripLabel || data.tripId || '') + '</span>' +
+            dirTag(data.directionId) +
+            '<span style="color:var(--c-text-3);font-size:12.5px" class="mono">' +
+            esc(shortDate(data.startDate) + ' ~ ' + shortDate(data.endDate)) + '（运营 ' + activeDates.length + ' 天）</span>';
+
+        if (!activeDates.length) {
+            $('thead').innerHTML = '';
+            $('tbody').innerHTML = '<tr><td><div class="no-data">所选日期范围内无运营日（周末或停运）</div></td></tr>';
+            $('reportBody').innerHTML = '<div class="no-data">无运营日，无法生成准时率报表</div>';
+            return;
+        }
+
+        renderTable(data, activeDates);
+        renderReport(data.summary, activeDates);
+    }
+
+    function renderTable(data, activeDates) {
+        const th = (data.summary && data.summary.onTimeThresholdSec) || 180;
+
+        // 表头：固定列 + 每个运营日一列
+        let theadHtml = '<tr>' +
+            '<th style="width:52px">站序</th>' +
+            '<th style="text-align:left">站点</th>' +
+            '<th style="width:72px">计划到</th>' +
+            '<th style="width:72px">计划发</th>';
+        activeDates.forEach(d => {
+            theadHtml += '<th class="day-col"><span class="day-head">' + esc(shortDate(d)) +
+                '<span class="dh-week">周' + weekdayOf(d) + '</span></span></th>';
+        });
+        theadHtml += '</tr>';
+        $('thead').innerHTML = theadHtml;
+
+        // 表体：每个站点一行，每个运营日一个单元格（到/发两行）
+        const rows = (data.stops || []).map(s => {
+            let td = '<tr>' +
+                '<td class="mono">' + (s.stopSequence != null ? s.stopSequence : '—') + '</td>' +
+                '<td class="strong" style="text-align:left">' + esc(s.stopName || '—') + '</td>' +
+                '<td class="mono">' + fmt(s.scheduledArrival) + '</td>' +
+                '<td class="mono">' + fmt(s.scheduledDeparture) + '</td>';
+            (s.days || []).forEach(day => {
+                td += '<td>' +
+                    '<div class="dc-line"><span class="dc-label">到</span><span class="dc-time mono">' + fmtSec(day.actualArrival) + '</span>' + fmtDelay(day.arrivalDelaySec, th) + '</div>' +
+                    '<div class="dc-line"><span class="dc-label">发</span><span class="dc-time mono">' + fmtSec(day.actualDeparture) + '</span>' + fmtDelay(day.departureDelaySec, th) + '</div>' +
+                    '</td>';
+            });
+            td += '</tr>';
+            return td;
+        }).join('');
+        $('tbody').innerHTML = rows;
+    }
+
+    function renderReport(summary, activeDates) {
+        const th = summary.onTimeThresholdSec || 180;
+        const thMin = Math.round(th / 60);
+        const daily = summary.daily || [];
+
+        const series = [
+            { key: 'arrivalPunctuality', color: '#1971c2', label: '到站准时率' },
+            { key: 'departurePunctuality', color: '#2b8a3e', label: '发车准时率' },
+            { key: 'overallPunctuality', color: '#e8590c', label: '综合准时率' },
+        ];
+
+        let legend = '<div class="chart-legend">' +
+            series.map(s => '<span class="lg-item"><span class="lg-dot" style="background:' + s.color + '"></span>' + s.label + '</span>').join('') +
+            '</div>';
+
+        let chart = renderBarChart(daily, series);
+
+        // 概览数字条
+        const hasReport = daily.some(d => (d.arrivalReported || 0) + (d.departureReported || 0) > 0);
+        let meta = '<div class="punct-meta" style="padding:12px 0 0">';
+        meta += '<div class="pm-row" style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;color:var(--c-text-2)"><span>停站总数</span><b>' + (summary.totalStops || 0) + '</b></div>';
+        const daysWithReport = daily.filter(d => (d.arrivalReported || 0) + (d.departureReported || 0) > 0).length;
+        meta += '<div class="pm-row" style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;color:var(--c-text-2)"><span>运营天数</span><b>' + daily.length + '</b></div>';
+        meta += '<div class="pm-row" style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;color:var(--c-text-2)"><span>有上报天数</span><b>' + daysWithReport + '</b></div>';
+        meta += '</div>';
+        meta += '<div class="chart-note">准时判定：实际与计划偏差 ≤ ±' + thMin + ' 分钟' +
+            (hasReport ? '' : ' · 当前日期范围内无上报数据') + '</div>';
+
+        $('reportBody').innerHTML =
+            '<div class="chart-title">逐日准时率（%）</div>' + legend + chart + meta;
+    }
+
+    function renderBarChart(daily, series) {
+        const n = daily.length;
+        if (!n) return '<div class="no-data">无数据</div>';
+        const W = 640, H = 360;
+        const mL = 40, mR = 14, mT = 20, mB = 34;
+        const plotW = W - mL - mR;
+        const plotH = H - mT - mB;
+        const maxVal = 100;
+        const groupW = plotW / n;
+        const slot = Math.min(groupW * 0.7, 90);
+        const barW = Math.min(18, slot / series.length * 0.62);
+
+        let out = '';
+        // 网格 + Y 轴刻度
+        [0, 25, 50, 75, 100].forEach(t => {
+            const y = mT + plotH - (t / maxVal) * plotH;
+            out += '<line x1="' + mL + '" y1="' + y + '" x2="' + (W - mR) + '" y2="' + y + '" stroke="#eef1f4" stroke-width="1"/>';
+            out += '<text x="' + (mL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="11" fill="#868e96">' + t + '</text>';
+        });
+        // 柱 + X 轴标签
+        daily.forEach((d, i) => {
+            const cx = mL + groupW * i + groupW / 2;
+            const step = slot / series.length;
+            series.forEach((s, j) => {
+                const val = d[s.key] != null ? d[s.key] : 0;
+                const h = Math.max(0, (val / maxVal) * plotH);
+                const x = cx - slot / 2 + step * j + (step - barW) / 2;
+                const y = mT + plotH - h;
+                out += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2" fill="' + s.color + '"/>';
+                if (h > 14) {
+                    out += '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (y - 4).toFixed(1) + '" text-anchor="middle" font-size="10" fill="#495057">' + Math.round(val) + '</text>';
+                }
+            });
+            out += '<text x="' + cx.toFixed(1) + '" y="' + (H - mB + 18) + '" text-anchor="middle" font-size="11" fill="#495057">' + esc(shortDate(d.eventDate)) + '</text>';
+        });
+
+        return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block">' + out + '</svg>';
+    }
+
+    $('btnQuery').addEventListener('click', query);
+    $('fRoute').addEventListener('change', loadTrips);
+    $('fTrip').addEventListener('change', query);
+
+    (async () => {
+        // 默认查过去 7 天（自然日），后端自动剔除周末等非运营日
+        $('fDateEnd').value = today();
+        $('fDateStart').value = addDays(today(), -6);
+        await loadRoutes();
+    })();
+</script>
+</body>
+</html>
