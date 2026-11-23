@@ -3,6 +3,8 @@ package me.ningyu.app.shuttle.facade.service;
 import lombok.RequiredArgsConstructor;
 import me.ningyu.app.shuttle.domain.entity.extension.Driver;
 import me.ningyu.app.shuttle.domain.repo.DriverRepository;
+import me.ningyu.app.shuttle.event.api.DomainEventPublisher;
+import me.ningyu.app.shuttle.event.domain.DriverStatusChangedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +15,7 @@ import java.util.List;
 public class DriverService
 {
     private final DriverRepository driverRepository;
+    private final DomainEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public List<Driver> getAll()
@@ -41,6 +44,7 @@ public class DriverService
     {
         Driver d = driverRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("司机不存在: id=" + id));
+        String oldStatus = d.getStatus();
         d.setName(req.getName());
         d.setPhone(req.getPhone());
         d.setStatus(req.getStatus());
@@ -50,7 +54,14 @@ public class DriverService
         d.setLicenseNumber(req.getLicenseNumber());
         d.setAvatarUrl(req.getAvatarUrl());
         d.setCompany(req.getCompany());
-        return driverRepository.save(d);
+        Driver saved = driverRepository.save(d);
+        // 状态发生变化时发布领域事件（数据快照不含手机号等敏感信息）
+        if (!java.util.Objects.equals(oldStatus, saved.getStatus()))
+        {
+            eventPublisher.publish(new DriverStatusChangedEvent(new DriverStatusChangedEvent.DriverStatusChangedData(
+                    saved.getId(), saved.getName(), oldStatus, saved.getStatus())));
+        }
+        return saved;
     }
 
     @Transactional

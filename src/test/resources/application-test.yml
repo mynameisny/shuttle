@@ -1,0 +1,17 @@
+spring:
+  docker:
+    compose:
+      enabled: false
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/ucmp_shuttle_test?sslMode=REQUIRED&verifyServerCertificate=false
+    username: ucmp_dev
+    password: xeeNADMYQpqZ8F9Wh3Zn
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+app:
+  upload:
+    dir: ${java.io.tmpdir}/shuttle-test-uploads
+  default-agency-id: KD

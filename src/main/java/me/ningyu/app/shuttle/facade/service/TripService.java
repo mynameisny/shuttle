@@ -14,6 +14,8 @@ import me.ningyu.app.shuttle.domain.repo.TripRepository;
 import me.ningyu.app.shuttle.enums.BikeAllowance;
 import me.ningyu.app.shuttle.enums.Timepoint;
 import me.ningyu.app.shuttle.enums.WheelchairAccessibility;
+import me.ningyu.app.shuttle.event.api.DomainEventPublisher;
+import me.ningyu.app.shuttle.event.domain.TripCancelledEvent;
 import me.ningyu.app.shuttle.model.schedule.AddStopTimeRequest;
 import me.ningyu.app.shuttle.model.schedule.CreateTripRequest;
 import me.ningyu.app.shuttle.model.schedule.UpdateStopTimeRequest;
@@ -51,6 +53,7 @@ public class TripService
     private final StopTimeRepository stopTimeRepository;
     private final StopRepository stopRepository;
     private final CalendarService calendarService;
+    private final DomainEventPublisher eventPublisher;
 
     /**
      * 追加停站到班次末尾（管理端站点维护页"线路下加站"）。
@@ -193,11 +196,19 @@ public class TripService
 
     public void cancelTrip(Long id)
     {
-        if (!tripRepository.existsById(id))
-        {
-            throw new IllegalArgumentException("班次不存在");
-        }
-        tripRepository.deleteById(id);
+        Trip trip = tripRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("班次不存在"));
+        // 删除前抓取事件快照（数据快照应反映「已发生事实」，不依赖删除后的实体）
+        Route route = trip.getRoute();
+        TripCancelledEvent.TripCancelledData data = new TripCancelledEvent.TripCancelledData(
+                trip.getId(),
+                trip.getTripId(),
+                trip.getTripShortName(),
+                route != null ? route.getRouteId() : null,
+                route != null ? route.getRouteShortName() : null,
+                trip.getDirectionId());
+        tripRepository.delete(trip);
+        eventPublisher.publish(new TripCancelledEvent(data));
     }
 
     @Nonnull

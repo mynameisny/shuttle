@@ -1,0 +1,65 @@
+services:
+  kafka:
+    image: docker.m.daocloud.io/apache/kafka:3.7.0
+    container_name: shuttle-kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - kafka-net
+
+  connect:
+    image: docker.m.daocloud.io/debezium/connect:3.0.0.Final
+    container_name: shuttle-debezium
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: shuttle-connect
+      CONFIG_STORAGE_TOPIC: shuttle_connect_config
+      OFFSET_STORAGE_TOPIC: shuttle_connect_offsets
+      STATUS_STORAGE_TOPIC: shuttle_connect_status
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      REST_ADVERTISED_HOST_NAME: connect
+    depends_on:
+      - kafka
+    networks:
+      - kafka-net
+
+  kafbat-ui:
+    image: docker.m.daocloud.io/kafbat/kafka-ui:latest
+    container_name: shuttle-kafbat-ui
+    ports:
+      - "9090:8080"
+    environment:
+      # 🔑 启用动态配置（可在 UI 里新增/编辑集群连接）
+      DYNAMIC_CONFIG_ENABLED: "true"
+      # 连接同网络下的 Kafka（advertised 地址为 kafka:9092，容器内可解析）
+      KAFKA_CLUSTERS_0_NAME: shuttle-kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      - kafka
+    networks:
+      - kafka-net
+    restart: unless-stopped
+
+networks:
+  kafka-net:
+    driver: bridge
