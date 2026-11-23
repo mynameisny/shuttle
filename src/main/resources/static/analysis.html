@@ -48,6 +48,31 @@
         .chart-legend .lg-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
         .chart-note { margin-top: 8px; font-size: 11.5px; color: var(--c-text-3, #adb5bd); }
         .no-data { padding: 40px 0; text-align: center; color: var(--c-text-3, #adb5bd); }
+        /* 带颜色的线路下拉 */
+        .route-select { position: relative; }
+        .route-select-btn {
+            display: flex; align-items: center; gap: 8px; width: 100%;
+            height: 38px; padding: 0 12px;
+            border: 1px solid var(--c-border-strong, #d5dae0); border-radius: 8px;
+            background: #fff; cursor: pointer; font-size: 13px; color: var(--c-text-1, #212529);
+        }
+        .route-select-btn:focus { outline: none; border-color: var(--c-primary); }
+        .rs-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .rs-text { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rs-arrow { width: 14px; height: 14px; color: var(--c-text-3, #adb5bd); flex-shrink: 0; transition: transform .15s; }
+        .route-select.open .rs-arrow { transform: rotate(180deg); }
+        .route-select-panel {
+            position: absolute; top: 100%; left: 0; right: 0; z-index: 30;
+            margin-top: 4px; max-height: 300px; overflow-y: auto;
+            border: 1px solid var(--c-border, #eef1f4); border-radius: 8px;
+            background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+        }
+        .rs-option {
+            display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+            cursor: pointer; font-size: 13px; color: var(--c-text-1, #212529);
+        }
+        .rs-option:hover { background: #f6f8fa; }
+        .rs-option .rs-dot { width: 10px; height: 10px; }
     </style>
 </head>
 <body>
@@ -75,15 +100,25 @@
                     </div>
                     <div class="field" style="margin:0; width:240px">
                         <label>线路<span class="req">*</span></label>
-                        <select class="select" id="fRoute" style="width:100%">
-                            <option value="">请选择线路</option>
-                        </select>
+                        <div class="route-select" id="routeSelect">
+                            <button type="button" class="route-select-btn" id="routeSelectBtn">
+                                <span class="rs-dot" id="rsDot" style="background:#9aa3b0"></span>
+                                <span class="rs-text" id="rsText">请选择线路</span>
+                                <svg class="rs-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8l4 4 4-4"/></svg>
+                            </button>
+                            <div class="route-select-panel" id="routeSelectPanel" style="display:none"></div>
+                        </div>
                     </div>
                     <div class="field" style="margin:0; width:240px">
                         <label>班次<span class="req">*</span></label>
-                        <select class="select" id="fTrip" style="width:100%">
-                            <option value="">请选择班次</option>
-                        </select>
+                        <div class="route-select" id="tripSelect">
+                            <button type="button" class="route-select-btn" id="tripSelectBtn">
+                                <span class="rs-dot" id="tripDot" style="background:#9aa3b0"></span>
+                                <span class="rs-text" id="tripText">请选择班次</span>
+                                <svg class="rs-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8l4 4 4-4"/></svg>
+                            </button>
+                            <div class="route-select-panel" id="tripSelectPanel" style="display:none"></div>
+                        </div>
                     </div>
                     <button class="btn btn-primary" id="btnQuery" style="margin-bottom:2px">
                         <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
@@ -124,6 +159,9 @@
     initShell();
 
     let routes = [];
+    let selectedRoutePk = null;
+    let tripList = [];
+    let selectedTripId = null;
 
     function today() {
         const d = new Date();
@@ -153,6 +191,10 @@
         return t ? String(t).slice(0, 8) : '—';
     }
 
+    function routeColor(r) {
+        return r && r.routeColor ? '#' + String(r.routeColor).replace('#', '') : '#9aa3b0';
+    }
+
     function routeDisplayName(r) {
         return r ? (r.routeLongName || r.routeShortName || r.routeId) : '';
     }
@@ -175,39 +217,110 @@
     async function loadRoutes() {
         try {
             routes = await api('/api/routes') || [];
-            $('fRoute').innerHTML = '<option value="">请选择线路</option>' +
-                routes.map(r => '<option value="' + r.id + '">' + esc(routeDisplayName(r)) + '</option>').join('');
+            $('routeSelectPanel').innerHTML = routes.map(r =>
+                '<div class="rs-option" data-id="' + r.id + '">' +
+                '<span class="rs-dot" style="background:' + esc(routeColor(r)) + '"></span>' +
+                '<span>' + esc(routeDisplayName(r)) + '</span>' +
+                '</div>').join('');
+            $('routeSelectPanel').querySelectorAll('.rs-option').forEach(o =>
+                o.addEventListener('click', () => selectRoute(o.dataset.id)));
         } catch (err) { toast('加载线路失败：' + err.message, true); }
+    }
+
+    function selectRoute(id) {
+        selectedRoutePk = id;
+        const r = routes.find(x => String(x.id) === String(id));
+        $('rsDot').style.background = routeColor(r);
+        $('rsText').textContent = routeDisplayName(r) || '请选择线路';
+        closePanel();
+        loadTrips();
+    }
+
+    function togglePanel() {
+        const p = $('routeSelectPanel');
+        const open = p.style.display !== 'none';
+        p.style.display = open ? 'none' : '';
+        $('routeSelect').classList.toggle('open', !open);
+    }
+
+    function closePanel() {
+        $('routeSelectPanel').style.display = 'none';
+        $('routeSelect').classList.remove('open');
+    }
+
+    function tripColor(directionId) {
+        return directionId === 1 ? '#7048e8' : '#1971c2'; // 返程紫、去程蓝
+    }
+
+    function tripLabel(t) {
+        const dir = t.directionId === 1 ? '返程' : '去程';
+        return (t.tripShortName || t.tripId) + ' · ' + dir;
+    }
+
+    function setTripButton(trip, fallbackText) {
+        $('tripDot').style.background = trip ? tripColor(trip.directionId) : '#9aa3b0';
+        $('tripText').textContent = trip ? tripLabel(trip) : (fallbackText || '请选择班次');
+    }
+
+    function resetTripSelect() {
+        $('tripSelectPanel').innerHTML = '';
+        setTripButton(null, '请选择班次');
     }
 
     // 选线路后加载该线路的全部班次（不按日期过滤，一车一线 = 去程 + 返程）
     async function loadTrips() {
-        const routePk = $('fRoute').value;
+        const routePk = selectedRoutePk;
+        selectedTripId = null;
+        tripList = [];
         if (!routePk) {
-            $('fTrip').innerHTML = '<option value="">请选择班次</option>';
+            resetTripSelect();
             return;
         }
         try {
             const trips = await api('/api/trips/by-route/' + routePk) || [];
             trips.sort((a, b) => (a.directionId || 0) - (b.directionId || 0));
+            tripList = trips;
             if (!trips.length) {
-                $('fTrip').innerHTML = '<option value="">该线路无班次</option>';
+                $('tripSelectPanel').innerHTML = '<div class="rs-option" style="cursor:default;color:var(--c-text-3, #adb5bd)">该线路无班次</div>';
+                setTripButton(null, '该线路无班次');
                 return;
             }
-            $('fTrip').innerHTML = '<option value="">请选择班次</option>' +
-                trips.map(t => {
-                    const dir = t.directionId === 1 ? '返程' : '去程';
-                    const label = (t.tripShortName || t.tripId) + ' · ' + dir;
-                    return '<option value="' + esc(t.tripId) + '">' + esc(label) + '</option>';
-                }).join('');
+            $('tripSelectPanel').innerHTML = trips.map(t =>
+                '<div class="rs-option" data-id="' + esc(t.tripId) + '">' +
+                '<span class="rs-dot" style="background:' + tripColor(t.directionId) + '"></span>' +
+                '<span>' + esc(tripLabel(t)) + '</span>' +
+                '</div>').join('');
+            $('tripSelectPanel').querySelectorAll('.rs-option').forEach(o =>
+                o.addEventListener('click', () => selectTrip(o.dataset.id)));
+            setTripButton(null, '请选择班次');
         } catch (err) {
-            $('fTrip').innerHTML = '<option value="">请选择班次</option>';
+            resetTripSelect();
             toast('加载班次失败：' + err.message, true);
         }
     }
 
+    function selectTrip(id) {
+        selectedTripId = id;
+        const t = tripList.find(x => String(x.tripId) === String(id));
+        setTripButton(t);
+        closeTripPanel();
+        query();
+    }
+
+    function toggleTripPanel() {
+        const p = $('tripSelectPanel');
+        const open = p.style.display !== 'none';
+        p.style.display = open ? 'none' : '';
+        $('tripSelect').classList.toggle('open', !open);
+    }
+
+    function closeTripPanel() {
+        $('tripSelectPanel').style.display = 'none';
+        $('tripSelect').classList.remove('open');
+    }
+
     async function query() {
-        const tripId = $('fTrip').value;
+        const tripId = selectedTripId;
         const startDate = $('fDateStart').value;
         const endDate = $('fDateEnd').value;
         if (!tripId) { toast('请选择班次', true); return; }
@@ -351,8 +464,14 @@
     }
 
     $('btnQuery').addEventListener('click', query);
-    $('fRoute').addEventListener('change', loadTrips);
-    $('fTrip').addEventListener('change', query);
+    $('routeSelectBtn').addEventListener('click', togglePanel);
+    $('tripSelectBtn').addEventListener('click', toggleTripPanel);
+    document.addEventListener('click', e => {
+        const rs = $('routeSelect');
+        if (rs && !rs.contains(e.target)) closePanel();
+        const ts = $('tripSelect');
+        if (ts && !ts.contains(e.target)) closeTripPanel();
+    });
 
     (async () => {
         // 默认查过去 7 天（自然日），后端自动剔除周末等非运营日
