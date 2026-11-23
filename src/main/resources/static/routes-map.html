@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线路地图 · 班车调度管理</title>
+    <meta name="nav" content="passenger.map">
+    <meta name="desc" content="全部班车线路的行驶轨迹总览">
+    <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        html, body { height: 100%; }
+        /* 顶部工具栏 */
+        .map-toolbar {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+            padding: 12px 18px;
+            background: var(--c-surface, #fff);
+            border-bottom: 1px solid var(--c-border, #eef1f4);
+            position: relative; z-index: 500;
+        }
+        .map-toolbar .mt-title { font-size: 15px; font-weight: 600; color: var(--c-text-1, #212529); }
+        /* 方向切换（去程/返程） */
+        .dir-toggle { display: inline-flex; border: 1px solid var(--c-border-strong, #d5dae0); border-radius: 8px; overflow: hidden; }
+        .dir-btn {
+            padding: 7px 20px; border: none; background: #fff; cursor: pointer;
+            font-size: 13px; color: var(--c-text-2, #495057);
+        }
+        .dir-btn + .dir-btn { border-left: 1px solid var(--c-border-strong, #d5dae0); }
+        .dir-btn.active { background: var(--c-primary, #1971c2); color: #fff; }
+        .map-stat { font-size: 12.5px; color: var(--c-text-3, #868e96); margin-left: auto; }
+        /* 地图容器 */
+        .map-wrap { flex: 1; position: relative; min-height: 0; }
+        #map { position: absolute; inset: 0; }
+        /* 底图去色+提亮+降对比，让底图变浅变素，突出彩色线路 */
+        #map .leaflet-tile { filter: grayscale(100%) brightness(1.06) contrast(0.82); }
+        /* 线路筛选面板 */
+        .route-filter-panel {
+            position: absolute; top: 12px; left: 12px; z-index: 600;
+            width: 264px; max-height: calc(100% - 24px);
+            background: #fff; border: 1px solid var(--c-border, #eef1f4);
+            border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .rfp-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px; border-bottom: 1px solid var(--c-border, #eef1f4);
+            font-size: 13px; font-weight: 600; color: var(--c-text-1, #212529);
+        }
+        .rfp-head .rfp-ops { font-size: 12px; font-weight: 400; color: var(--c-primary, #1971c2); }
+        .rfp-head .rfp-ops a { cursor: pointer; }
+        .rfp-head .rfp-ops a:hover { text-decoration: underline; }
+        .rfp-list { overflow-y: auto; padding: 4px 0; }
+        .rfp-item {
+            display: flex; align-items: center; gap: 9px; padding: 6px 14px;
+            cursor: pointer; font-size: 12.5px; color: var(--c-text-2, #495057);
+        }
+        .rfp-item:hover { background: #f6f8fa; }
+        .rfp-item input { flex-shrink: 0; margin: 0; }
+        .rfp-item .rfp-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+        .rfp-item .rfp-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rfp-empty { padding: 16px; text-align: center; color: var(--c-text-3, #adb5bd); font-size: 12px; }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page page-fill">
+            <div class="map-toolbar">
+                <span class="mt-title">线路地图</span>
+                <div class="dir-toggle" id="dirToggle">
+                    <button type="button" class="dir-btn active" data-dir="0">去程</button>
+                    <button type="button" class="dir-btn" data-dir="1">返程</button>
+                </div>
+                <button type="button" class="btn" id="btnFilter">筛选线路</button>
+                <span class="map-stat" id="mapStat"></span>
+            </div>
+            <div class="map-wrap">
+                <div id="map"></div>
+                <div class="route-filter-panel" id="routeFilterPanel" style="display:none">
+                    <div class="rfp-head">
+                        <span>线路</span>
+                        <span class="rfp-ops"><a id="rfpAll">全选</a> · <a id="rfpNone">清空</a></span>
+                    </div>
+                    <div class="rfp-list" id="rfpList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    let allRoutes = [];
+    let shapes = [];
+    let selected = new Set();   // 选中的 routePk（字符串）
+    let direction = 0;          // 0=去程，1=返程
+
+    const { map } = createMap('map');
+    const lineLayer = L.layerGroup().addTo(map);
+
+    function routeColorHex(c) {
+        return c ? '#' + String(c).replace('#', '') : '#9aa3b0';
+    }
+
+    function routeName(r) {
+        return r ? (r.routeLongName || r.routeShortName || r.routeId || '') : '';
+    }
+
+    async function loadRoutes() {
+        try {
+            allRoutes = await api('/api/routes') || [];
+            allRoutes.forEach(r => selected.add(String(r.id)));
+            renderFilter();
+        } catch (err) { toast('加载线路失败：' + err.message, true); }
+    }
+
+    function renderFilter() {
+        if (!allRoutes.length) {
+            $('rfpList').innerHTML = '<div class="rfp-empty">暂无线线路</div>';
+            return;
+        }
+        $('rfpList').innerHTML = allRoutes.map(r => {
+            const id = String(r.id);
+            const checked = selected.has(id) ? 'checked' : '';
+            return '<label class="rfp-item">' +
+                '<input type="checkbox" data-id="' + id + '" ' + checked + '>' +
+                '<span class="rfp-dot" style="background:' + routeColorHex(r.routeColor) + '"></span>' +
+                '<span class="rfp-name">' + esc(routeName(r)) + '</span>' +
+                '</label>';
+        }).join('');
+        $('rfpList').querySelectorAll('input[type=checkbox]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (cb.checked) selected.add(cb.dataset.id); else selected.delete(cb.dataset.id);
+                renderMap();
+            });
+        });
+    }
+
+    async function loadShapes() {
+        try {
+            shapes = await api('/api/shapes/overview?directionId=' + direction) || [];
+            renderMap();
+        } catch (err) { toast('加载描图失败：' + err.message, true); }
+    }
+
+    function renderMap() {
+        lineLayer.clearLayers();
+        const bounds = L.latLngBounds([]);
+        let drawn = 0;
+        const items = [];
+        shapes.forEach(s => {
+            if (!selected.has(String(s.routePk))) return;
+            const latlngs = (s.points || []).map(p => parseLatLng(p.lat, p.lng)).filter(Boolean);
+            if (latlngs.length < 2) return;
+            items.push({ s, latlngs });
+        });
+        // 第一遍：白色描边（halo）垫底，让彩色线在浅底图上更醒目
+        items.forEach(it => {
+            L.polyline(it.latlngs, {
+                color: '#ffffff', weight: 9, opacity: 0.95, lineJoin: 'round', lineCap: 'round'
+            }).addTo(lineLayer);
+        });
+        // 第二遍：彩色主线 + 悬停提示（全不透明，加粗）
+        items.forEach(it => {
+            const line = L.polyline(it.latlngs, {
+                color: routeColorHex(it.s.routeColor), weight: 5, opacity: 1, lineJoin: 'round', lineCap: 'round'
+            });
+            line.bindTooltip(it.s.routeLongName || it.s.routeShortName || it.s.routeGtfsId || it.s.tripId, { sticky: true });
+            line.addTo(lineLayer);
+            bounds.extend(it.latlngs);
+            drawn++;
+        });
+        $('mapStat').textContent = '显示 ' + drawn + ' 条线路';
+        if (bounds.isValid()) map.fitBounds(bounds.pad(0.15));
+    }
+
+    // 方向切换
+    document.querySelectorAll('#dirToggle .dir-btn').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('#dirToggle .dir-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            direction = parseInt(b.dataset.dir, 10);
+            loadShapes();
+        });
+    });
+
+    // 筛选面板开关
+    $('btnFilter').addEventListener('click', () => {
+        const p = $('routeFilterPanel');
+        p.style.display = p.style.display === 'none' ? '' : 'none';
+    });
+    $('rfpAll').addEventListener('click', () => {
+        allRoutes.forEach(r => selected.add(String(r.id)));
+        renderFilter();
+        renderMap();
+    });
+    $('rfpNone').addEventListener('click', () => {
+        selected.clear();
+        renderFilter();
+        renderMap();
+    });
+
+    (async () => {
+        await loadRoutes();
+        await loadShapes();
+    })();
+</script>
+</body>
+</html>

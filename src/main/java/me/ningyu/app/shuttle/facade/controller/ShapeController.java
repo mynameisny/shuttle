@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Shape;
 import me.ningyu.app.shuttle.facade.service.ShapeService;
+import me.ningyu.app.shuttle.model.shape.RouteShapeView;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +30,14 @@ import java.util.List;
 public class ShapeController
 {
     private final ShapeService shapeService;
+
+    @GetMapping("/overview")
+    @Operation(summary = "线路描图总览", description = "返回指定方向（0=去程/1=返程，可空=不限）下所有已描图线路的形状点列与线路颜色（route_color）")
+    public ResponseEntity<List<RouteShapeView>> overview(
+            @Parameter(description = "方向：0=去程，1=返程") @RequestParam(required = false) Integer directionId)
+    {
+        return ResponseEntity.ok(shapeService.getRouteShapes(directionId));
+    }
 
     @GetMapping("/{shapeId}")
     @Operation(summary = "按形状ID查询点列", description = "获取指定形状的全部坐标点（按顺序）")

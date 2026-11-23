@@ -3,12 +3,14 @@ package me.ningyu.app.shuttle.facade.service;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.ningyu.app.shuttle.domain.entity.gtfs.Route;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Shape;
 import me.ningyu.app.shuttle.domain.entity.gtfs.StopTime;
 import me.ningyu.app.shuttle.domain.entity.gtfs.Trip;
 import me.ningyu.app.shuttle.domain.repo.ShapeRepository;
 import me.ningyu.app.shuttle.domain.repo.StopTimeRepository;
 import me.ningyu.app.shuttle.domain.repo.TripRepository;
+import me.ningyu.app.shuttle.model.shape.RouteShapeView;
 import me.ningyu.app.shuttle.model.shape.SaveShapeRequest;
 import me.ningyu.app.shuttle.model.shape.ShapePointRequest;
 import me.ningyu.app.shuttle.model.shape.TripShapeView;
@@ -63,6 +65,51 @@ public class ShapeService
     public List<Shape> getShapePoints(String shapeId)
     {
         return shapeRepository.findByShapeIdOrderByShapePtSequenceAsc(shapeId);
+    }
+
+    /**
+     * 线路描图总览：返回指定方向（0=去程/1=返程，可空=不限）下所有已描图线路的形状点列 + 线路颜色。
+     * <p>仅返回 trip.shape_id 非空且 shape 表有对应点列的线路；未描图线路不返回。
+     */
+    @Nonnull
+    public List<RouteShapeView> getRouteShapes(Integer directionId)
+    {
+        List<Trip> trips = tripRepository.findAll();
+        List<RouteShapeView> result = new ArrayList<>();
+        for (Trip t : trips)
+        {
+            if (directionId != null && !directionId.equals(t.getDirectionId()))
+            {
+                continue;
+            }
+            if (t.getShapeId() == null || t.getShapeId().isBlank())
+            {
+                continue;
+            }
+            List<Shape> shapes = shapeRepository.findByShapeIdOrderByShapePtSequenceAsc(t.getShapeId());
+            if (shapes.isEmpty())
+            {
+                continue;
+            }
+            Route r = t.getRoute();
+            result.add(RouteShapeView.builder()
+                    .routePk(r != null ? r.getId() : null)
+                    .routeGtfsId(r != null ? r.getRouteId() : null)
+                    .routeShortName(r != null ? r.getRouteShortName() : null)
+                    .routeLongName(r != null ? r.getRouteLongName() : null)
+                    .routeColor(r != null ? r.getRouteColor() : null)
+                    .directionId(t.getDirectionId())
+                    .tripId(t.getTripId())
+                    .shapeId(t.getShapeId())
+                    .points(shapes.stream()
+                            .map(s -> RouteShapeView.PointView.builder()
+                                    .lat(s.getShapePtLat())
+                                    .lng(s.getShapePtLon())
+                                    .build())
+                            .toList())
+                    .build());
+        }
+        return result;
     }
 
     /**
