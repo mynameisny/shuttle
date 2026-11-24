@@ -44,26 +44,6 @@
         .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; font-size: 13px; }
         .detail-grid .k { color: var(--c-text-3); }
         .detail-grid .v { color: var(--c-text); }
-        .fleet-summary {
-            display: flex;
-            align-items: center;
-            gap: 0;
-            padding: 0 18px;
-            border-bottom: 1px solid var(--c-border);
-            overflow-x: auto;
-        }
-        .fleet-summary .fs-item {
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-            padding: 12px 20px 12px 0;
-            margin-right: 20px;
-            border-right: 1px solid #f1f3f6;
-            white-space: nowrap;
-        }
-        .fleet-summary .fs-item:last-child { border-right: none; }
-        .fleet-summary .fs-label { font-size: 11px; color: var(--c-text-3); }
-        .fleet-summary .fs-value { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
         .plate-cell { font-weight: 620; letter-spacing: .02em; }
         .expiry-soon { color: var(--c-warn); font-weight: 600; }
         .expiry-over { color: var(--c-danger); font-weight: 600; }
@@ -128,7 +108,6 @@
             </div>
 
             <div class="card">
-                <div class="fleet-summary" id="fleetSummary"></div>
                 <div class="table-wrap">
                     <table class="tbl">
                         <thead>
@@ -268,7 +247,6 @@
     async function load() {
         try {
             vehicles = await api(API.vehicles) || [];
-            renderSummary();
             render();
             locate();
         } catch (err) { toast('加载失败：' + err.message, true); }
@@ -346,20 +324,6 @@
 
     function visibleColumns() {
         return COLUMNS.filter(c => c.required || hiddenCols.indexOf(c.key) === -1);
-    }
-
-    function renderSummary() {
-        const total = vehicles.length;
-        const running = vehicles.filter(v => (v.status || '运营中') === '运营中').length;
-        const maintain = vehicles.filter(v => v.status === '维修').length;
-        const out = vehicles.filter(v => v.status === '停运').length;
-        const seats = vehicles.reduce((s, v) => s + (v.seatCount || 0), 0);
-        $('fleetSummary').innerHTML =
-            '<div class="fs-item"><span class="fs-label">车辆总数</span><span class="fs-value">' + total + '</span></div>' +
-            '<div class="fs-item"><span class="fs-label">运营中</span><span class="fs-value" style="color:var(--c-ok)">' + running + '</span></div>' +
-            '<div class="fs-item"><span class="fs-label">维修</span><span class="fs-value" style="color:var(--c-warn)">' + maintain + '</span></div>' +
-            '<div class="fs-item"><span class="fs-label">停运</span><span class="fs-value" style="color:var(--c-danger)">' + out + '</span></div>' +
-            '<div class="fs-item"><span class="fs-label">总座位</span><span class="fs-value">' + seats + '</span></div>';
     }
 
     function render() {

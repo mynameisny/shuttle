@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>班车线路 · 班车调度管理</title>
+    <title>线路 · 班车调度管理</title>
     <meta name="nav" content="routes.list">
     <link rel="stylesheet" href="css/app.css">
     <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
@@ -34,15 +34,6 @@
             font-size: 13px; color: var(--c-text-2); cursor: pointer; user-select: none;
         }
         .tag-check input { margin: 0; accent-color: var(--c-primary); }
-        .stat-strip { display: flex; align-items: center; padding: 0 18px; border-bottom: 1px solid var(--c-border); overflow-x: auto; }
-        .stat-strip .fs-item {
-            display: flex; flex-direction: column; gap: 1px;
-            padding: 12px 20px 12px 0; margin-right: 20px;
-            border-right: 1px solid #f1f3f6; white-space: nowrap;
-        }
-        .stat-strip .fs-item:last-child { border-right: none; }
-        .stat-strip .fs-label { font-size: 11px; color: var(--c-text-3); }
-        .stat-strip .fs-value { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
     </style>
 </head>
 <body>
@@ -54,7 +45,7 @@
             <div class="page-head">
                 <div>
                     <div class="crumbs" data-auto-crumbs></div>
-                    <h1 class="page-title">班车线路</h1>
+                    <h1 class="page-title">线路</h1>
                 </div>
                 <div class="page-actions">
                     <label class="search-wrap">
@@ -66,12 +57,11 @@
                     </select>
                     <button class="btn btn-primary" id="btnAdd">新增线路</button>
                     <a class="btn" href="stops.html">站点维护</a>
-                    <a class="btn" href="map.html">线路描图</a>
+                    <a class="btn" href="map.html">绘图</a>
                 </div>
             </div>
 
             <div class="card">
-                <div class="stat-strip" id="statStrip"></div>
                 <div class="table-wrap">
                     <table class="tbl">
                         <thead>
@@ -186,7 +176,6 @@
             $('tagFilter').innerHTML = '<option value="">全部标签</option>' +
                 networks.map(x => '<option value="' + esc(x.networkId) + '">' + esc(x.networkName || x.networkId) + '</option>').join('');
             $('tagFilter').value = curTag || '';
-            renderStrip();
             render();
             locate();
         } catch (err) { toast('加载失败：' + err.message, true); }
@@ -200,14 +189,6 @@
             tr.scrollIntoView({ block: 'center' });
             tr.classList.add('row-flash');
         }
-    }
-
-    function renderStrip() {
-        const total = routes.length;
-        const withColor = routes.filter(r => r.routeColor).length;
-        $('statStrip').innerHTML =
-            '<div class="fs-item"><span class="fs-label">线路总数</span><span class="fs-value">' + total + '</span></div>' +
-            '<div class="fs-item"><span class="fs-label">已设线路色</span><span class="fs-value">' + withColor + '</span></div>';
     }
 
     function sortKey(r) {
@@ -258,7 +239,7 @@
                 '<button class="btn btn-sm" data-edit="' + r.id + '">编辑</button> ' +
                 '<button class="btn btn-sm btn-danger" data-del="' + r.id + '">删除</button> ' +
                 '<a class="btn btn-sm" href="stops.html?routePk=' + r.id + '">站点</a> ' +
-                '<a class="btn btn-sm" href="map.html?routePk=' + r.id + '">描图</a></td>' +
+                '<a class="btn btn-sm" href="map.html?routePk=' + r.id + '">绘图</a></td>' +
                 '</tr>';
         }).join('');
         tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));

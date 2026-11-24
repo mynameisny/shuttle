@@ -240,6 +240,7 @@
     let lastDate = '';
     let lastAssignment = null;
     let selectedTripId = null;
+    let pendingTripId = null;   // 深链预选班次（线路地图跳转：?routePk=&tripId=）
 
     function today() {
         const d = new Date();
@@ -309,8 +310,19 @@
             lastTrips = trips || [];
             lastDate = date;
             lastAssignment = assignment;
-            selectedTripId = null; // 每次查询重置班次选中
+            // 深链预选班次（线路地图「查看班车时刻」跳转）：查询命中则自动选中
+            if (pendingTripId && lastTrips.some(t => t.tripId === pendingTripId)) {
+                selectedTripId = pendingTripId;
+            } else {
+                selectedTripId = null; // 每次查询重置班次选中
+            }
+            pendingTripId = null;
             render(routePk, date, lastTrips, assignment);
+            // 深链选中后滚动到结果区，让"对应显示区域"立即可见
+            if (selectedTripId) {
+                const card = $('result').querySelector('.trip-card.selected');
+                (card || $('resultCard')).scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         } catch (err) { toast('查询失败：' + err.message, true); }
     }
 
@@ -570,10 +582,13 @@
     (async () => {
         $('fDate').value = today();
         await loadRoutes();
-        // 支持 URL 深链：?routePk=1&date=2026-11-17 自动查询（便于分享某线路时刻表）
+        // 支持 URL 深链：?routePk=1&date=2026-11-17&tripId=1_outbound 自动查询并选中班次
+        // （线路地图点线路 →「查看班车时刻」跳转携带 tripId；date 缺省用当天）
         const params = new URLSearchParams(location.search);
         const routePk = params.get('routePk');
         const date = params.get('date');
+        const tripId = params.get('tripId');
+        if (tripId) pendingTripId = tripId;
         if (routePk) {
             if (date) $('fDate').value = date;
             selectRoute(routePk);

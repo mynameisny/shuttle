@@ -8,18 +8,6 @@
     <link rel="stylesheet" href="css/app.css">
     <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
     <style>
-        .driver-summary {
-            display: flex; align-items: center; padding: 0 18px;
-            border-bottom: 1px solid var(--c-border); overflow-x: auto;
-        }
-        .driver-summary .fs-item {
-            display: flex; flex-direction: column; gap: 1px;
-            padding: 12px 20px 12px 0; margin-right: 20px;
-            border-right: 1px solid #f1f3f6; white-space: nowrap;
-        }
-        .driver-summary .fs-item:last-child { border-right: none; }
-        .driver-summary .fs-label { font-size: 11px; color: var(--c-text-3); }
-        .driver-summary .fs-value { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
         .name-cell { display: flex; align-items: center; gap: 10px; }
         /* 性别图标：姓名前的圆形标识，男=蓝(箭头)、女=粉(圆圈) */
         .gender-ico {
@@ -150,7 +138,6 @@
             </div>
 
             <div class="card">
-                <div class="driver-summary" id="driverSummary"></div>
                 <div class="table-wrap">
                     <table class="tbl">
                         <thead>
@@ -248,7 +235,6 @@
     async function load() {
         try {
             drivers = await api(API.drivers) || [];
-            renderSummary();
             render();
             locate();
         } catch (err) { toast('加载失败：' + err.message, true); }
@@ -262,15 +248,6 @@
             tr.scrollIntoView({ block: 'center' });
             tr.classList.add('row-flash');
         }
-    }
-
-    function renderSummary() {
-        const total = drivers.length;
-        const withPhone = drivers.filter(d => d.phone).length;
-        $('driverSummary').innerHTML =
-            '<div class="fs-item"><span class="fs-label">司机总数</span><span class="fs-value">' + total + '</span></div>' +
-            '<div class="fs-item"><span class="fs-label">已登记手机号</span><span class="fs-value" style="color:var(--c-ok)">' + withPhone + '</span></div>' +
-            '<div class="fs-item"><span class="fs-label">待补充联系方式</span><span class="fs-value" style="color:var(--c-warn)">' + (total - withPhone) + '</span></div>';
     }
 
     function fmtDate(s) {

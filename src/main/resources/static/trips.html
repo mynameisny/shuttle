@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>班次管理 · 班车调度管理</title>
-    <meta name="nav" content="trips.plan">
+    <title>班次 · 班车调度管理</title>
+    <meta name="nav" content="routes.trips">
     <link rel="stylesheet" href="css/app.css">
     <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
     <style>
@@ -38,9 +38,13 @@
             <div class="page-head">
                 <div>
                     <div class="crumbs" data-auto-crumbs></div>
-                    <h1 class="page-title">班次管理<span id="routeBadge" class="route-badge" style="display:none"></span></h1>
+                    <h1 class="page-title">班次<span id="routeBadge" class="route-badge" style="display:none"></span></h1>
                 </div>
                 <div class="page-actions">
+                    <label class="search-wrap">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        <input type="text" class="search" id="searchInput" placeholder="搜索班次号 / 终点 / 服务日历…" style="width:250px">
+                    </label>
                     <a class="btn" href="routes.html">返回线路</a>
                     <button class="btn btn-primary" id="btnAdd">新增班次</button>
                 </div>
@@ -174,7 +178,19 @@
                 '<div class="em-desc">点击右上角「新增班次」创建</div></div></td></tr>';
             return;
         }
-        tbody.innerHTML = trips.map(t =>
+        const kw = $('searchInput').value.trim().toLowerCase();
+        const list = trips.filter(t => {
+            if (!kw) return true;
+            const hay = [t.tripShortName, t.tripId, t.tripHeadsign, t.serviceId].filter(Boolean).join(' ');
+            return hay.toLowerCase().includes(kw);
+        });
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">' +
+                '<div class="em-title">没有匹配的班次</div>' +
+                '<div class="em-desc">换个关键词试试</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(t =>
             '<tr>' +
             '<td class="strong mono">' +
             (t.directionId === 1
@@ -249,6 +265,7 @@
         } catch (err) { toast('删除失败：' + err.message, true); }
     }
 
+    $('searchInput').addEventListener('input', render);
     $('btnAdd').addEventListener('click', () => openModal(null));
     $('fDirection').addEventListener('change', () => {
         if (!editingId) $('fTripId').value = genTripId(parseInt($('fDirection').value));

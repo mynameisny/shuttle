@@ -13,12 +13,16 @@
         html, body { height: 100%; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
         /* 页面自身布局：#app 填满右侧主区（侧边栏由 app.css + layout.js 提供） */
         #app { display: flex; flex-direction: column; height: 100%; }
-        #main { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+        #main { flex: 1; display: flex; overflow: hidden; min-height: 0; padding: 0 28px 32px; gap: 12px; }
+
+        /* 顶部面包屑条：透明背景（浅灰，与其它后台页一致），下方是带边框的面板/地图卡片 */
+        #app > .page-head { flex: none; padding: 22px 28px 0; }
 
         /* ---------- 左侧面板 ---------- */
         #panel {
             width: 340px; min-width: 340px; height: 100%;
-            background: #f7f8fa; border-right: 1px solid #e0e3e8;
+            background: #f7f8fa;
+            border: 1px solid #dfe3e8; border-radius: 10px;
             display: flex; flex-direction: column; overflow: hidden;
         }
         #panel header { position: relative; padding: 14px 16px; background: #1a73e8; color: #fff; }
@@ -44,8 +48,14 @@
             border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
         }
         .field select {
-            width: 100%; padding: 7px 8px; font-size: 13px;
-            border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
+            width: 100%; padding: 7px 34px 7px 8px; font-size: 13px;
+            border: 1px solid #d0d5dd; border-radius: 6px; background-color: #fff;
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 8.5l4 4 4-4' fill='none' stroke='%238d95a3' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 14px 14px;
+            cursor: pointer;
         }
         .field input:focus, .field select:focus { outline: 2px solid #aecbfa; border-color: #1a73e8; }
         .field input:disabled { background: #f1f3f4; color: #9aa0a6; }
@@ -168,6 +178,15 @@
             padding: 2px 3px; font-size: 11px; border: 1px solid #d0d5dd; border-radius: 4px;
             background: #fff; color: #333;
         }
+        .usage-edit select {
+            padding-right: 20px;
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 8.5l4 4 4-4' fill='none' stroke='%238d95a3' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 4px center;
+            background-size: 10px 10px;
+            cursor: pointer;
+        }
         .usage-edit input[type="time"] { width: 74px; }
         .usage-edit button { padding: 2px 8px; font-size: 11px; border-radius: 4px; }
 
@@ -188,7 +207,7 @@
         #hint { font-size: 12px; color: #5f6368; line-height: 1.7; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #d0d5dd; }
 
         /* ---------- 地图 ---------- */
-        #map { flex: 1; height: 100%; }
+        #map { flex: 1; height: 100%; border: 1px solid #dfe3e8; border-radius: 10px; overflow: hidden; }
         .sel-stop-icon { background: transparent; border: none; }
         .sel-dot {
             width: 16px; height: 16px; border-radius: 50%; background: #1a73e8;
@@ -335,6 +354,12 @@
 <aside class="sidebar" id="sidebar"></aside>
 <div class="main-area">
 <div id="app">
+    <div class="page-head">
+        <div>
+            <div class="crumbs" data-auto-crumbs></div>
+            <h1 class="page-title">站点</h1>
+        </div>
+    </div>
     <div id="main">
         <div id="panel">
             <div class="body">
@@ -357,7 +382,7 @@
                 <input type="text" id="searchInput" placeholder="选择线路后管理站点" autocomplete="off" disabled>
             </div>
 
-            <div class="group-title"><span>站点列表 <span class="badge" id="stopCount">0</span></span><span id="listActions"><button id="btnNewTrip" class="mini-btn" disabled>＋ 新建班次</button><button id="btnCreate" class="mini-btn">＋ 新建站点</button></span></div>
+            <div class="group-title"><span>站点列表 <span class="badge" id="stopCount">0</span></span><span id="listActions"><button id="btnCreate" class="mini-btn">＋ 新建站点</button></span></div>
             <div class="list" id="stopList"><div class="empty">加载中…</div></div>
 
             <div class="group-title">编辑站点</div>
@@ -418,44 +443,7 @@
         </div>
     </div>
 </div>
-<div id="tripModal" class="modal-mask" style="display:none">
-    <div class="modal wide">
-        <div class="modal-title">新建班次</div>
-        <div class="modal-coord" id="tripModalRoute"></div>
-        <div class="field">
-            <label>班次名称 *</label>
-            <input type="text" id="tmLabel" maxlength="100" placeholder="如：霍营-昌平1">
-        </div>
-        <div class="field">
-            <label>班次ID * <span class="label-hint" title="GTFS trip_id，须全局唯一；用于导出与外部引用">?</span></label>
-            <input type="text" id="tmTripId" maxlength="100" placeholder="如：huoying-cp-1">
-        </div>
-        <div class="field-row">
-            <div class="field">
-                <label>方向</label>
-                <select id="tmDirection"><option value="0">去程</option><option value="1">返程</option></select>
-            </div>
-            <div class="field">
-                <label>服务日历 *</label>
-                <input type="text" id="tmService" value="WEEKDAY" maxlength="50" list="tmServiceList">
-                <datalist id="tmServiceList">
-                    <option value="WEEKDAY"></option>
-                    <option value="WEEKEND"></option>
-                    <option value="DAILY"></option>
-                </datalist>
-            </div>
-        </div>
-        <div class="field">
-            <label>终点站名（可选）</label>
-            <input type="text" id="tmHeadsign" maxlength="100" placeholder="如：昌平中石油科技园">
-        </div>
-        <div class="tip">创建后是空班次，再用「＋ 新增站点」逐站加到该班次末尾，可拖拽调序。</div>
-        <div class="btn-row" style="margin-top:12px">
-            <button id="btnTmConfirm" class="primary">创建班次</button>
-            <button id="btnTmCancel">取消</button>
-        </div>
-    </div>
-</div><!-- /#app -->
+<!-- /#app -->
 </div><!-- /.main-area -->
 </div><!-- /.app-shell -->
 <div id="toast"></div>
@@ -475,8 +463,6 @@
         usageSummary: '/api/stops/usage-summary',
         routes: '/api/routes',
         routeStops: pk => '/api/routes/' + pk + '/stops',
-        trips: '/api/trips',
-        trip: pk => '/api/trips/' + pk,
         stopTimeAdd: tripPk => '/api/trips/' + tripPk + '/stop-times',
         stopTimeOrder: tripPk => '/api/trips/' + tripPk + '/stop-times/order',
         stopTime: (tripPk, seq) => '/api/trips/' + tripPk + '/stop-times/' + seq
@@ -952,7 +938,7 @@
             + '</div></div>';
 
         if (!trips.length) {
-            return head + '<div class="empty-box mini">该方向暂无班次，点上方「＋ 新建班次」创建一个</div>';
+            return head + '<div class="empty-box mini">该方向暂无班次，<a href="trips.html?routePk=' + state.routeFilter + '">去「班次」新建</a></div>';
         }
 
         if (folded) return head; // 方向折叠：只保留标题行
@@ -1406,8 +1392,6 @@
         $('btnCreate').textContent = off
             ? '＋ 选择线路后加站'
             : (state.creating ? '点击地图选点（Esc 取消）' : '＋ 新增站点');
-        // 「新建班次」只在选了具体线路时出现：班次必须挂在某条线路下
-        $('btnNewTrip').disabled = off;
     }
 
     function setCreating(on) {
@@ -1542,86 +1526,8 @@
         });
     }
 
-    // ---------- 新建班次 ----------
-    // 班次必须挂在某条线路下，所以只能在线路筛选模式下创建（按钮在未选线路时置灰）。
-    // 建出来是空班次，停站要靠「＋ 新增站点」逐站追加，与既有加站流程一致。
-    $('btnNewTrip').addEventListener('click', () => {
-        if (state.routeFilter === null) return;
-        const r = (routesCache || []).find(x => x.routePk === state.routeFilter);
-        $('tripModalRoute').textContent = '所属线路：' + (r ? routeOptionLabel(r) : 'pk=' + state.routeFilter);
-        // 预填：班次名沿用「线路简称 + 序号」，班次ID给个 slug 骨架，用户可改
-        const base = (r && (r.routeShortName || r.routeLongName)) || 'trip';
-        const seq = nextTripSeq();
-        $('tmLabel').value = base + seq;
-        $('tmTripId').value = slug(base) + '-' + seq;
-        $('tmDirection').value = '0';
-        $('tmService').value = 'WEEKDAY';
-        $('tmHeadsign').value = '';
-        $('tripModal').style.display = '';
-        $('tmLabel').focus();
-        $('tmLabel').select();
-    });
-
-    function closeTripModal() { $('tripModal').style.display = 'none'; }
-
-    $('btnTmCancel').addEventListener('click', closeTripModal);
-
-    // 当前线路已有班次的最大序号 +1（班次名以数字结尾时取该数字，否则按个数+1）。
-    // 序号在整条线路内统一递增，不按方向各算各的：同一条线路上「霍营-昌平1/2/3」这类名字
-    // 是连号的自然编号，若按方向分组算序号，去程已有 3 个时新建返程又从 1 开始，会撞名。
-    function nextTripSeq() {
-        const labels = [];
-        ((state.routeStops || {}).directions || []).forEach(d => (d.tripLabels || []).forEach(l => labels.push(l)));
-        let max = labels.length;
-        labels.forEach(l => {
-            const m = String(l).match(/(\d+)\s*$/);
-            if (m) max = Math.max(max, parseInt(m[1]));
-        });
-        return max + 1;
-    }
-
-    // 中文线路名转班次ID骨架：保留字母数字，中文原样保留（GTFS 允许非 ASCII id，只要唯一）
-    function slug(s) {
-        return String(s).trim().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');
-    }
-
-    $('btnTmConfirm').addEventListener('click', async () => {
-        const label = $('tmLabel').value.trim();
-        const tripId = $('tmTripId').value.trim();
-        const serviceId = $('tmService').value.trim();
-        if (!label) { toast('班次名称不能为空', true); return; }
-        if (!tripId) { toast('班次ID不能为空', true); return; }
-        if (!serviceId) { toast('服务日历不能为空', true); return; }
-        const btn = $('btnTmConfirm');
-        btn.disabled = true;
-        try {
-            const created = await api(API.trips, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    routeId: state.routeFilter,
-                    tripId: tripId,
-                    serviceId: serviceId,
-                    directionId: parseInt($('tmDirection').value) || 0,
-                    tripShortName: label,
-                    tripHeadsign: $('tmHeadsign').value.trim() || null
-                })
-            });
-            closeTripModal();
-            toast('已创建班次：' + (created.tripShortName || created.tripId) + '（空班次，用「＋ 新增站点」加站）');
-            // 新建的班次默认展开，方便马上加站
-            delete state.foldedTrips[created.id];
-            await applyRouteFilter();
-            await loadUsageSummary();
-        } catch (err) {
-            toast('创建班次失败：' + err.message, true);
-        } finally {
-            btn.disabled = false;
-        }
-    });
-
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
-            if ($('tripModal').style.display !== 'none') { closeTripModal(); return; }
             if ($('addModal').style.display !== 'none') { closeAddModal(); return; } // 关表单，留在选点模式
             if (state.creating) setCreating(false);
             if (state.picking) setPicking(false);
@@ -1643,7 +1549,7 @@
                 + esc((d.tripLabels || [])[i] || ('班次 ' + pk)) + '</option>'
             ).join('')
         ).join('');
-        $('addTrip').innerHTML = opts || '<option value="">该线路暂无班次（先点「＋ 新建班次」）</option>';
+        $('addTrip').innerHTML = opts || '<option value="">该线路暂无班次，请先到「班次」新建</option>';
         $('addName').value = '';
         $('addArr').value = '';
         $('addDep').value = '';
@@ -1666,7 +1572,7 @@
         if (!arr || !dep) { toast('请填写到达与发车时间', true); return; }
         if (arr > dep) { toast('到达时间不能晚于发车时间', true); return; }
         const tripPk = parseInt($('addTrip').value);
-        if (!tripPk) { toast('该线路暂无班次，请先点「＋ 新建班次」', true); return; }
+        if (!tripPk) { toast('该线路暂无班次，请先到「班次」新建', true); return; }
         const desc = $('addDesc').value.trim();
         // ① 创建站点（含可选描述）
         let stop;

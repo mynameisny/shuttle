@@ -31,6 +31,15 @@ app:
     max-height: 1024
     quality: 0.8
   default-agency-id: ${DEFAULT_AGENCY_ID:KD}
+  map-banner:
+    # 线路总览大地图底部横幅标题（环境变量可覆盖：MAP_BANNER_TITLE）
+    title: ${MAP_BANNER_TITLE:昆仑数智班车线路图}
+  map:
+    # 地图默认中心/缩放（初始视野兜底 + 地名搜索 geocode 偏好）
+    # 换城市部署只需覆盖：MAP_CENTER_LAT / MAP_CENTER_LON / MAP_CENTER_ZOOM
+    center-lat: ${MAP_CENTER_LAT:39.9042}
+    center-lon: ${MAP_CENTER_LON:116.4074}
+    zoom: ${MAP_CENTER_ZOOM:11}
 
 springdoc:
   swagger-ui:

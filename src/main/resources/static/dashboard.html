@@ -80,7 +80,7 @@
                 <div class="page-actions">
                     <a class="btn" href="vehicles.html">车辆档案</a>
                     <a class="btn" href="stops.html">站点维护</a>
-                    <a class="btn btn-primary" href="map.html">线路描图</a>
+                    <a class="btn btn-primary" href="map.html">绘图</a>
                 </div>
             </div>
 
@@ -88,7 +88,7 @@
             <div class="stat-grid" id="statGrid">
                 <div class="stat-card"><div class="stat-top"><span class="stat-label">车辆总数</span></div><div class="stat-value skel">000</div><div class="stat-foot">加载中…</div></div>
                 <div class="stat-card"><div class="stat-top"><span class="stat-label">司机人数</span></div><div class="stat-value skel">000</div><div class="stat-foot">加载中…</div></div>
-                <div class="stat-card"><div class="stat-top"><span class="stat-label">班车线路</span></div><div class="stat-value skel">000</div><div class="stat-foot">加载中…</div></div>
+                <div class="stat-card"><div class="stat-top"><span class="stat-label">线路</span></div><div class="stat-value skel">000</div><div class="stat-foot">加载中…</div></div>
                 <div class="stat-card"><div class="stat-top"><span class="stat-label">站点数量</span></div><div class="stat-value skel">000</div><div class="stat-foot">加载中…</div></div>
             </div>
 
@@ -144,7 +144,7 @@
                                 </a>
                                 <a class="quick-item" href="map.html">
                                     <span class="qi-ico"><svg class="ico" viewBox="0 0 20 20"><circle cx="5" cy="5" r="2"/><circle cx="15" cy="15" r="2"/><path d="M5 7v3.5A2.5 2.5 0 0 0 7.5 13H12a2.5 2.5 0 0 1 2.5 2.5V13"/></svg></span>
-                                    <span class="qi-txt"><span class="qi-name">线路描图</span><span class="qi-sub">运行方向</span></span>
+                                    <span class="qi-txt"><span class="qi-name">绘图</span><span class="qi-sub">线路轨迹</span></span>
                                 </a>
                             </div>
                         </div>
@@ -236,17 +236,19 @@
         const running = vs.filter(x => (x.status || '运营中') === '运营中').length;
         const totalSeats = vs.reduce((s, x) => s + (x.seatCount || 0), 0);
         const dTotal = state.drivers.length;
+        const withPhone = state.drivers.filter(d => d.phone).length;
         const rTotal = state.routes.length;
+        const withColor = state.routes.filter(r => r.routeColor).length;
         const sTotal = state.stops;
 
         $('statGrid').innerHTML = '' +
             statCard('车辆总数', vs.length, '台', 'bus',
-                '<span class="up">' + running + '</span> 台运营中 · ' + pct(running, vs.length) + '% 可用',
+                '<span class="up">' + running + '</span> 台运营中 · 总座位 ' + totalSeats,
                 true) +
             statCard('司机人数', dTotal, '人', 'user',
-                '车辆 / 司机 = ' + (dTotal ? (vs.length / dTotal).toFixed(2) : '—') + ' 台/人') +
-            statCard('班车线路', rTotal, '条', 'route',
-                '平均每线 ' + (rTotal ? (vs.length / rTotal).toFixed(1) : '—') + ' 台车') +
+                '已登记手机号 ' + withPhone + ' · 待补 ' + (dTotal - withPhone)) +
+            statCard('线路', rTotal, '条', 'route',
+                '已设线路色 ' + withColor + ' · 平均每线 ' + (rTotal ? (vs.length / rTotal).toFixed(1) : '—') + ' 台车') +
             statCard('站点数量', sTotal == null ? '—' : sTotal, '个', 'pin',
                 sTotal == null ? '统计不可用' : '已排入班次的唯一站点');
     }

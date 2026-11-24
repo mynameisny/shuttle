@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>运行方向 · 班车调度管理</title>
-    <meta name="nav" content="routes.direction">
+    <title>绘图 · 班车调度管理</title>
+    <meta name="nav" content="routes.list">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
     <link rel="stylesheet" href="css/app.css">
     <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
@@ -13,12 +13,16 @@
         html, body { height: 100%; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
         /* 页面自身布局：#app 填满右侧主区（侧边栏由 app.css + layout.js 提供） */
         #app { display: flex; flex-direction: column; height: 100%; }
-        #main { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+        #main { flex: 1; display: flex; overflow: hidden; min-height: 0; padding: 0 28px 32px; gap: 12px; }
+
+        /* 顶部面包屑条：透明背景（浅灰，与其它后台页一致），下方是带边框的面板/地图卡片 */
+        #app > .page-head { flex: none; padding: 22px 28px 0; }
 
         /* ---------- 左侧面板 ---------- */
         #panel {
             width: 340px; min-width: 340px; height: 100%;
-            background: #f7f8fa; border-right: 1px solid #e0e3e8;
+            background: #f7f8fa;
+            border: 1px solid #dfe3e8; border-radius: 10px;
             display: flex; flex-direction: column; overflow: hidden;
         }
         #panel header {
@@ -44,8 +48,14 @@
         .mini-inline:hover:not(:disabled) { background: #f0f4f9; }
         .mini-inline:disabled { color: #9aa0a6; cursor: default; }
         .field select {
-            width: 100%; padding: 7px 8px; font-size: 13px;
-            border: 1px solid #d0d5dd; border-radius: 6px; background: #fff;
+            width: 100%; padding: 7px 34px 7px 8px; font-size: 13px;
+            border: 1px solid #d0d5dd; border-radius: 6px; background-color: #fff;
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 8.5l4 4 4-4' fill='none' stroke='%238d95a3' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 14px 14px;
+            cursor: pointer;
         }
         /* 视觉隐藏但保留在 DOM 里，联动逻辑继续读它的 value */
         .sr-only {
@@ -121,7 +131,7 @@
         .info-dot:hover { color: #1a73e8; }
 
         /* ---------- 地图 ---------- */
-        #map { flex: 1; height: 100%; }
+        #map { flex: 1; height: 100%; border: 1px solid #dfe3e8; border-radius: 10px; overflow: hidden; }
 
         /* ---------- Toast ---------- */
         #toast {
@@ -139,6 +149,12 @@
 <aside class="sidebar" id="sidebar"></aside>
 <div class="main-area">
 <div id="app">
+    <div class="page-head">
+        <div>
+            <div class="crumbs" data-auto-crumbs></div>
+            <h1 class="page-title">绘图</h1>
+        </div>
+    </div>
     <div id="main">
         <div id="panel">
             <div class="body">

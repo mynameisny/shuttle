@@ -82,16 +82,26 @@ body {
 }
 
 .sb-brand {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 10px;
     height: var(--topbar-h);
     padding: 0 16px;
     flex-shrink: 0;
-    border-bottom: 1px solid var(--c-border);
     text-decoration: none;
     color: inherit;
     transition: padding .18s ease;  /* 折叠/展开时品牌行不突跳 */
+}
+/* 品牌区下方分隔线：用伪元素画，左右各留 16px 空，不占满整条 */
+.sb-brand::after {
+    content: '';
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 0;
+    height: 1px;
+    background: var(--c-border);
 }
 .sb-brand .logo {
     width: 28px; height: 28px; flex-shrink: 0;
@@ -154,7 +164,9 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 10px 10px 16px;
-    transition: padding .18s ease;  /* 与折叠动画同步 */
+    margin-top: 6px;                /* 撑开滚动条轨道顶部与 Logo 分隔线的间距 */
+    margin-right: 6px;              /* 滚动条左移，与右侧竖分隔线留 6px 间隙，避免贴死 */
+    transition: padding .18s ease, margin-right .18s ease;
 }
 .sb-nav::-webkit-scrollbar { width: 6px; }
 .sb-nav::-webkit-scrollbar-thumb { background: #dfe3e8; border-radius: 3px; }
@@ -233,13 +245,13 @@ html.sb-collapsed .sb-item .txt,
 html.sb-collapsed .sb-item .badge-soon,
 html.sb-collapsed .sb-foot,
 html.sb-collapsed .sb-section { display: none; }
-html.sb-collapsed .sb-sub { display: none; }
+html.sb-collapsed .sb-sub, html.sb-collapsed .sb-sub3 { display: none; }
 /* 折叠态图标居中同样用 padding 模拟（justify-content:center 不可过渡，
    与展开态 flex-start 切换会让图标先弹向左侧再漂回，实测 23.5→8→20）：
    nav 横向 padding 8×2 + 图标 17px → 左右各 (64-16-17)/2 = 15.5px。
    若调整 --sidebar-w-collapsed 或图标尺寸，需同步此值。 */
 html.sb-collapsed .sb-item { padding: 9px 15.5px; }
-html.sb-collapsed .sb-nav { padding: 10px 8px; }
+html.sb-collapsed .sb-nav { padding: 10px 8px; margin-right: 0; }
 /* 折叠态的切换按钮：窄条居中、只留图标，箭头转向右侧（示意"展开"）。
    视觉强化（2026-11-10）：折叠后按钮若不显眼，用户会误以为"没法恢复成展开态"，
    故折叠态给浅灰底 + 加深箭头 + hover 变主色，让恢复入口明确可辨。
@@ -295,7 +307,7 @@ html.sb-collapsed .sb-toggle:hover {
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     flex-wrap: wrap;
 }
 
@@ -317,6 +329,7 @@ html.sb-collapsed .sb-toggle:hover {
     font-weight: 650;
     letter-spacing: -.01em;
     line-height: 1.25;
+    margin: 0.67em 0;   /* 显式统一标题上下间距：覆盖地图页 *{margin:0} reset，与 h1 默认一致 */
 }
 .page-desc { font-size: 12.5px; color: var(--c-text-3); margin-top: 4px; }
 
@@ -759,7 +772,7 @@ table.tbl .mono { font-variant-numeric: tabular-nums; }
     .sidebar .sb-item .badge-soon,
     .sidebar .sb-foot,
     .sidebar .sb-section { display: none; }
-    .sidebar .sb-sub { display: none; }
+    .sidebar .sb-sub, .sidebar .sb-sub3 { display: none; }
     .sidebar .sb-toggle { gap: 0; }
     .sidebar .sb-toggle .txt { opacity: 0; max-width: 0; }
     .sidebar .sb-toggle .ico { transform: rotate(180deg); }

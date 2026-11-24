@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>线路标签 · 班车调度管理</title>
-    <meta name="nav" content="routes.networks">
+    <meta name="nav" content="networks">
     <link rel="stylesheet" href="css/app.css">
     <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
     <style>
@@ -35,11 +35,15 @@
                     <h1 class="page-title">线路标签</h1>
                 </div>
                 <div class="page-actions">
+                    <label class="search-wrap">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        <input type="text" class="search" id="searchInput" placeholder="搜索标签标识 / 标签名…" style="width:250px">
+                    </label>
                     <button class="btn btn-primary" id="btnAdd">
                         <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
                         新增标签
                     </button>
-                    <a class="btn" href="routes.html">班车线路</a>
+                    <a class="btn" href="routes.html">返回线路</a>
                 </div>
             </div>
 
@@ -112,11 +116,23 @@
 
     function render() {
         const tbody = $('tbody');
-        const list = [...networks].sort((a, b) => (a.id || 0) - (b.id || 0));
-        if (!list.length) {
+        const kw = $('searchInput').value.trim().toLowerCase();
+        const list = [...networks].sort((a, b) => (a.id || 0) - (b.id || 0))
+            .filter(n => {
+                if (!kw) return true;
+                const hay = [n.networkId, n.networkName].filter(Boolean).join(' ');
+                return hay.toLowerCase().includes(kw);
+            });
+        if (!networks.length) {
             tbody.innerHTML = '<tr><td colspan="4">' +
                 '<div class="empty-state"><div class="em-title">还没有标签</div>' +
                 '<div class="em-desc">点击右上角「新增标签」创建</div></div></td></tr>';
+            return;
+        }
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="4">' +
+                '<div class="empty-state"><div class="em-title">没有匹配的标签</div>' +
+                '<div class="em-desc">换个关键词试试</div></div></td></tr>';
             return;
         }
         tbody.innerHTML = list.map(n => {
@@ -191,6 +207,7 @@
         }
     }
 
+    $('searchInput').addEventListener('input', render);
     $('btnAdd').addEventListener('click', () => openModal(null));
     $('btnCancel').addEventListener('click', closeModal);
     $('btnSave').addEventListener('click', save);

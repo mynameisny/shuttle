@@ -32,34 +32,118 @@
         /* 地图容器 */
         .map-wrap { flex: 1; position: relative; min-height: 0; }
         #map { position: absolute; inset: 0; }
-        /* 底图去色+提亮+降对比，让底图变浅变素，突出彩色线路 */
-        #map .leaflet-tile { filter: grayscale(100%) brightness(1.06) contrast(0.82); }
-        /* 线路筛选面板 */
-        .route-filter-panel {
-            position: absolute; top: 12px; left: 12px; z-index: 600;
-            width: 264px; max-height: calc(100% - 24px);
-            background: #fff; border: 1px solid var(--c-border, #eef1f4);
-            border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        /* 底图降饱和+提亮+降对比：米白浅彩底图（保留淡绿绿地/淡蓝水域），突出彩色线路 */
+        #map .leaflet-tile { filter: saturate(0.55) brightness(1.12) contrast(0.85); }
+
+        /* ===== 线路编号徽章：白底胶囊 + 线路色描边 + 线路色数字（参照印刷版线路图） ===== */
+        .route-badge-wrap { background: none; border: none; }
+        .route-badge {
+            position: absolute; transform: translate(-50%, -50%);
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 26px; height: 26px; padding: 0 8px;
+            background: #fff; border: 2.5px solid #333; border-radius: 999px;
+            font-size: 14px; font-weight: 800; line-height: 1;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .35);
+            white-space: nowrap; cursor: default; user-select: none;
+        }
+
+        /* ===== 右下角图例面板：彩色色块 + 编号 + 起终点 ===== */
+        .map-legend {
+            position: absolute; right: 12px; bottom: 96px; z-index: 600;
+            width: 296px; max-height: 46%;
+            background: #fff; border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .16);
             display: flex; flex-direction: column; overflow: hidden;
         }
-        .rfp-head {
+        .lg-head {
             display: flex; align-items: center; justify-content: space-between;
             padding: 10px 14px; border-bottom: 1px solid var(--c-border, #eef1f4);
             font-size: 13px; font-weight: 600; color: var(--c-text-1, #212529);
         }
-        .rfp-head .rfp-ops { font-size: 12px; font-weight: 400; color: var(--c-primary, #1971c2); }
-        .rfp-head .rfp-ops a { cursor: pointer; }
-        .rfp-head .rfp-ops a:hover { text-decoration: underline; }
-        .rfp-list { overflow-y: auto; padding: 4px 0; }
-        .rfp-item {
-            display: flex; align-items: center; gap: 9px; padding: 6px 14px;
+        .lg-head .lg-ops { font-size: 12px; font-weight: 400; color: var(--c-primary, #1971c2); }
+        .lg-head .lg-ops a { cursor: pointer; }
+        .lg-head .lg-ops a:hover { text-decoration: underline; }
+        .lg-list { overflow-y: auto; padding: 4px 0; }
+        .lg-item {
+            display: flex; align-items: center; gap: 9px; padding: 5px 14px;
             cursor: pointer; font-size: 12.5px; color: var(--c-text-2, #495057);
         }
-        .rfp-item:hover { background: #f6f8fa; }
-        .rfp-item input { flex-shrink: 0; margin: 0; }
-        .rfp-item .rfp-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
-        .rfp-item .rfp-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .rfp-empty { padding: 16px; text-align: center; color: var(--c-text-3, #adb5bd); font-size: 12px; }
+        .lg-item:hover { background: #f6f8fa; }
+        .lg-item.off { opacity: .38; }
+        .lg-item .lg-chip { width: 22px; height: 13px; border-radius: 3px; flex-shrink: 0; }
+        .lg-item .lg-no { width: 30px; text-align: right; font-weight: 700; flex-shrink: 0; color: var(--c-text-1, #212529); }
+        .lg-item .lg-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lg-empty { padding: 16px; text-align: center; color: var(--c-text-3, #adb5bd); font-size: 12px; }
+
+        /* ===== 底部横幅：深灰条幅 + 白色大标题 + 更新时间 ===== */
+        .map-banner {
+            position: absolute; left: 0; right: 0; bottom: 0; z-index: 700;
+            height: 48px; background: #2f343b;
+            display: flex; align-items: center; gap: 14px; padding: 0 18px;
+        }
+        .map-banner .mb-title { color: #fff; font-size: 17px; font-weight: 700; letter-spacing: 1px; }
+        .map-banner .mb-time { margin-left: auto; color: #aab2ba; font-size: 12px; white-space: nowrap; }
+
+        /* Leafet 底部控件（比例尺/attribution/layers）整体抬高，避开底部横幅 */
+        .map-wrap .leaflet-bottom { bottom: 48px; }
+
+        /* ===== 地名搜索：以定位点为圆心画圈，标识圈内站点 ===== */
+        .place-search { display: flex; align-items: center; gap: 8px; }
+        .place-search .input { width: 216px; height: 34px; }
+        .place-result-panel {
+            /* left:64px 避开 Leaflet 左上缩放控件（默认 topleft，宽约 40px） */
+            position: absolute; top: 12px; left: 64px; z-index: 600;
+            width: 264px; max-height: 60%;
+            background: #fff; border: 1px solid var(--c-border, #eef1f4);
+            border-radius: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, .14);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .prp-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px; border-bottom: 1px solid var(--c-border, #eef1f4);
+            font-size: 13px; font-weight: 600; color: var(--c-text-1, #212529);
+        }
+        .prp-head .prp-ops { font-size: 12px; font-weight: 400; color: var(--c-primary, #1971c2); }
+        .prp-head .prp-ops a { cursor: pointer; }
+        .prp-head .prp-ops a:hover { text-decoration: underline; }
+        .prp-list { overflow-y: auto; padding: 4px 0; }
+        .prp-item {
+            padding: 6px 14px; cursor: pointer;
+            font-size: 12.5px; color: var(--c-text-2, #495057);
+        }
+        .prp-item:hover { background: #f6f8fa; }
+        .prp-main { display: flex; align-items: center; gap: 9px; }
+        .prp-item .prp-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .prp-item .prp-dist { flex-shrink: 0; font-size: 11.5px; color: var(--c-text-3, #868e96); }
+        /* 站点关联的线路/班次标签 */
+        .prp-refs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+        .prp-ref {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 11px; color: var(--c-text-3, #868e96);
+            background: #f1f3f5; border-radius: 6px; padding: 1px 6px;
+        }
+        .prp-ref-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .prp-refs-empty { color: #c3c8ce; font-size: 11px; }
+        .prp-empty { padding: 16px; text-align: center; color: var(--c-text-3, #adb5bd); font-size: 12px; }
+
+        /* ===== 班次概要弹层（点击线路/徽章） ===== */
+        .route-popup { min-width: 236px; font-size: 13px; }
+        .route-popup .rp-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .route-popup .rp-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 24px; height: 24px; padding: 0 7px;
+            background: #9aa3b0; color: #fff; border-radius: 999px;
+            font-size: 13px; font-weight: 800; line-height: 1; flex-shrink: 0;
+        }
+        .route-popup .rp-name { font-weight: 600; font-size: 14px; }
+        .route-popup .rp-row { display: flex; gap: 10px; padding: 2.5px 0; color: var(--c-text-2, #495057); }
+        .route-popup .rp-row .rp-k { width: 60px; flex-shrink: 0; color: var(--c-text-3, #868e96); }
+        .route-popup .rp-row .rp-v { word-break: break-all; }
+        .route-popup .rp-link {
+            display: inline-block; margin-top: 9px;
+            color: var(--c-primary, #1971c2); font-weight: 600; text-decoration: none;
+        }
+        .route-popup .rp-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -73,17 +157,41 @@
                     <button type="button" class="dir-btn active" data-dir="0">去程</button>
                     <button type="button" class="dir-btn" data-dir="1">返程</button>
                 </div>
-                <button type="button" class="btn" id="btnFilter">筛选线路</button>
+                <div class="place-search">
+                    <input type="text" class="input" id="placeSearch" placeholder="输入地名搜索站点，如：霍营" title="回车或点搜索按钮，以该地名位置为中心画圈，列出圈内站点">
+                    <select class="select" id="placeRadius" title="搜索半径（公里）" style="width:100px; height:34px">
+                        <option value="1">1 公里</option>
+                        <option value="2" selected>2 公里</option>
+                        <option value="3">3 公里</option>
+                        <option value="5">5 公里</option>
+                    </select>
+                    <button type="button" class="btn" id="btnSearch">
+                        <svg class="ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        搜索
+                    </button>
+                </div>
+                <button type="button" class="btn" id="btnFilter">隐藏图例</button>
                 <span class="map-stat" id="mapStat"></span>
             </div>
             <div class="map-wrap">
                 <div id="map"></div>
-                <div class="route-filter-panel" id="routeFilterPanel" style="display:none">
-                    <div class="rfp-head">
-                        <span>线路</span>
-                        <span class="rfp-ops"><a id="rfpAll">全选</a> · <a id="rfpNone">清空</a></span>
+                <div class="place-result-panel" id="placeResultPanel" style="display:none">
+                    <div class="prp-head">
+                        <span id="prpTitle"></span>
+                        <span class="prp-ops"><a id="prpClear">清除</a></span>
                     </div>
-                    <div class="rfp-list" id="rfpList"></div>
+                    <div class="prp-list" id="prpList"></div>
+                </div>
+                <div class="map-legend" id="mapLegend">
+                    <div class="lg-head">
+                        <span>线路图例</span>
+                        <span class="lg-ops"><a id="lgAll">全选</a> · <a id="lgNone">清空</a></span>
+                    </div>
+                    <div class="lg-list" id="lgList"></div>
+                </div>
+                <div class="map-banner">
+                    <span class="mb-title" id="mapBannerTitle">昆仑数智班车线路图</span>
+                    <span class="mb-time" id="mapUpdated"></span>
                 </div>
             </div>
         </div>
@@ -101,9 +209,28 @@
     let shapes = [];
     let selected = new Set();   // 选中的 routePk（字符串）
     let direction = 0;          // 0=去程，1=返程
+    let currentLines = [];      // 当前已画的彩色主线（选中高亮用）
+    // 地名搜索：圈 + 圈内站点（独立图层，方便整体清除；须在 createMap 之后初始化）
+    let searchLayer = null;
+    let allStops = null;        // 站点缓存（首次搜索时拉取）
+    let stopRefs = null;        // 站点→线路/班次引用缓存（Map<stopPk, refs[]>）
+    let initialBounds = null;   // 进入页面时的地图视野（首次渲染后快照，清除搜索时回到）
 
     const { map } = createMap('map');
     const lineLayer = L.layerGroup().addTo(map);
+    searchLayer = L.layerGroup().addTo(map);
+    // 比例尺（公制），Leafet 底部控件已由 CSS 抬高避开横幅
+    L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
+
+    // URL 方向深链：?dir=1 直接以返程视角打开
+    (function () {
+        const d = parseInt(new URLSearchParams(location.search).get('dir'), 10);
+        if (d === 1) {
+            direction = 1;
+            document.querySelectorAll('#dirToggle .dir-btn').forEach(x => x.classList.remove('active'));
+            document.querySelector('#dirToggle .dir-btn[data-dir="1"]').classList.add('active');
+        }
+    })();
 
     function routeColorHex(c) {
         return c ? '#' + String(c).replace('#', '') : '#9aa3b0';
@@ -117,27 +244,29 @@
         try {
             allRoutes = await api('/api/routes') || [];
             allRoutes.forEach(r => selected.add(String(r.id)));
-            renderFilter();
+            renderLegend();
         } catch (err) { toast('加载线路失败：' + err.message, true); }
     }
 
-    function renderFilter() {
+    function renderLegend() {
         if (!allRoutes.length) {
-            $('rfpList').innerHTML = '<div class="rfp-empty">暂无线线路</div>';
+            $('lgList').innerHTML = '<div class="lg-empty">暂无线路</div>';
             return;
         }
-        $('rfpList').innerHTML = allRoutes.map(r => {
+        $('lgList').innerHTML = allRoutes.map(r => {
             const id = String(r.id);
-            const checked = selected.has(id) ? 'checked' : '';
-            return '<label class="rfp-item">' +
-                '<input type="checkbox" data-id="' + id + '" ' + checked + '>' +
-                '<span class="rfp-dot" style="background:' + routeColorHex(r.routeColor) + '"></span>' +
-                '<span class="rfp-name">' + esc(routeName(r)) + '</span>' +
-                '</label>';
+            const off = selected.has(id) ? '' : ' off';
+            return '<div class="lg-item' + off + '" data-id="' + id + '" title="' + esc(routeName(r)) + '">' +
+                '<span class="lg-chip" style="background:' + routeColorHex(r.routeColor) + '"></span>' +
+                '<span class="lg-no">' + esc(id) + '</span>' +
+                '<span class="lg-name">' + esc(routeName(r)) + '</span>' +
+                '</div>';
         }).join('');
-        $('rfpList').querySelectorAll('input[type=checkbox]').forEach(cb => {
-            cb.addEventListener('change', () => {
-                if (cb.checked) selected.add(cb.dataset.id); else selected.delete(cb.dataset.id);
+        $('lgList').querySelectorAll('.lg-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const id = el.dataset.id;
+                if (selected.has(id)) selected.delete(id); else selected.add(id);
+                renderLegend();
                 renderMap();
             });
         });
@@ -167,18 +296,81 @@
                 color: '#ffffff', weight: 9, opacity: 0.95, lineJoin: 'round', lineCap: 'round'
             }).addTo(lineLayer);
         });
-        // 第二遍：彩色主线 + 悬停提示（全不透明，加粗）
+        // 第二遍：彩色主线 + 线路编号徽章 + 班次概要弹层
+        const colorLines = [];
         items.forEach(it => {
+            const color = routeColorHex(it.s.routeColor);
             const line = L.polyline(it.latlngs, {
-                color: routeColorHex(it.s.routeColor), weight: 5, opacity: 1, lineJoin: 'round', lineCap: 'round'
+                color: color, weight: 5, opacity: 1, lineJoin: 'round', lineCap: 'round'
             });
-            line.bindTooltip(it.s.routeLongName || it.s.routeShortName || it.s.routeGtfsId || it.s.tripId, { sticky: true });
+            line.bindTooltip(routeName(it.s) || it.s.tripId, { sticky: true });
+            line.bindPopup(routePopupHtml(it.s), { maxWidth: 300 });
+            line.on('click', () => highlightRoute(it.s.routePk));
             line.addTo(lineLayer);
+            colorLines.push({ routePk: it.s.routePk, line });
+            // 线路编号徽章：落在线路中点，白底 + 线路色描边/数字（参照印刷版线路图）
+            const mid = it.latlngs[Math.floor(it.latlngs.length / 2)];
+            const badge = L.marker(mid, {
+                icon: L.divIcon({
+                    className: 'route-badge-wrap',
+                    html: '<span class="route-badge" style="color:' + color + ';border-color:' + color + '">' + esc(String(it.s.routeGtfsId)) + '</span>',
+                    iconSize: [0, 0]
+                }),
+                keyboard: false
+            });
+            badge.bindPopup(routePopupHtml(it.s), { maxWidth: 300 });
+            badge.on('click', () => highlightRoute(it.s.routePk));
+            badge.addTo(lineLayer);
+            colorLines.push({ routePk: it.s.routePk, gtfsId: String(it.s.routeGtfsId), line, badge });
             bounds.extend(it.latlngs);
             drawn++;
         });
+        currentLines = colorLines;
         $('mapStat').textContent = '显示 ' + drawn + ' 条线路';
-        if (bounds.isValid()) map.fitBounds(bounds.pad(0.15));
+        if (bounds.isValid()) {
+            // 存 fitBounds 的「目标」全景（而非动画完成前的 getBounds 瞬时值，后者在真实浏览器里是动画起点=北京正中心）
+            const target = bounds.pad(0.15);
+            map.fitBounds(target);
+            if (!initialBounds) initialBounds = target;
+        } else if (!initialBounds) {
+            initialBounds = map.getBounds();   // 无线路兜底：默认视野
+        }
+    }
+
+    // 选中某条描图：该线加粗置顶，其余线恢复常规粗细
+    function highlightRoute(routePk) {
+        (currentLines || []).forEach(c => {
+            const active = String(c.routePk) === String(routePk);
+            c.line.setStyle({ weight: active ? 7.5 : 5 });
+            if (active) c.line.bringToFront();
+        });
+    }
+
+    // 班次概要弹层：标题=班次名称（班次简称 → 方向牌）+ 所属线路/方向/站点数 + 跳班车时刻
+    function routePopupHtml(s) {
+        const color = routeColorHex(s.routeColor);
+        const dir = s.directionId === 1 ? '返程' : '去程';
+        const routeNameText = routeName(s) || s.tripId;
+        // 标题：班次简称 + 方向牌（如「霍营2早班 → 昌平办公区」），缺失时回退线路名
+        const shortName = s.tripShortName || '';
+        const headsign = s.tripHeadsign || '';
+        let title;
+        if (shortName && headsign) title = shortName + ' → ' + headsign;
+        else if (shortName) title = shortName;
+        else if (headsign) title = '→ ' + headsign;
+        else title = routeNameText;
+        const href = 'schedule.html?routePk=' + encodeURIComponent(s.routePk) +
+            '&tripId=' + encodeURIComponent(s.tripId);
+        return '<div class="route-popup">' +
+            '<div class="rp-head">' +
+            '<span class="rp-badge" style="background:' + color + '">' + esc(String(s.routeGtfsId)) + '</span>' +
+            '<span class="rp-name">' + esc(title) + '</span>' +
+            '</div>' +
+            '<div class="rp-row"><span class="rp-k">所属线路</span><span class="rp-v">' + esc(routeNameText) + '</span></div>' +
+            '<div class="rp-row"><span class="rp-k">方向</span><span class="rp-v">' + dir + '</span></div>' +
+            '<div class="rp-row"><span class="rp-k">站点数</span><span class="rp-v mono">' + (s.stopCount != null ? s.stopCount : '—') + '</span></div>' +
+            '<a class="rp-link" href="' + href + '">查看班车时刻 →</a>' +
+            '</div>';
     }
 
     // 方向切换
@@ -191,25 +383,196 @@
         });
     });
 
-    // 筛选面板开关
+    // 图例面板开关
     $('btnFilter').addEventListener('click', () => {
-        const p = $('routeFilterPanel');
-        p.style.display = p.style.display === 'none' ? '' : 'none';
+        const p = $('mapLegend');
+        const hidden = p.style.display === 'none';
+        p.style.display = hidden ? '' : 'none';
+        $('btnFilter').textContent = hidden ? '隐藏图例' : '显示图例';
     });
-    $('rfpAll').addEventListener('click', () => {
+    $('lgAll').addEventListener('click', () => {
         allRoutes.forEach(r => selected.add(String(r.id)));
-        renderFilter();
+        renderLegend();
         renderMap();
     });
-    $('rfpNone').addEventListener('click', () => {
+    $('lgNone').addEventListener('click', () => {
         selected.clear();
-        renderFilter();
+        renderLegend();
         renderMap();
     });
+
+    // 底部横幅更新时间（当天）
+    (function () {
+        const d = new Date();
+        $('mapUpdated').textContent = '更新时间：' + d.getFullYear() + '.' + (d.getMonth() + 1) + '.' + d.getDate();
+    })();
+
+    // ===== 地名搜索：定位 → 画圈（半径下拉可选）→ 标识圈内站点 =====
+    function placeRadiusMeters() {
+        return (parseFloat($('placeRadius').value) || 2) * 1000;
+    }
+
+    // Haversine 球面距离（米）
+    function distMeters(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return 2 * R * Math.asin(Math.sqrt(a));
+    }
+
+    async function ensureStops() {
+        if (!allStops) allStops = (await api('/api/stops')) || [];
+        return allStops;
+    }
+
+    // 站点→线路/班次引用（/api/stops/usage-summary），Map<stopPk, refs[]>
+    async function ensureStopRefs() {
+        if (stopRefs) return stopRefs;
+        stopRefs = new Map();
+        try {
+            const list = (await api('/api/stops/usage-summary')) || [];
+            list.forEach(x => stopRefs.set(String(x.stopPk), x.refs || []));
+        } catch (e) { /* 引用拉取失败时列表退化为仅站名+距离 */ }
+        return stopRefs;
+    }
+
+    function routeColorByPk(pk) {
+        const r = allRoutes.find(x => String(x.id) === String(pk));
+        return r ? routeColorHex(r.routeColor) : '#9aa3b0';
+    }
+
+    function clearPlaceSearch() {
+        searchLayer.clearLayers();
+        $('placeResultPanel').style.display = 'none';
+    }
+
+    async function doPlaceSearch(query) {
+        const q = (query != null ? String(query) : $('placeSearch').value).trim();
+        if (!q) { toast('请输入地名', true); return; }
+        $('placeSearch').value = q;
+        let hits;
+        try {
+            hits = await geocode(q);
+        } catch (err) {
+            toast('地名查询失败：' + err.message, true);
+            return;
+        }
+        if (!hits || !hits.length) { toast('未找到「' + q + '」，换个说法试试', true); return; }
+        const c = hits[0];
+        const center = parseLatLng(c.lat, c.lon);
+        if (!center) { toast('返回坐标无效', true); return; }
+
+        clearPlaceSearch();
+        const radiusM = placeRadiusMeters();
+        map.flyTo(center, 13);
+        // 圈 + 中心点
+        L.circle(center, {
+            radius: radiusM,
+            color: '#1971c2', weight: 2, fillColor: '#1971c2', fillOpacity: 0.07
+        }).addTo(searchLayer);
+        L.circleMarker(center, {
+            radius: 6, color: '#fff', fillColor: '#1971c2', fillOpacity: 1, weight: 2
+        }).bindTooltip('📍 ' + (c.displayName || q), { direction: 'top' }).addTo(searchLayer);
+
+        // 圈内站点（按距离升序），并附带站点→线路/班次引用
+        let found = [];
+        try {
+            const stops = await ensureStops();
+            const refMap = await ensureStopRefs();
+            found = stops.map(s => {
+                const ll = parseLatLng(s.stopLat, s.stopLon);
+                if (!ll) return null;
+                return {
+                    id: s.id, name: s.stopName, ll,
+                    d: distMeters(center[0], center[1], ll[0], ll[1]),
+                    refs: refMap.get(String(s.id)) || []
+                };
+            }).filter(Boolean).filter(f => f.d <= radiusM)
+                .sort((a, b) => a.d - b.d);
+        } catch (err) { toast('站点加载失败：' + err.message, true); }
+        found.forEach(f => {
+            L.circleMarker(f.ll, {
+                radius: 5, color: '#e8590c', fillColor: '#fff', fillOpacity: 1, weight: 2
+            }).bindTooltip(esc(f.name) + ' · ' + Math.round(f.d) + '米')
+                .addTo(searchLayer);
+        });
+
+        // 左上角结果面板
+        $('prpTitle').textContent = '「' + q + '」' + (radiusM / 1000) + ' 公里内 ' + found.length + ' 个站点';
+        $('prpList').innerHTML = found.length
+            ? found.map(f => {
+                const refs = f.refs || [];
+                const refsHtml = refs.length
+                    ? refs.slice(0, 3).map(r =>
+                        '<span class="prp-ref">' +
+                        '<span class="prp-ref-dot" style="background:' + routeColorByPk(r.routePk) + '"></span>' +
+                        esc(r.tripLabel || r.routeShortName) + (r.directionId === 1 ? '·返' : '') + '</span>').join('')
+                        + (refs.length > 3 ? '<span class="prp-ref">等 ' + refs.length + ' 班</span>' : '')
+                    : '<span class="prp-refs-empty">未关联线路</span>';
+                return '<div class="prp-item" data-lat="' + f.ll[0] + '" data-lng="' + f.ll[1] + '">' +
+                    '<div class="prp-main">' +
+                    '<span class="prp-name">' + esc(f.name) + '</span>' +
+                    '<span class="prp-dist mono">' + Math.round(f.d) + ' m</span>' +
+                    '</div>' +
+                    '<div class="prp-refs">' + refsHtml + '</div>' +
+                    '</div>';
+            }).join('')
+            : '<div class="prp-empty">圈内暂无站点</div>';
+        $('prpList').querySelectorAll('.prp-item').forEach(el => {
+            el.addEventListener('click', () => {
+                map.flyTo([parseFloat(el.dataset.lat), parseFloat(el.dataset.lng)], Math.max(map.getZoom(), 15));
+            });
+        });
+        $('placeResultPanel').style.display = '';
+    }
+
+    $('btnSearch').addEventListener('click', () => doPlaceSearch());
+    $('placeSearch').addEventListener('keydown', e => {
+        if (e.key === 'Enter') doPlaceSearch();
+    });
+    $('prpClear').addEventListener('click', () => {
+        clearPlaceSearch();
+        $('placeSearch').value = '';
+        // 视角与缩放回到进入页面时的初始视野
+        if (initialBounds) map.flyToBounds(initialBounds);
+    });
+
+    // 横幅标题走 application.yml 配置（/api/app-config），接口异常时保留 HTML 写死的兜底值
+    (async function () {
+        try {
+            const cfg = await api('/api/app-config');
+            if (cfg && cfg.mapBannerTitle) $('mapBannerTitle').textContent = cfg.mapBannerTitle;
+        } catch (e) { /* 配置接口不可用时静默兜底 */ }
+    })();
 
     (async () => {
         await loadRoutes();
         await loadShapes();
+        // 演示/自测钩子：?popup={线路编号} 自动选中并打开该线路的班次概要弹层
+        const demo = new URLSearchParams(location.search).get('popup');
+        if (demo) {
+            const c = (currentLines || []).find(x => x.gtfsId === demo);
+            if (c) {
+                highlightRoute(c.routePk);
+                (c.badge || c.line).openPopup();
+            }
+        }
+        // 演示/自测钩子：?place={地名}&radius={公里} 自动执行地名搜索（画圈 + 圈内站点）
+        const demoPlace = new URLSearchParams(location.search).get('place');
+        const demoRadius = new URLSearchParams(location.search).get('radius');
+        if (demoRadius) {
+            const sel = $('placeRadius');
+            if (Array.from(sel.options).some(o => o.value === demoRadius)) sel.value = demoRadius;
+        }
+        if (demoPlace) doPlaceSearch(demoPlace).then(() => {
+            // 演示/自测钩子：&autoclear=1 搜索完成后自动点一次「清除」（验证视野回到进入页面时）
+            if (new URLSearchParams(location.search).get('autoclear') === '1') {
+                setTimeout(() => $('prpClear').click(), 600);
+            }
+        });
     })();
 </script>
 </body>

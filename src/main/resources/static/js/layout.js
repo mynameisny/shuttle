@@ -30,7 +30,7 @@ const MENU = [
         ]
     },
     {
-        group: '车队管理',
+        group: '资源管理',
         items: [
             {
                 key: 'vehicles', name: '车辆管理', icon: 'bus', children: [
@@ -45,11 +45,7 @@ const MENU = [
                     { key: 'drivers.records', name: '驾驶记录', ready: false, note: '出车记录、违章、安全考核' }
                 ]
             },
-            {
-                key: 'captains', name: '车长管理', icon: 'captain', children: [
-                    { key: 'captains.archives', name: '车长档案', href: 'captains.html', ready: true }
-                ]
-            }
+            { key: 'captains', name: '车长管理', icon: 'captain', href: 'captains.html', ready: true }
         ]
     },
     {
@@ -57,21 +53,20 @@ const MENU = [
         items: [
             {
                 key: 'routes', name: '线路管理', icon: 'route', children: [
-                    { key: 'routes.list', name: '班车线路', href: 'routes.html', ready: true },
-                    { key: 'routes.stops', name: '站点', href: 'stops.html', ready: true },
-                    { key: 'routes.direction', name: '运行方向', href: 'map.html', ready: true },
-                    { key: 'routes.networks', name: '线路标签', href: 'networks.html', ready: true }
+                    { key: 'routes.list', name: '线路', href: 'routes.html', ready: true },
+                    { key: 'routes.trips', name: '班次', href: 'trips.html', ready: true },
+                    { key: 'routes.stops', name: '站点', href: 'stops.html', ready: true }
+                ]
+            },
+            { key: 'networks', name: '线路标签', icon: 'tag', href: 'networks.html', ready: true },
+            {
+                key: 'scheduling', name: '排班管理', icon: 'clock', children: [
+                    { key: 'scheduling.calendar', name: '服务日历', href: 'calendars.html', ready: true },
+                    { key: 'scheduling.assign', name: '班次安排', href: 'assignments.html', ready: true }
                 ]
             },
             {
-                key: 'trips', name: '班次管理', icon: 'clock', children: [
-                    { key: 'trips.calendar', name: '服务日历', href: 'calendars.html', ready: true },
-                    { key: 'trips.plan', name: '发车计划', href: 'trips.html', ready: true },
-                    { key: 'trips.assign', name: '班次安排', href: 'assignments.html', ready: true }
-                ]
-            },
-            {
-                key: 'ops', name: '运营管理', icon: 'activity', children: [
+                key: 'ops', name: '报表分析', icon: 'activity', children: [
                     { key: 'ops.reports', name: '运营报表', href: 'reports.html', ready: true },
                     { key: 'ops.records', name: '发车记录', href: 'stop-events.html', ready: true },
                     { key: 'ops.dispatch', name: '车辆调度', ready: false, note: '临时调车、加车、替班' }
@@ -88,9 +83,9 @@ const MENU = [
     {
         group: '乘客服务',
         items: [
+            { key: 'passenger.map', name: '线路地图', icon: 'pin', href: 'routes-map.html', ready: true },
             { key: 'passenger.schedule', name: '班车时刻', icon: 'search', href: 'schedule.html', ready: true },
-            { key: 'passenger.analysis', name: '运营分析', icon: 'activity', href: 'analysis.html', ready: true },
-            { key: 'passenger.map', name: '线路地图', icon: 'pin', href: 'routes-map.html', ready: true }
+            { key: 'passenger.analysis', name: '运营分析', icon: 'activity', href: 'analysis.html', ready: true }
         ]
     },
     {
@@ -129,6 +124,7 @@ const ICONS = {
     alert: '<path d="M10 3.2 17.4 16H2.6z"/><path d="M10 8v3.4M10 13.6v.6"/>',
     shield: '<path d="M10 2.8 16.4 5v5.2c0 3.4-2.5 5.8-6.4 7-3.9-1.2-6.4-3.6-6.4-7V5z"/>',
     pin: '<path d="M10 17.4s5.4-5 5.4-9a5.4 5.4 0 1 0-10.8 0c0 4 5.4 9 5.4 9z"/><circle cx="10" cy="8.2" r="2"/>',
+    tag: '<path d="M3 4.5A1.5 1.5 0 0 1 4.5 3h4L16 10.5v2.5l-3 3H6.5L3 12.5z"/><circle cx="7" cy="7" r="1.1"/>',
     wrench: '<path d="M12.4 3.2a4.4 4.4 0 0 0-5.6 5.6l-3.4 3.4a1.8 1.8 0 0 0 2.5 2.5l3.4-3.4a4.4 4.4 0 0 0 5.6-5.6l-2.6 2.6-2.4-.6-.6-2.4z"/>',
     inBox: '<path d="M3 6.6 10 3l7 3.6V14L10 17.6 3 14z"/><path d="M3 6.6 10 10l7-3.4"/>'
 };
@@ -148,6 +144,42 @@ function currentNavKey() {
 // 侧边栏折叠状态持久化
 const SB_KEY = 'shuttle.sidebar.collapsed';
 
+// 递归渲染侧边栏菜单项，支持多级嵌套（目录项 → 二级项 → 三级项）。
+// depth 0=一级（目录项/一级叶子，带图标）；1=二级（缩进 34px）；>=2=三级（缩进 48px）。
+// 父项自带 href 时点击跳自身（如「线路」），否则跳第一个 ready 子项。
+function renderItem(it, activeKey, depth) {
+    const hasChildren = it.children && it.children.length;
+    const isActive = activeKey === it.key;
+    const containsActive = activeKey === it.key || activeKey.startsWith(it.key + '.');
+    const hasActiveChild = containsActive && !isActive;
+    const subCls = depth === 1 ? ' sb-sub' : (depth >= 2 ? ' sb-sub3' : '');
+    const indent = depth === 1 ? 'padding-left:34px;font-size:12.5px'
+        : depth >= 2 ? 'padding-left:48px;font-size:12px' : '';
+    const icon = depth === 0 ? iconSvg(it.icon) : '';
+
+    if (!hasChildren) {
+        const href = it.ready === false ? ('placeholder.html?m=' + encodeURIComponent(it.key)) : (it.href || '#');
+        const cls = 'sb-item' + subCls + (isActive ? ' active' : '') + (it.ready === false ? ' disabled' : '');
+        return '<a class="' + cls + '" href="' + href + '" title="' + _e(it.name) + '" data-nav="' + it.key + '"'
+            + (indent ? ' style="' + indent + '"' : '') + '>'
+            + icon + '<span class="txt">' + _e(it.name) + '</span>'
+            + (it.ready === false ? '<span class="badge-soon">建设</span>' : '')
+            + '</a>';
+    }
+
+    const firstReady = it.children.find(c => c.ready) || it.children[0];
+    const parentHref = it.href || (firstReady.ready ? firstReady.href : ('placeholder.html?m=' + encodeURIComponent(firstReady.key)));
+    const parentCls = 'sb-item' + subCls + (hasActiveChild ? ' parent-of-active' : (isActive ? ' active' : ''));
+    let html = '<a class="' + parentCls + '" href="' + parentHref + '" title="' + _e(it.name) + '" data-nav="' + it.key + '"'
+        + (indent ? ' style="' + indent + '"' : '') + '>'
+        + icon + '<span class="txt">' + _e(it.name) + '</span></a>';
+
+    if (containsActive) {
+        it.children.forEach(c => { html += renderItem(c, activeKey, depth + 1); });
+    }
+    return html;
+}
+
 function buildSidebar(mount, activeKey) {
     const activeParent = activeKey.split('.')[0];
 
@@ -161,43 +193,7 @@ function buildSidebar(mount, activeKey) {
 
     MENU.forEach(sec => {
         html += '<div class="sb-section">' + sec.group + '</div>';
-        sec.items.forEach(it => {
-            const isChildActive = activeKey === it.key || activeKey.startsWith(it.key + '.');
-            if (it.children && it.children.length) {
-                // 父项：可跳转到第一个 ready 的子项；父项高亮表示“当前在这个模块内”
-                const firstReady = it.children.find(c => c.ready) || it.children[0];
-                const parentHref = firstReady.ready ? firstReady.href : ('placeholder.html?m=' + encodeURIComponent(firstReady.key));
-                const isGroupActive = activeKey.startsWith(it.key + '.') || activeKey === it.key;
-                // 当前页是某个子项时，父项只做次要强调（避免父子同时高亮）
-                const hasActiveChild = activeKey.startsWith(it.key + '.') && activeKey !== it.key;
-                const parentCls = 'sb-item' + (hasActiveChild ? ' parent-of-active' : (isGroupActive ? ' active' : ''));
-                html +=
-                    '<a class="' + parentCls + '" href="' + parentHref + '"' +
-                    ' title="' + _e(it.name) + '" data-nav="' + it.key + '">' +
-                    iconSvg(it.icon) + '<span class="txt">' + _e(it.name) + '</span></a>';
-                // 二级项：当前模块的子项展开显示。
-                // sb-sub 类用于折叠态整体隐藏——二级项没有图标，折叠后只剩 64px 空条，
-                // 与其留下空白残影，不如折叠态直接收起二级层（主流 SaaS 后台行为）。
-                if (isGroupActive) {
-                    it.children.forEach(c => {
-                        const href = c.ready && c.href ? c.href : ('placeholder.html?m=' + encodeURIComponent(c.key));
-                        const cls = 'sb-item sb-sub' + (activeKey === c.key ? ' active' : '') + (c.ready ? '' : ' disabled');
-                        html +=
-                            '<a class="' + cls + '" href="' + href + '" title="' + _e(c.name) + '" data-nav="' + c.key + '"' +
-                            ' style="padding-left:34px;font-size:12.5px">' +
-                            '<span class="txt">' + _e(c.name) + '</span>' +
-                            (c.ready ? '' : '<span class="badge-soon">建设</span>') +
-                            '</a>';
-                    });
-                }
-            } else {
-                const href = it.ready === false ? ('placeholder.html?m=' + encodeURIComponent(it.key)) : it.href;
-                html +=
-                    '<a class="sb-item' + (activeKey === it.key ? ' active' : '') + '" href="' + href + '"' +
-                    ' title="' + _e(it.name) + '" data-nav="' + it.key + '">' +
-                    iconSvg(it.icon) + '<span class="txt">' + _e(it.name) + '</span></a>';
-            }
-        });
+        sec.items.forEach(it => { html += renderItem(it, activeKey, 0); });
     });
 
     html += '</nav>' +
@@ -230,6 +226,20 @@ function buildSidebar(mount, activeKey) {
     }
 }
 
+// 在指定 items 里找 key 对应的名字路径（目录项 → 目标项，含三级）。
+// 命中返回 true 并填充 path；未命中返回 false（调用方负责回退 path）。
+function findNavPath(items, key, path) {
+    for (const it of items) {
+        if (it.key === key) { path.push(it.name); return true; }
+        if (it.children && key.startsWith(it.key + '.')) {
+            path.push(it.name);
+            if (findNavPath(it.children, key, path)) return true;
+            path.pop();
+        }
+    }
+    return false;
+}
+
 // 把 <meta name="nav"> 转成面包屑写入 .page-head 的 .crumbs（若页面没手写）
 function buildCrumbs() {
     const key = currentNavKey();
@@ -237,22 +247,20 @@ function buildCrumbs() {
     const el = document.querySelector('[data-auto-crumbs]');
     if (!el) return;
 
-    let secName = '', itemName = '', childName = '';
+    let secName = '';
+    const path = [];
     for (const sec of MENU) {
-        for (const it of sec.items) {
-            if (key === it.key) { secName = sec.group; itemName = it.name; }
-            else if (key.startsWith(it.key + '.') && it.children) {
-                secName = sec.group; itemName = it.name;
-                const c = it.children.find(x => x.key === key);
-                if (c) childName = c.name;
-            }
-        }
+        if (findNavPath(sec.items, key, path)) { secName = sec.group; break; }
     }
+    if (!path.length) return;
 
     let html = '<a href="dashboard.html">' + iconSvg('home') + '</a><span class="sep">/</span>';
     if (secName) html += '<span>' + _e(secName) + '</span><span class="sep">/</span>';
-    html += '<span>' + _e(itemName) + '</span>';
-    if (childName) html += '<span class="sep">/</span><span class="cur">' + _e(childName) + '</span>';
+    html += '<span>' + _e(path[0]) + '</span>';
+    for (let i = 1; i < path.length; i++) {
+        html += '<span class="sep">/</span>';
+        html += (i === path.length - 1 ? '<span class="cur">' : '<span>') + _e(path[i]) + '</span>';
+    }
     el.innerHTML = html;
 }
 
