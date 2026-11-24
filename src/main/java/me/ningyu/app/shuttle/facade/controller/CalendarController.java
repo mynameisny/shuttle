@@ -126,6 +126,16 @@ public class CalendarController
         return ResponseEntity.ok(calendarService.addCalendarDate(id, request));
     }
 
+    @PutMapping("/{id}/dates")
+    @Operation(summary = "全量替换例外日期", description = "以请求列表为目标态整体替换某日历的例外（日历勾选 / JSON 批量导入的统一保存入口）")
+    public ResponseEntity<List<CalendarDate>> replaceDates(
+            @Parameter(name = "id", in = ParameterIn.PATH, required = true, description = "日历ID", schema = @Schema(type = "long"))
+            @PathVariable Long id,
+            @RequestBody List<AddCalendarDateRequest> requests)
+    {
+        return ResponseEntity.ok(calendarService.replaceCalendarDates(id, requests));
+    }
+
     @DeleteMapping("/dates/{dateId}")
     @Operation(summary = "删除例外日期")
     public ResponseEntity<Void> deleteDate(

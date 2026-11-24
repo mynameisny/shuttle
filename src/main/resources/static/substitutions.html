@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代班记录 · 班车调度管理</title>
+    <meta name="nav" content="scheduling.substitutions">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .mono { font-variant-numeric: tabular-nums; }
+        .color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        .reason-chip {
+            display: inline-block; padding: 2px 9px; border-radius: 999px;
+            font-size: 12px; line-height: 18px; white-space: nowrap;
+        }
+        .reason-leave { background: #fff2e8; color: #c2571b; }
+        .reason-busy   { background: #e8f1ff; color: #1b62c2; }
+        .reason-other  { background: #f1f3f5; color: #5b6470; }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">代班记录</h1>
+                </div>
+                <div class="page-actions">
+                    <label class="search-wrap">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        <input type="text" class="search" id="searchInput" placeholder="搜索司机 / 线路 / 日期 / 原因…" style="width:240px">
+                    </label>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>代班司机</th>
+                            <th>代班日期</th>
+                            <th>被代班次</th>
+                            <th>原因</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    let subs = [];
+
+    const REASON_CHIP = {
+        '请假': 'reason-leave',
+        '有事': 'reason-busy',
+        '其他': 'reason-other'
+    };
+
+    function reasonChip(r) {
+        const cls = REASON_CHIP[r] || 'reason-other';
+        return '<span class="reason-chip ' + cls + '">' + esc(r || '—') + '</span>';
+    }
+
+    function directionName(d) {
+        if (d === 0) return '去程';
+        if (d === 1) return '返程';
+        return '';
+    }
+
+    function routeLabel(s) {
+        if (s.routeShortName) return s.routeShortName;
+        if (s.routeLongName) return s.routeLongName;
+        return s.routeId || '—';
+    }
+
+    async function load() {
+        try {
+            subs = await api('/api/assignments/substitutions') || [];
+            // 按代班日期倒序展示，同日按线路排序
+            subs.sort((a, b) =>
+                (b.substituteDate || '').localeCompare(a.substituteDate || '') ||
+                (a.routeId || '').localeCompare(b.routeId || ''));
+            render();
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function render() {
+        const kw = $('searchInput').value.trim().toLowerCase();
+        const list = subs.filter(s => !kw ||
+            (s.driverName || '').toLowerCase().includes(kw) ||
+            (routeLabel(s) || '').toLowerCase().includes(kw) ||
+            (s.routeId || '').toLowerCase().includes(kw) ||
+            (s.substituteDate || '').toLowerCase().includes(kw) ||
+            (s.reason || '').toLowerCase().includes(kw));
+        const tbody = $('tbody');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">' +
+                '<div class="em-title">没有匹配的代班记录</div>' +
+                '<div class="em-desc">在「班次安排」中为班次设置代班后，记录会显示在这里</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(s => {
+            const dir = directionName(s.directionId);
+            const color = s.routeColor ? '#' + String(s.routeColor).replace('#', '') : '#d5dae0';
+            return '<tr data-id="' + s.id + '">' +
+                '<td class="strong">' + esc(s.driverName || '—') + '</td>' +
+                '<td class="mono">' + esc(s.substituteDate || '—') + '</td>' +
+                '<td><span class="color-dot" style="background:' + color + '"></span>' + esc(routeLabel(s)) +
+                    (dir ? '<span class="muted"> · ' + dir + '</span>' : '') + '</td>' +
+                '<td>' + reasonChip(s.reason) + '</td>' +
+                '<td class="col-actions">' +
+                '<button class="btn btn-sm btn-danger" data-del="' + s.id + '">删除</button></td>' +
+                '</tr>';
+        }).join('');
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    async function remove(id) {
+        const s = subs.find(x => x.id === id);
+        if (!s) return;
+        const label = (s.driverName || '') + ' ' + (s.substituteDate || '') + ' ' + routeLabel(s);
+        if (!confirm('确定删除这条代班记录？\n' + label + '\n此操作不可恢复。')) return;
+        try {
+            await api('/api/assignments/substitutions/' + id, { method: 'DELETE' });
+            toast('已删除代班记录');
+            await load();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
+    $('searchInput').addEventListener('input', render);
+
+    load();
+</script>
+</body>
+</html>

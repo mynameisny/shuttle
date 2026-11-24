@@ -10,6 +10,7 @@ import me.ningyu.app.shuttle.domain.entity.extension.TripSubstitution;
 import me.ningyu.app.shuttle.facade.service.TripAssignmentService;
 import me.ningyu.app.shuttle.model.fleet.CreateAssignmentRequest;
 import me.ningyu.app.shuttle.model.fleet.SubstituteDriverRequest;
+import me.ningyu.app.shuttle.model.fleet.SubstitutionView;
 import me.ningyu.app.shuttle.model.fleet.TripAssignmentView;
 import me.ningyu.app.shuttle.model.fleet.UpdateAssignmentRequest;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +71,13 @@ public class TripAssignmentController
             @Parameter(description = "班次 trip_id") @PathVariable String tripId)
     {
         return ResponseEntity.ok(tripAssignmentService.listSubstitutions(tripId));
+    }
+
+    @GetMapping("/substitutions")
+    @Operation(summary = "全部代班记录（按司机维度，供司机管理页展示）")
+    public ResponseEntity<List<SubstitutionView>> allSubstitutions()
+    {
+        return ResponseEntity.ok(tripAssignmentService.listAllSubstitutions());
     }
 
     @PostMapping("/trip/{tripId}/substitutions")

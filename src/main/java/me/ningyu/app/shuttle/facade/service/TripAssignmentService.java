@@ -17,6 +17,7 @@ import me.ningyu.app.shuttle.domain.repo.TripSubstitutionRepository;
 import me.ningyu.app.shuttle.domain.repo.VehicleRepository;
 import me.ningyu.app.shuttle.model.fleet.CreateAssignmentRequest;
 import me.ningyu.app.shuttle.model.fleet.SubstituteDriverRequest;
+import me.ningyu.app.shuttle.model.fleet.SubstitutionView;
 import me.ningyu.app.shuttle.model.fleet.TripAssignmentView;
 import me.ningyu.app.shuttle.model.fleet.UpdateAssignmentRequest;
 import org.springframework.http.HttpStatus;
@@ -144,6 +145,37 @@ public class TripAssignmentService
     public List<TripSubstitution> listSubstitutions(String tripId)
     {
         return tripSubstitutionRepository.findByTripTripId(tripId);
+    }
+
+    /**
+     * 全部代班记录（按司机维度视图），供司机管理页展示「某司机代过哪些班次」。
+     */
+    @Transactional(readOnly = true)
+    public List<SubstitutionView> listAllSubstitutions()
+    {
+        return tripSubstitutionRepository.findAll().stream()
+                .map(this::toSubstitutionView)
+                .toList();
+    }
+
+    private SubstitutionView toSubstitutionView(TripSubstitution s)
+    {
+        Trip t = s.getTrip();
+        Route r = t != null ? t.getRoute() : null;
+        Driver d = s.getSubstituteDriver();
+        return SubstitutionView.builder()
+                .id(s.getId())
+                .substituteDate(s.getSubstituteDate())
+                .reason(s.getReason() != null ? s.getReason().getName() : null)
+                .driverId(d != null ? d.getId() : null)
+                .driverName(d != null ? d.getName() : null)
+                .tripId(t != null ? t.getTripId() : null)
+                .directionId(t != null ? t.getDirectionId() : null)
+                .routeId(r != null ? r.getRouteId() : null)
+                .routeShortName(r != null ? r.getRouteShortName() : null)
+                .routeLongName(r != null ? r.getRouteLongName() : null)
+                .routeColor(r != null ? r.getRouteColor() : null)
+                .build();
     }
 
     @Transactional

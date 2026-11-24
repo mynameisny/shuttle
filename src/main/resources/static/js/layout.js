@@ -62,7 +62,8 @@ const MENU = [
             {
                 key: 'scheduling', name: '排班管理', icon: 'clock', children: [
                     { key: 'scheduling.calendar', name: '服务日历', href: 'calendars.html', ready: true },
-                    { key: 'scheduling.assign', name: '班次安排', href: 'assignments.html', ready: true }
+                    { key: 'scheduling.assign', name: '班次安排', href: 'assignments.html', ready: true },
+                    { key: 'scheduling.substitutions', name: '代班记录', href: 'substitutions.html', ready: true }
                 ]
             },
             {

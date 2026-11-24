@@ -18,7 +18,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -147,6 +152,84 @@ public class CalendarService
     public void deleteCalendarDate(Long calendarDateId)
     {
         calendarDateRepository.deleteById(calendarDateId);
+    }
+
+    /**
+     * 全量替换某服务日历的例外日期（日历勾选 / JSON 批量导入的统一入口）。
+     *
+     * <p>语义：以传入列表为目标态，diff 现有例外后应用——
+     * 目标里没有的现有日期删除、目标里有的日期新增或更新类型。
+     * 前端「日历勾选 + JSON 导入」合并出完整清单后一次提交，避免逐条调接口。
+     *
+     * @return 替换后的完整例外日期列表（按日期升序）
+     */
+    @Nonnull
+    public List<CalendarDate> replaceCalendarDates(Long calendarId, List<AddCalendarDateRequest> requests)
+    {
+        Calendar c = calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "服务日历不存在: id=" + calendarId));
+        if (requests == null)
+        {
+            requests = List.of();
+        }
+
+        // 校验目标清单：日期/类型非空、无重复日期（避免同日期两种类型歧义）
+        Set<LocalDate> seen = new HashSet<>();
+        for (AddCalendarDateRequest r : requests)
+        {
+            if (r.getDate() == null)
+            {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "例外日期不能为空");
+            }
+            if (r.getExceptionType() == null)
+            {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "例外类型不能为空（REMOVED/ADDED）");
+            }
+            if (!seen.add(r.getDate()))
+            {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "例外日期重复: " + r.getDate());
+            }
+        }
+
+        Map<LocalDate, ExceptionType> target = requests.stream()
+                .collect(Collectors.toMap(AddCalendarDateRequest::getDate, AddCalendarDateRequest::getExceptionType));
+
+        List<CalendarDate> existing = calendarDateRepository.findByServiceCalendarId(calendarId);
+        Map<LocalDate, CalendarDate> existingByDate = existing.stream()
+                .collect(Collectors.toMap(CalendarDate::getDate, Function.identity()));
+
+        // 1) 删除目标里没有的现有日期
+        for (CalendarDate cd : existing)
+        {
+            if (!target.containsKey(cd.getDate()))
+            {
+                calendarDateRepository.delete(cd);
+            }
+        }
+
+        // 2) 新增或更新目标里的日期
+        for (Map.Entry<LocalDate, ExceptionType> e : target.entrySet())
+        {
+            CalendarDate cd = existingByDate.get(e.getKey());
+            if (cd == null)
+            {
+                cd = CalendarDate.builder()
+                        .serviceCalendar(c)
+                        .date(e.getKey())
+                        .exceptionType(e.getValue())
+                        .build();
+            }
+            else
+            {
+                cd.setExceptionType(e.getValue());
+            }
+            calendarDateRepository.save(cd);
+        }
+
+        return calendarDateRepository.findByServiceCalendarId(calendarId).stream()
+                .sorted(java.util.Comparator.comparing(CalendarDate::getDate))
+                .collect(Collectors.toList());
     }
 
     // ---------- 运营日判定（calendar + calendar_dates 的消费点） ----------

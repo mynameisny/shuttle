@@ -142,6 +142,8 @@
         #stopList.reordering .item[draggable="true"] { cursor: progress; }
         .list .empty { padding: 10px; font-size: 12px; color: #9aa0a6; text-align: center; }
         .list .empty .empty-hint { display: inline-block; margin-top: 4px; font-size: 11px; color: #b0b6bd; }
+        /* 未选线路的引导提示：左对齐，避免长句在居中容器里换行后出现「点」字孤行居中 */
+        .list .empty.guide { text-align: left; line-height: 1.7; }
 
         .empty-box {
             padding: 12px; font-size: 12px; color: #9aa0a6; text-align: center;
@@ -164,7 +166,7 @@
             color: #1a73e8; border: 1px solid transparent; border-radius: 4px; background: transparent;
         }
         .stp-name-input:not([readonly]) { border-color: #1a73e8; background: #fff; color: #333; }
-        .stp-name-input[readonly] { cursor: default; }
+        .stp-name-input[readonly] { cursor: default; pointer-events: none; user-select: none; }
         .stp-title .stp-photo-add { flex-shrink: 0; padding: 2px 6px; }
         .stp-empty { color: #9aa0a6; font-size: 11px; padding: 4px 0; }
         .stp-block { border-top: 1px dashed #e0e3e8; padding: 7px 0 3px; }
@@ -894,7 +896,7 @@
             $('stopList').classList.remove('stacked');
             $('stopCount').textContent = '0';
             $('stopCount').removeAttribute('title');
-            $('stopList').innerHTML = '<div class="empty">请先在「按线路筛选」选择一条线路，再管理其站点<br><span class="empty-hint">站点维护一律挂在具体线路下进行，避免脱离线路误改</span></div>';
+            $('stopList').innerHTML = '<div class="empty guide">请先在「按线路筛选」选择一条线路，再管理其站点<br><span class="empty-hint">站点维护一律挂在具体线路下进行，避免脱离线路误改</span></div>';
             return;
         }
         if (state.routeStops) { renderRouteList(); return; }

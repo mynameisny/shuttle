@@ -34,6 +34,8 @@
         #map { position: absolute; inset: 0; }
         /* 底图降饱和+提亮+降对比：米白浅彩底图（保留淡绿绿地/淡蓝水域），突出彩色线路 */
         #map .leaflet-tile { filter: saturate(0.55) brightness(1.12) contrast(0.85); }
+        /* 点击线路后 SVG path 获得浏览器焦点会产生默认蓝色 outline，去掉它 */
+        #map:focus, #map .leaflet-interactive:focus { outline: none; }
 
         /* ===== 线路编号徽章：白底胶囊 + 线路色描边 + 线路色数字（参照印刷版线路图） ===== */
         .route-badge-wrap { background: none; border: none; }

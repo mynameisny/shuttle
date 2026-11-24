@@ -9,6 +9,7 @@
     <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
     <style>
         .tc { text-align: center; }
+        table.tbl th.tc { text-align: center; }
         .day-on { color: var(--c-ok); font-weight: 700; }
         .day-off { color: #d5dae0; }
         .week-grid { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -19,6 +20,35 @@
         .week-grid input { margin: 0; accent-color: var(--c-primary); }
         .type-removed { color: #e8590c; font-weight: 600; }
         .type-added { color: #2b8a3e; font-weight: 600; }
+        /* ---------- 例外日期：日历勾选视图 ---------- */
+        .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .cal-title { font-size: 14px; font-weight: 600; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-dow { text-align: center; font-size: 11px; color: var(--c-text-3); padding: 2px 0; }
+        .cal-cell {
+            text-align: center; padding: 7px 0; font-size: 12px; line-height: 1;
+            border-radius: 5px; cursor: pointer; user-select: none;
+            border: 1px solid transparent; color: var(--c-text-2);
+        }
+        .cal-cell:hover { border-color: var(--c-border); }
+        .cal-cell.blank { cursor: default; }
+        .cal-cell.blank:hover { border-color: transparent; }
+        .cal-cell.removed { background: #fdeceb; border-color: #f3c2bd; color: #c0392b; font-weight: 700; }
+        .cal-cell.added { background: #e6f4ea; border-color: #a5d6b0; color: #2b8a3e; font-weight: 700; }
+        .cal-legend { display: flex; gap: 14px; margin: 8px 0 4px; font-size: 11px; color: var(--c-text-3); flex-wrap: wrap; }
+        .cal-legend .lg-dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+        .lg-none { background: #fff; border: 1px solid #d0d5dd; }
+        .lg-removed { background: #fdeceb; border: 1px solid #f3c2bd; }
+        .lg-added { background: #e6f4ea; border: 1px solid #a5d6b0; }
+        .cal-count { font-size: 11px; color: var(--c-text-3); margin-top: 4px; }
+        .json-fold { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--c-text-2); cursor: pointer; user-select: none; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #d0d5dd; }
+        .json-fold:hover { color: var(--c-primary); }
+        #jsonInput {
+            width: 100%; box-sizing: border-box; margin-top: 8px; padding: 6px 8px;
+            font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            line-height: 1.5; border: 1px solid #d0d5dd; border-radius: 6px; resize: vertical; background: #fafbfc;
+        }
+        #jsonInput:focus { outline: none; border-color: var(--c-primary); }
     </style>
 </head>
 <body>
@@ -111,30 +141,32 @@
 <div id="dateModal" class="modal-mask" style="display:none">
     <div class="modal">
         <h3 id="dateModalTitle">例外日期</h3>
-        <p class="modal-desc">法定假日填「停运」，调休上班的周末填「加开」，用于覆盖上面的星期规则</p>
-        <div class="field-row">
-            <div class="field">
-                <label>日期<span class="req">*</span></label>
-                <input type="date" class="input" id="dDate">
-            </div>
-            <div class="field">
-                <label>类型<span class="req">*</span></label>
-                <select class="select" id="dType">
-                    <option value="REMOVED">停运</option>
-                    <option value="ADDED">加开</option>
-                </select>
-            </div>
-            <div class="field" style="align-self:flex-end">
-                <button class="btn btn-primary" id="btnAddDate">添加</button>
-            </div>
+        <p class="modal-desc">在日历上点击日期循环切换：无 → 停运（红）→ 加开（绿）→ 无；也可用 JSON 批量导入后微调</p>
+
+        <div class="cal-nav">
+            <button class="btn btn-sm" id="calPrev" type="button">‹ 上月</button>
+            <div class="cal-title" id="calTitle">—</div>
+            <button class="btn btn-sm" id="calNext" type="button">下月 ›</button>
         </div>
-        <div class="table-wrap" style="margin-top:14px;max-height:300px;overflow:auto">
-            <table class="tbl">
-                <thead><tr><th>日期</th><th>类型</th><th class="col-actions">操作</th></tr></thead>
-                <tbody id="dateTbody"></tbody>
-            </table>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend">
+            <span><i class="lg-dot lg-none"></i>无例外（按星期规则）</span>
+            <span><i class="lg-dot lg-removed"></i>停运</span>
+            <span><i class="lg-dot lg-added"></i>加开</span>
         </div>
+        <div class="cal-count" id="calCount"></div>
+
+        <div class="json-fold" id="jsonFold">▸ JSON 批量导入</div>
+        <div id="jsonBody" style="display:none">
+            <textarea id="jsonInput" rows="5" placeholder='[{"date":"2027-01-01","type":"REMOVED"},{"date":"2027-02-04","type":"ADDED"}]'></textarea>
+            <div class="btn-row" style="margin-top:10px;padding-top:0;border-top:none;justify-content:flex-start">
+                <button class="btn btn-sm btn-primary" id="btnJsonApply" type="button">解析并合并到日历</button>
+            </div>
+            <p class="modal-desc" style="margin:6px 0 0">JSON 数组：date=YYYY-MM-DD，type=REMOVED（停运）/ ADDED（加开）。解析后只更新上方日历，需点「保存」才落库。</p>
+        </div>
+
         <div class="btn-row">
+            <button class="btn btn-primary" id="btnDateSave">保存</button>
             <button class="btn" id="btnDateClose">关闭</button>
         </div>
     </div>
@@ -259,77 +291,126 @@
     }
 
     // ---------- 例外日期（calendar_dates：法定假日 / 调休 / 临时停运） ----------
+    // 日历勾选 + JSON 批量导入，两者互补；「保存」时全量替换（PUT /api/calendars/{id}/dates）
     let dateModalCalendarId = null;
-    let calendarDates = [];
+    let dateStates = {};   // dateStr(YYYY-MM-DD) -> 'REMOVED' | 'ADDED'
+    let calYear, calMonth; // 当前日历展示的年月（month 0-11）
+
+    const dateKey = d => {
+        const p = String(d || '').split('-');
+        return p[0] + '-' + p[1] + '-' + p[2];
+    };
 
     async function openDateModal(id) {
         dateModalCalendarId = id;
         const c = calendars.find(x => x.id === id);
         $('dateModalTitle').textContent = '例外日期 - ' + (c ? c.serviceId : '');
-        $('dDate').value = '';
-        $('dType').value = 'REMOVED';
-        await loadDates();
+        const now = new Date();
+        calYear = now.getFullYear();
+        calMonth = now.getMonth();
+        try {
+            const list = await api(API.calendars + '/' + id + '/dates') || [];
+            dateStates = {};
+            list.forEach(d => { dateStates[dateKey(d.date)] = d.exceptionType; });
+        } catch (err) { toast('加载例外日期失败：' + err.message, true); dateStates = {}; }
+        $('jsonInput').value = '';
+        $('jsonBody').style.display = 'none';
+        $('jsonFold').textContent = '▸ JSON 批量导入';
+        renderCalendar();
         $('dateModal').style.display = '';
     }
 
     function closeDateModal() { $('dateModal').style.display = 'none'; }
 
-    async function loadDates() {
-        try {
-            calendarDates = await api(API.calendars + '/' + dateModalCalendarId + '/dates') || [];
-            renderDates();
-        } catch (err) { toast('加载例外日期失败：' + err.message, true); }
-    }
-
-    function renderDates() {
-        const tbody = $('dateTbody');
-        if (!calendarDates.length) {
-            tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state">' +
-                '<div class="em-title">暂无例外日期</div>' +
-                '<div class="em-desc">法定假日 / 调休日在上方添加</div></div></td></tr>';
-            return;
+    function renderCalendar() {
+        const dowNames = ['一', '二', '三', '四', '五', '六', '日'];
+        $('calTitle').textContent = calYear + ' 年 ' + (calMonth + 1) + ' 月';
+        let html = dowNames.map(d => '<div class="cal-dow">' + d + '</div>').join('');
+        const first = new Date(calYear, calMonth, 1);
+        const startDow = (first.getDay() + 6) % 7; // 周一=0
+        const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+        for (let i = 0; i < startDow; i++) html += '<div class="cal-cell blank"></div>';
+        for (let d = 1; d <= daysInMonth; d++) {
+            const key = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+            const st = dateStates[key];
+            const cls = st === 'REMOVED' ? ' removed' : (st === 'ADDED' ? ' added' : '');
+            html += '<div class="cal-cell' + cls + '" data-date="' + key + '">' + d + '</div>';
         }
-        tbody.innerHTML = calendarDates.map(d =>
-            '<tr>' +
-            '<td class="mono">' + esc(d.date || '') + '</td>' +
-            '<td>' + (d.exceptionType === 'REMOVED'
-                ? '<span class="type-removed">停运</span>'
-                : '<span class="type-added">加开</span>') + '</td>' +
-            '<td class="col-actions"><button class="btn btn-sm btn-danger" data-deld="' + d.id + '">删除</button></td>' +
-            '</tr>'
-        ).join('');
-        tbody.querySelectorAll('[data-deld]').forEach(b => b.addEventListener('click', () => removeDate(parseInt(b.dataset.deld))));
+        $('calGrid').innerHTML = html;
+        const n = Object.keys(dateStates).length;
+        const r = Object.values(dateStates).filter(v => v === 'REMOVED').length;
+        const a = Object.values(dateStates).filter(v => v === 'ADDED').length;
+        $('calCount').textContent = '已设 ' + n + ' 条例外（停运 ' + r + ' / 加开 ' + a + '）';
+        $('calGrid').querySelectorAll('.cal-cell[data-date]').forEach(cell =>
+            cell.addEventListener('click', () => toggleDate(cell.dataset.date)));
     }
 
-    async function addDate() {
-        const date = $('dDate').value;
-        const exceptionType = $('dType').value;
-        if (!date) { toast('请选择日期', true); return; }
+    function toggleDate(key) {
+        const cur = dateStates[key];
+        if (!cur) dateStates[key] = 'REMOVED';
+        else if (cur === 'REMOVED') dateStates[key] = 'ADDED';
+        else delete dateStates[key];
+        renderCalendar();
+    }
+
+    function changeMonth(delta) {
+        calMonth += delta;
+        if (calMonth < 0) { calMonth = 11; calYear--; }
+        if (calMonth > 11) { calMonth = 0; calYear++; }
+        renderCalendar();
+    }
+
+    async function saveDates() {
+        const list = Object.keys(dateStates).sort().map(k => ({ date: k, exceptionType: dateStates[k] }));
         try {
             await api(API.calendars + '/' + dateModalCalendarId + '/dates', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date: date, exceptionType: exceptionType })
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(list)
             });
-            toast('已添加');
-            await loadDates();
-        } catch (err) { toast('添加失败：' + err.message, true); }
+            toast('已保存 ' + list.length + ' 条例外日期');
+            closeDateModal();
+        } catch (err) { toast('保存失败：' + err.message, true); }
     }
 
-    async function removeDate(id) {
-        if (!confirm('确定删除该例外日期？')) return;
-        try {
-            await api('/api/calendars/dates/' + id, { method: 'DELETE' });
-            toast('已删除');
-            await loadDates();
-        } catch (err) { toast('删除失败：' + err.message, true); }
+    function applyJson() {
+        const text = $('jsonInput').value.trim();
+        if (!text) { toast('请先粘贴 JSON', true); return; }
+        let arr;
+        try { arr = JSON.parse(text); }
+        catch (e) { toast('JSON 解析失败：' + e.message, true); return; }
+        if (!Array.isArray(arr)) { toast('JSON 应为数组', true); return; }
+        let applied = 0;
+        for (const it of arr) {
+            const d = it && it.date;
+            const t = it && it.type;
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d || ''))) {
+                toast('跳过非法日期：' + JSON.stringify(it), true); continue;
+            }
+            if (t !== 'REMOVED' && t !== 'ADDED') {
+                toast('跳过非法类型（应为 REMOVED/ADDED）：' + JSON.stringify(it), true); continue;
+            }
+            dateStates[dateKey(d)] = t;
+            applied++;
+        }
+        renderCalendar();
+        toast('已合并 ' + applied + ' 条到日历（点「保存」落库）');
     }
 
     $('searchInput').addEventListener('input', render);
     $('btnAdd').addEventListener('click', () => openModal(null));
     $('btnCancel').addEventListener('click', closeModal);
     $('btnSave').addEventListener('click', save);
-    $('btnAddDate').addEventListener('click', addDate);
+    $('calPrev').addEventListener('click', () => changeMonth(-1));
+    $('calNext').addEventListener('click', () => changeMonth(1));
+    $('btnDateSave').addEventListener('click', saveDates);
     $('btnDateClose').addEventListener('click', closeDateModal);
+    $('jsonFold').addEventListener('click', () => {
+        const body = $('jsonBody');
+        const open = body.style.display === 'none';
+        body.style.display = open ? '' : 'none';
+        $('jsonFold').textContent = (open ? '▾' : '▸') + ' JSON 批量导入';
+    });
+    $('btnJsonApply').addEventListener('click', applyJson);
     $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
     $('dateModal').addEventListener('click', e => { if (e.target === $('dateModal')) closeDateModal(); });
     document.addEventListener('keydown', e => {
