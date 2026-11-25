@@ -196,8 +196,7 @@ public class TripService
 
     public void cancelTrip(Long id)
     {
-        Trip trip = tripRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("班次不存在"));
+        Trip trip = tripRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("班次不存在"));
         // 删除前抓取事件快照（数据快照应反映「已发生事实」，不依赖删除后的实体）
         Route route = trip.getRoute();
         TripCancelledEvent.TripCancelledData data = new TripCancelledEvent.TripCancelledData(

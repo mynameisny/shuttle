@@ -21,6 +21,8 @@ public class EventTypeRegistry
     {
         register(EventTypes.TRIP_CANCELLED);
         register(EventTypes.DRIVER_STATUS_CHANGED);
+        register(EventTypes.DRIVER_UPDATED);
+        register(EventTypes.CAPTAIN_UPDATED);
     }
 
     public void register(String eventType)

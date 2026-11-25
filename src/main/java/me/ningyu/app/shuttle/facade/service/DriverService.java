@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import me.ningyu.app.shuttle.domain.entity.extension.Driver;
 import me.ningyu.app.shuttle.domain.repo.DriverRepository;
 import me.ningyu.app.shuttle.event.api.DomainEventPublisher;
+import me.ningyu.app.shuttle.event.change.FieldChange;
+import me.ningyu.app.shuttle.event.change.FieldChangeDetector;
 import me.ningyu.app.shuttle.event.domain.DriverStatusChangedEvent;
+import me.ningyu.app.shuttle.event.domain.DriverUpdatedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +19,7 @@ public class DriverService
 {
     private final DriverRepository driverRepository;
     private final DomainEventPublisher eventPublisher;
+    private final FieldChangeDetector fieldChangeDetector;
 
     @Transactional(readOnly = true)
     public List<Driver> getAll()
@@ -42,9 +46,9 @@ public class DriverService
     @Transactional
     public Driver update(Long id, Driver req)
     {
-        Driver d = driverRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("司机不存在: id=" + id));
+        Driver d = driverRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("司机不存在: id=" + id));
         String oldStatus = d.getStatus();
+        List<FieldChange> changes = fieldChangeDetector.diff("DRIVER", d, req);
         d.setName(req.getName());
         d.setPhone(req.getPhone());
         d.setStatus(req.getStatus());
@@ -60,6 +64,11 @@ public class DriverService
         {
             eventPublisher.publish(new DriverStatusChangedEvent(new DriverStatusChangedEvent.DriverStatusChangedData(
                     saved.getId(), saved.getName(), oldStatus, saved.getStatus())));
+        }
+        if (!changes.isEmpty())
+        {
+            eventPublisher.publish(new DriverUpdatedEvent(new DriverUpdatedEvent.DriverUpdatedData(
+                    saved.getId(), saved.getName(), changes)));
         }
         return saved;
     }
