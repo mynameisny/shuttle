@@ -498,3 +498,11 @@ services:
 | **低** | 引入 MapStruct | 替换手动 Builder 转换 DTO ↔ Entity，降低样板代码 |
 | **低** | 补充单元测试 | 当前仅有 1 个冒烟测试，需为核心业务逻辑（冲突检测、调班流程）补充测试 |
 | **低** | DrivingLicense 字段修正 | `LocalTime` 字段修正为 `LocalDate`/`LocalDateTime` |
+
+---
+
+## 14. 事件中心与 CDC
+
+系统内置「事件中心」能力：业务方法在事务内发布领域事件 → 事务性 Outbox（`sys_event_box`）原子落库 → Debezium CDC 广播到 Kafka。详见独立文档：
+
+- **[事件中心与 CDC 使用文档](./EVENT_CENTER.md)** — 架构链路、事件接入步骤、CDC 启动与运维要点
