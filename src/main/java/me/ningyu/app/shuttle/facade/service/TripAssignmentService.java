@@ -54,7 +54,7 @@ public class TripAssignmentService
     public TripAssignmentView getByRoutePk(Long routePk)
     {
         Route route = routeRepository.findById(routePk)
-                .orElseThrow(() -> new IllegalArgumentException("线路不存在: id=" + routePk));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "线路不存在: id=" + routePk));
         TripAssignment a = tripAssignmentRepository.findByRouteRouteId(route.getRouteId())
                 .orElseThrow(() -> new IllegalArgumentException("该线路未配置车辆/司机/车长: " + route.getRouteId()));
         return toView(a);
@@ -66,16 +66,16 @@ public class TripAssignmentService
         if (req.getRouteId() == null || req.getRouteId().isBlank())
             throw new IllegalArgumentException("线路不能为空");
         Route route = routeRepository.findByRouteId(req.getRouteId())
-                .orElseThrow(() -> new IllegalArgumentException("线路不存在: " + req.getRouteId()));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "线路不存在: " + req.getRouteId()));
         tripAssignmentRepository.findByRouteRouteId(req.getRouteId())
-                .ifPresent(a -> { throw new IllegalStateException("该线路已存在分配，请使用编辑"); });
+                .ifPresent(a -> { throw new ResponseStatusException(HttpStatus.CONFLICT, "该线路已存在分配，请使用编辑"); });
 
         Vehicle v = req.getVehicleId() != null
-                ? vehicleRepository.findById(req.getVehicleId()).orElseThrow(() -> new IllegalArgumentException("车辆不存在")) : null;
+                ? vehicleRepository.findById(req.getVehicleId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "车辆不存在")) : null;
         Driver d = req.getDriverId() != null
-                ? driverRepository.findById(req.getDriverId()).orElseThrow(() -> new IllegalArgumentException("司机不存在")) : null;
+                ? driverRepository.findById(req.getDriverId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "司机不存在")) : null;
         Captain c = req.getCaptainId() != null
-                ? captainRepository.findById(req.getCaptainId()).orElseThrow(() -> new IllegalArgumentException("车长不存在")) : null;
+                ? captainRepository.findById(req.getCaptainId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "车长不存在")) : null;
 
         validateDriverAndCaptain(d, c, null);
 
@@ -92,13 +92,13 @@ public class TripAssignmentService
     public TripAssignmentView update(Long id, UpdateAssignmentRequest req)
     {
         TripAssignment a = tripAssignmentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("线路分配不存在: id=" + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "线路分配不存在: id=" + id));
         Vehicle v = req.getVehicleId() != null
-                ? vehicleRepository.findById(req.getVehicleId()).orElseThrow(() -> new IllegalArgumentException("车辆不存在")) : a.getVehicle();
+                ? vehicleRepository.findById(req.getVehicleId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "车辆不存在")) : a.getVehicle();
         Driver d = req.getDriverId() != null
-                ? driverRepository.findById(req.getDriverId()).orElseThrow(() -> new IllegalArgumentException("司机不存在")) : a.getDriver();
+                ? driverRepository.findById(req.getDriverId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "司机不存在")) : a.getDriver();
         Captain c = req.getCaptainId() != null
-                ? captainRepository.findById(req.getCaptainId()).orElseThrow(() -> new IllegalArgumentException("车长不存在")) : a.getCaptain();
+                ? captainRepository.findById(req.getCaptainId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "车长不存在")) : a.getCaptain();
 
         validateDriverAndCaptain(d, c, id);
 
@@ -182,9 +182,9 @@ public class TripAssignmentService
     public TripSubstitution addSubstitution(String tripId, SubstituteDriverRequest req)
     {
         Trip trip = tripRepository.findByTripId(tripId)
-                .orElseThrow(() -> new IllegalArgumentException("班次不存在: " + tripId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在: " + tripId));
         Driver sub = driverRepository.findById(req.getSubstituteDriverId())
-                .orElseThrow(() -> new IllegalArgumentException("代班司机不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "代班司机不存在"));
         return tripSubstitutionRepository.save(TripSubstitution.builder()
                 .trip(trip)
                 .substituteDate(req.getSubstituteDate())

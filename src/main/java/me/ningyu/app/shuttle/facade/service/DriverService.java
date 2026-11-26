@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +48,7 @@ public class DriverService
     @Transactional
     public Driver update(Long id, Driver req)
     {
-        Driver d = driverRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("司机不存在: id=" + id));
+        Driver d = driverRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "司机不存在: id=" + id));
         String oldStatus = d.getStatus();
         List<FieldChange> changes = fieldChangeDetector.diff("DRIVER", d, req);
         d.setName(req.getName());

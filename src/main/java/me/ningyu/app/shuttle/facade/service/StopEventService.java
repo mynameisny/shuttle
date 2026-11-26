@@ -86,7 +86,7 @@ public class StopEventService
             throw new IllegalArgumentException("开始日期不能晚于结束日期");
 
         Trip trip = tripRepository.findByTripId(tripId)
-                .orElseThrow(() -> new IllegalArgumentException("班次不存在: " + tripId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在: " + tripId));
         Route route = trip.getRoute();
 
         List<StopTime> stopTimes = stopTimeRepository.findByTripOrderByStopSequenceAsc(trip);
@@ -208,7 +208,7 @@ public class StopEventService
     public StopEventView report(ReportStopEventRequest req)
     {
         Trip trip = tripRepository.findByTripId(req.getTripId())
-                .orElseThrow(() -> new IllegalArgumentException("班次不存在: " + req.getTripId()));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在: " + req.getTripId()));
 
         // 校验当天该班次是否运营（calendar + calendar_dates 例外）
         if (!calendarService.isServiceActive(trip.getServiceId(), req.getEventDate()))

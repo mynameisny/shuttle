@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * 形状集合本身的查询（按 shape_id 定位点列）。
@@ -49,7 +51,7 @@ public class ShapeController
         List<Shape> points = shapeService.getShapePoints(shapeId);
         if (points.isEmpty())
         {
-            throw new IllegalArgumentException("形状不存在: " + shapeId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "形状不存在: " + shapeId);
         }
         return ResponseEntity.ok(points);
     }

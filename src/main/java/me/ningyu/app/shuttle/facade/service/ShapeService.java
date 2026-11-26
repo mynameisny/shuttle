@@ -54,7 +54,7 @@ public class ShapeService
     public TripShapeView getTripShape(Long tripPk)
     {
         Trip trip = tripRepository.findById(tripPk)
-                .orElseThrow(() -> new IllegalArgumentException("班次不存在: " + tripPk));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在: " + tripPk));
         return buildTripShapeView(trip);
     }
 
@@ -124,7 +124,7 @@ public class ShapeService
     public TripShapeView saveTripShape(Long tripPk, SaveShapeRequest request)
     {
         Trip trip = tripRepository.findById(tripPk)
-                .orElseThrow(() -> new IllegalArgumentException("班次不存在: " + tripPk));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在: " + tripPk));
 
         // 覆盖性校验：形状必须经过班次全部停站站点（在写库前执行，失败即拒绝）
         validateShapeCoversStops(trip, request.getPoints());
@@ -178,7 +178,7 @@ public class ShapeService
     public void removeTripShape(Long tripPk)
     {
         Trip trip = tripRepository.findById(tripPk)
-                .orElseThrow(() -> new IllegalArgumentException("班次不存在: " + tripPk));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在: " + tripPk));
         if (trip.getShapeId() == null || trip.getShapeId().isBlank())
         {
             return;

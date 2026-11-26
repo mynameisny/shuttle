@@ -39,7 +39,7 @@ public class CalendarService
     {
         if (calendarRepository.findByServiceId(request.getServiceId()).isPresent())
         {
-            throw new IllegalArgumentException("服务日历已存在: " + request.getServiceId());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "服务日历已存在: " + request.getServiceId());
         }
 
         Calendar c = Calendar.builder()
@@ -62,7 +62,7 @@ public class CalendarService
     public Calendar updateCalendar(Long id, UpdateCalendarRequest request)
     {
         Calendar c = calendarRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("服务日历不存在: id=" + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "服务日历不存在: id=" + id));
 
         if (request.getMonday() != null) c.setMonday(request.getMonday());
         if (request.getTuesday() != null) c.setTuesday(request.getTuesday());
@@ -80,7 +80,7 @@ public class CalendarService
     public void deleteCalendar(Long id)
     {
         Calendar c = calendarRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("服务日历不存在: id=" + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "服务日历不存在: id=" + id));
         calendarRepository.delete(c);
     }
 
@@ -88,14 +88,14 @@ public class CalendarService
     public Calendar getCalendarById(Long id)
     {
         return calendarRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("服务日历不存在: id=" + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "服务日历不存在: id=" + id));
     }
 
     @Nonnull
     public Calendar getCalendarByServiceId(String serviceId)
     {
         return calendarRepository.findByServiceId(serviceId)
-                .orElseThrow(() -> new IllegalArgumentException("服务日历不存在: serviceId=" + serviceId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "服务日历不存在: serviceId=" + serviceId));
     }
 
     @Nonnull
@@ -247,7 +247,7 @@ public class CalendarService
     public boolean isServiceActive(String serviceId, LocalDate date)
     {
         Calendar c = calendarRepository.findByServiceId(serviceId)
-                .orElseThrow(() -> new IllegalArgumentException("服务日历不存在: " + serviceId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "服务日历不存在: " + serviceId));
         return isServiceActive(c, date);
     }
 

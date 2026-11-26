@@ -7,8 +7,10 @@ import me.ningyu.app.shuttle.domain.entity.gtfs.Agency;
 import me.ningyu.app.shuttle.domain.repo.AgencyRepository;
 import me.ningyu.app.shuttle.model.agency.CreateAgencyRequest;
 import me.ningyu.app.shuttle.model.agency.UpdateAgencyRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -25,7 +27,7 @@ public class AgencyService
     {
         if (agencyRepository.existsByAgencyId(request.getAgencyId()))
         {
-            throw new IllegalArgumentException("机构ID已存在");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "机构ID已存在");
         }
 
         Agency agency = Agency.builder()
@@ -46,7 +48,7 @@ public class AgencyService
     public Agency updateAgency(Long id, UpdateAgencyRequest request)
     {
         Agency agency = agencyRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("机构不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "机构不存在"));
 
         if (request.getAgencyName() != null)
         {
@@ -83,7 +85,7 @@ public class AgencyService
     public void deleteAgency(Long id)
     {
         Agency agency = agencyRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("机构不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "机构不存在"));
         agencyRepository.delete(agency);
     }
 
@@ -91,14 +93,14 @@ public class AgencyService
     public Agency getAgencyById(Long id)
     {
         return agencyRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("机构不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "机构不存在"));
     }
 
     @Nonnull
     public Agency getAgencyByAgencyId(String agencyId)
     {
         return agencyRepository.findByAgencyId(agencyId)
-                .orElseThrow(() -> new IllegalArgumentException("机构不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "机构不存在"));
     }
 
     @Nonnull

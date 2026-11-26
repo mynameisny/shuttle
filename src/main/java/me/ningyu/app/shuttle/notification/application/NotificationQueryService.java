@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * 通知查询服务（供运营管理端读取通知与站内信）。
@@ -34,7 +36,7 @@ public class NotificationQueryService
     public Notification getNotification(Long id)
     {
         return notificationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("通知不存在: id=" + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "通知不存在: id=" + id));
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +61,7 @@ public class NotificationQueryService
     public NotificationInbox markRead(Long inboxId)
     {
         NotificationInbox inbox = inboxRepository.findById(inboxId)
-                .orElseThrow(() -> new IllegalArgumentException("站内信不存在: id=" + inboxId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "站内信不存在: id=" + inboxId));
         inbox.setIsRead(true);
         inbox.setReadAt(LocalDateTime.now());
         return inboxRepository.save(inbox);

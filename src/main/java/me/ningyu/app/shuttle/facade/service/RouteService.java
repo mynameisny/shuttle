@@ -17,8 +17,10 @@ import me.ningyu.app.shuttle.model.route.RouteStopsView;
 import me.ningyu.app.shuttle.model.route.UpdateRouteRequest;
 import me.ningyu.app.shuttle.model.network.RouteNetworkTagsView;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -54,7 +56,7 @@ public class RouteService
     {
         Agency agency = request.getAgencyId() != null
                 ? agencyRepository.findById(request.getAgencyId())
-                        .orElseThrow(() -> new IllegalArgumentException("机构不存在"))
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "机构不存在"))
                 : agencyRepository.findByAgencyId(defaultAgencyId)
                         .orElseThrow(() -> new IllegalStateException("默认机构不存在: " + defaultAgencyId));
 
@@ -81,7 +83,7 @@ public class RouteService
     public Route updateRoute(Long id, UpdateRouteRequest request)
     {
         Route route = routeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "线路不存在"));
 
         if (request.getRouteLongName() != null) route.setRouteLongName(request.getRouteLongName());
         if (request.getRouteShortName() != null) route.setRouteShortName(request.getRouteShortName());
@@ -101,15 +103,15 @@ public class RouteService
     public void deleteRoute(Long id)
     {
         Route route = routeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "线路不存在"));
 
         if (stopTimeRepository.existsByTripRouteId(id))
         {
-            throw new IllegalStateException("该线路下存在站点，不能删除");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "该线路下存在站点，不能删除");
         }
         if (tripRepository.existsByRouteId(id))
         {
-            throw new IllegalStateException("该线路下存在班次，不能删除");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "该线路下存在班次，不能删除");
         }
 
         routeRepository.delete(route);
@@ -136,7 +138,7 @@ public class RouteService
     public Route getRouteById(Long id)
     {
         return routeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "线路不存在"));
     }
 
     @Nonnull
@@ -190,7 +192,7 @@ public class RouteService
     public RouteStopsView getRouteStops(Long routePk)
     {
         Route route = routeRepository.findById(routePk)
-                .orElseThrow(() -> new IllegalArgumentException("线路不存在: id=" + routePk));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "线路不存在: id=" + routePk));
 
         List<StopTime> stopTimes = stopTimeRepository.findByRouteIdFetchStopAndTrip(routePk);
 

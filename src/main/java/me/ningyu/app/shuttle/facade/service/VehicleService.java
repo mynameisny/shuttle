@@ -5,8 +5,10 @@ import me.ningyu.app.shuttle.domain.entity.extension.Vehicle;
 import me.ningyu.app.shuttle.domain.repo.VehicleRepository;
 import me.ningyu.app.shuttle.model.fleet.VehicleUpsertRequest;
 import me.ningyu.app.shuttle.model.fleet.VehicleView;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +32,7 @@ public class VehicleService
     {
         if (vehicleRepository.existsByPlateNumber(req.getPlateNumber()))
         {
-            throw new IllegalArgumentException("车牌号已存在: " + req.getPlateNumber());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "车牌号已存在: " + req.getPlateNumber());
         }
         Vehicle v = apply(new Vehicle(), req);
         return VehicleView.of(vehicleRepository.save(v));
@@ -40,7 +42,7 @@ public class VehicleService
     public VehicleView update(Long id, VehicleUpsertRequest req)
     {
         Vehicle v = vehicleRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("载具不存在: id=" + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "载具不存在: id=" + id));
         apply(v, req);
         return VehicleView.of(v);
     }
@@ -49,7 +51,7 @@ public class VehicleService
     public void delete(Long id)
     {
         Vehicle v = vehicleRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("载具不存在: id=" + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "载具不存在: id=" + id));
         vehicleRepository.delete(v);
     }
 

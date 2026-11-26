@@ -44,7 +44,7 @@ public class StopService
                 : generateStopId();
         if (stopRepository.existsByStopId(stopId))
         {
-            throw new IllegalArgumentException("站点ID已存在: " + stopId);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "站点ID已存在: " + stopId);
         }
 
         Stop stop = Stop.builder()
@@ -66,7 +66,7 @@ public class StopService
     public Stop updateStop(Long id, UpdateStopRequest request)
     {
         Stop stop = stopRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("站点不存在: id=" + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "站点不存在: id=" + id));
         stop.setStopName(request.getStopName().trim());
         stop.setStopLat(request.getLat());
         stop.setStopLon(request.getLng());
@@ -123,7 +123,7 @@ public class StopService
     public List<StopUsageView> getStopUsage(Long id)
     {
         stopRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("站点不存在: id=" + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "站点不存在: id=" + id));
         return stopTimeRepository.findByStopId(id).stream()
                 .map(StopUsageView::of)
                 .sorted(Comparator

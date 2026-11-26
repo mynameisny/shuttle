@@ -104,11 +104,11 @@ public class TripService
     {
         if (tripRepository.existsByTripId(request.getTripId()))
         {
-            throw new IllegalArgumentException("班次ID已存在: " + request.getTripId());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "班次ID已存在: " + request.getTripId());
         }
 
         Route route = routeRepository.findById(request.getRouteId())
-                .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "线路不存在"));
 
         Trip trip = Trip.builder()
                 .tripId(request.getTripId())
@@ -137,7 +137,7 @@ public class TripService
     public Trip updateTrip(Long id, UpdateTripRequest request)
     {
         Trip trip = tripRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("班次不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在"));
 
         // 改挂线路：班次的 stop_times 挂在自己身上，跟着 Trip 一起迁移，无需单独处理
         if (request.getRoutePk() != null)
@@ -150,7 +150,7 @@ public class TripService
         {
             if (tripRepository.existsByTripId(request.getTripId()))
             {
-                throw new IllegalArgumentException("班次ID已存在: " + request.getTripId());
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "班次ID已存在: " + request.getTripId());
             }
             trip.setTripId(request.getTripId());
         }
@@ -196,7 +196,7 @@ public class TripService
 
     public void cancelTrip(Long id)
     {
-        Trip trip = tripRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("班次不存在"));
+        Trip trip = tripRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在"));
         // 删除前抓取事件快照（数据快照应反映「已发生事实」，不依赖删除后的实体）
         Route route = trip.getRoute();
         TripCancelledEvent.TripCancelledData data = new TripCancelledEvent.TripCancelledData(
@@ -214,14 +214,14 @@ public class TripService
     public Trip getTripById(Long id)
     {
         return tripRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("班次不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在"));
     }
 
     @Nonnull
     public Trip getTripByTripId(String tripId)
     {
         return tripRepository.findByTripId(tripId)
-                .orElseThrow(() -> new IllegalArgumentException("班次不存在: " + tripId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "班次不存在: " + tripId));
     }
 
     /**

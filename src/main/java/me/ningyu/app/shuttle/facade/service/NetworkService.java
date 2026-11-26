@@ -12,8 +12,10 @@ import me.ningyu.app.shuttle.domain.repo.RouteRepository;
 import me.ningyu.app.shuttle.model.network.CreateNetworkRequest;
 import me.ningyu.app.shuttle.model.network.RouteNetworkTagsView;
 import me.ningyu.app.shuttle.model.network.UpdateNetworkRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +45,7 @@ public class NetworkService
     {
         if (networkRepository.existsByNetworkId(request.getNetworkId()))
         {
-            throw new IllegalArgumentException("网络ID已存在");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "网络ID已存在");
         }
         Network network = Network.builder()
                 .networkId(request.getNetworkId())
@@ -56,7 +58,7 @@ public class NetworkService
     public Network updateNetwork(Long id, UpdateNetworkRequest request)
     {
         Network network = networkRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("网络不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "网络不存在"));
         if (request.getNetworkName() != null)
         {
             network.setNetworkName(request.getNetworkName());
@@ -67,10 +69,10 @@ public class NetworkService
     public void deleteNetwork(Long id)
     {
         Network network = networkRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("网络不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "网络不存在"));
         if (!routeNetworkRepository.findByNetworkNetworkId(network.getNetworkId()).isEmpty())
         {
-            throw new IllegalStateException("该网络下仍有线路，不能删除");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "该网络下仍有线路，不能删除");
         }
         networkRepository.delete(network);
     }
@@ -87,7 +89,7 @@ public class NetworkService
     public Network getNetworkById(Long id)
     {
         return networkRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("网络不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "网络不存在"));
     }
 
     /**
@@ -97,7 +99,7 @@ public class NetworkService
     public RouteNetworkTagsView setRouteNetworks(Long routePk, Collection<String> networkIds)
     {
         Route route = routeRepository.findById(routePk)
-                .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "线路不存在"));
 
         List<String> wanted = networkIds == null ? List.of()
                 : networkIds.stream().filter(s -> s != null && !s.isBlank()).distinct().toList();
@@ -107,7 +109,7 @@ public class NetworkService
         for (String nid : wanted)
         {
             networks.add(networkRepository.findByNetworkId(nid)
-                    .orElseThrow(() -> new IllegalArgumentException("网络不存在: " + nid)));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "网络不存在: " + nid)));
         }
 
         routeNetworkRepository.deleteAll(routeNetworkRepository.findByRouteId(routePk));
@@ -141,13 +143,13 @@ public class NetworkService
     public void addRouteNetwork(Long routePk, String networkId)
     {
         Route route = routeRepository.findById(routePk)
-                .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "线路不存在"));
         if (routeNetworkRepository.existsByRouteIdAndNetworkNetworkId(routePk, networkId))
         {
             return;
         }
         Network network = networkRepository.findByNetworkId(networkId)
-                .orElseThrow(() -> new IllegalArgumentException("网络不存在: " + networkId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "网络不存在: " + networkId));
         routeNetworkRepository.save(RouteNetwork.builder().route(route).network(network).build());
     }
 
@@ -164,7 +166,7 @@ public class NetworkService
     public RouteNetworkTagsView getRouteNetworks(Long routePk)
     {
         Route route = routeRepository.findById(routePk)
-                .orElseThrow(() -> new IllegalArgumentException("线路不存在"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "线路不存在"));
         List<RouteNetwork> links = routeNetworkRepository.findByRouteId(routePk);
         return RouteNetworkTagsView.builder()
                 .routePk(route.getId())

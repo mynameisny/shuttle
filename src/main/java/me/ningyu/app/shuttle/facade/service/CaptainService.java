@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +44,7 @@ public class CaptainService
     public Captain update(Long id, Captain req)
     {
         Captain c = captainRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("车长不存在: id=" + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "车长不存在: id=" + id));
         List<FieldChange> changes = fieldChangeDetector.diff("CAPTAIN", c, req);
         c.setName(req.getName());
         c.setPhone(req.getPhone());
