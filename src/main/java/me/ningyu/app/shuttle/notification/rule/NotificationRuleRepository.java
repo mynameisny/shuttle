@@ -13,4 +13,6 @@ public interface NotificationRuleRepository extends JpaRepository<NotificationRu
     Optional<NotificationRule> findByRuleCode(String ruleCode);
 
     boolean existsByRuleCode(String ruleCode);
+
+    boolean existsByTemplateCode(String templateCode);
 }

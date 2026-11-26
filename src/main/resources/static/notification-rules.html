@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通知规则 · 班车调度管理</title>
+    <meta name="nav" content="notification.rules">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        /* 宽弹窗 */
+        .modal.wide { width: 780px; }
+
+        /* 区块小标题 */
+        .rule-section {
+            display: flex; align-items: center; gap: 8px;
+            margin: 22px 0 12px;
+            font-size: 13px; font-weight: 620; color: var(--c-text);
+        }
+        .rule-section::before {
+            content: ""; width: 3px; height: 14px; border-radius: 2px;
+            background: var(--c-primary);
+        }
+        .rule-section .sub { font-size: 11.5px; font-weight: 400; color: var(--c-text-3); }
+
+        /* 渠道 / 选项 chips */
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip { position: relative; }
+        .chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .chip span {
+            display: inline-flex; align-items: center;
+            padding: 5px 13px;
+            border: 1px solid var(--c-border-strong);
+            border-radius: 999px; font-size: 12.5px; color: var(--c-text-2);
+            cursor: pointer; user-select: none; transition: all .13s;
+        }
+        .chip input:checked + span {
+            background: var(--c-primary-soft);
+            border-color: var(--c-primary);
+            color: var(--c-primary-ink); font-weight: 550;
+        }
+
+        /* 开关 */
+        .switch { position: relative; display: inline-block; width: 38px; height: 21px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch .slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background: #dfe3e8; border-radius: 999px; transition: .18s;
+        }
+        .switch .slider:before {
+            content: ""; position: absolute; height: 15px; width: 15px; left: 3px; top: 3px;
+            background: #fff; border-radius: 50%; transition: .18s;
+            box-shadow: 0 1px 2px rgba(0,0,0,.2);
+        }
+        .switch input:checked + .slider { background: var(--c-primary); }
+        .switch input:checked + .slider:before { transform: translateX(17px); }
+        .switch input:disabled + .slider { opacity: .55; cursor: not-allowed; }
+
+        /* 条件编辑器 */
+        .cond-editor { display: flex; flex-direction: column; gap: 10px; }
+        .cond-group {
+            border: 1px solid var(--c-border); border-radius: var(--radius-sm);
+            background: var(--c-surface-2); padding: 10px 12px;
+        }
+        .cond-group .cond-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .cond-group .cond-head .g-label { font-size: 12px; color: var(--c-text-3); }
+        .cond-group .cond-head .mini-select {
+            font-size: 12px; padding: 3px 22px 3px 8px; font-family: inherit; font-weight: 600;
+            color: var(--c-primary-ink); border: 1px solid var(--c-border-strong);
+            border-radius: 5px; background: #fff; cursor: pointer;
+            appearance: none; -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 8.5l4 4 4-4' fill='none' stroke='%238d95a3' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 5px center; background-size: 11px;
+        }
+        .cond-group .cond-head .negate {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 12px; color: var(--c-text-2); cursor: pointer; user-select: none;
+        }
+        .cond-group .cond-head .spacer { flex: 1; }
+
+        .cond-children { display: flex; flex-direction: column; gap: 8px; }
+        .cond-leaf {
+            display: flex; align-items: center; gap: 8px;
+            background: #fff; border: 1px solid var(--c-border);
+            border-radius: 6px; padding: 7px 9px;
+        }
+        .cond-leaf .leaf-field,
+        .cond-leaf .leaf-op {
+            font-size: 12.5px; padding: 6px 8px; font-family: inherit;
+            border: 1px solid var(--c-border-strong); border-radius: 5px;
+            color: var(--c-text); background: #fff;
+            appearance: none; -webkit-appearance: none; cursor: pointer;
+        }
+        .cond-leaf .leaf-field { min-width: 130px; }
+        .cond-leaf .leaf-op { min-width: 104px; }
+        .cond-leaf .leaf-value { flex: 1; min-width: 0; }
+        .cond-leaf .leaf-value input,
+        .cond-leaf .leaf-value select {
+            width: 100%; font-size: 12.5px; padding: 6px 8px; font-family: inherit;
+            border: 1px solid var(--c-border-strong); border-radius: 5px;
+            color: var(--c-text); background: #fff;
+        }
+        .cond-leaf .leaf-value select { appearance: none; -webkit-appearance: none; cursor: pointer; }
+        .cond-leaf .leaf-value .no-value { font-size: 12px; color: var(--c-text-3); padding: 6px 0; }
+        .cond-leaf .connector {
+            font-size: 12px; color: var(--c-text-3); background: #f1f3f5;
+            padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+        }
+
+        .cond-add { display: flex; gap: 8px; margin-top: 10px; }
+        .cond-add .btn { font-size: 12px; }
+
+        .icon-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; border-radius: 6px; border: none;
+            background: transparent; color: var(--c-text-3); cursor: pointer;
+            transition: all .13s; flex-shrink: 0;
+        }
+        .icon-btn:hover { background: var(--c-danger-soft); color: var(--c-danger); }
+        .icon-btn .ico { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+        .cond-empty {
+            text-align: center; color: var(--c-text-3); font-size: 12.5px;
+            padding: 18px; border: 1px dashed var(--c-border-strong); border-radius: 6px;
+        }
+
+        /* 接收人行 */
+        .recip-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .recip-row select, .recip-row input {
+            font-size: 12.5px; padding: 6px 9px; font-family: inherit;
+            border: 1px solid var(--c-border-strong); border-radius: 5px; color: var(--c-text); background: #fff;
+        }
+        .recip-row select { min-width: 170px; }
+        .recip-row input { flex: 1; min-width: 0; }
+
+        /* 渠道小标（列表） */
+        .chan-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+        .chan-tags .ct {
+            font-size: 11px; color: var(--c-text-2); background: #f1f3f5;
+            padding: 1px 7px; border-radius: 999px; white-space: nowrap;
+        }
+
+        /* tab 导航 */
+        .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--c-border); margin-bottom: 16px; }
+        .tab {
+            padding: 8px 16px; font-size: 13.5px; font-family: inherit;
+            background: none; border: none; cursor: pointer;
+            color: var(--c-text-2); border-bottom: 2px solid transparent;
+            margin-bottom: -1px; transition: color .13s, border-color .13s;
+        }
+        .tab:hover { color: var(--c-text); }
+        .tab.active { color: var(--c-primary-ink); font-weight: 600; border-bottom-color: var(--c-primary); }
+
+        /* 模板正文多行 */
+        textarea.input { min-height: 96px; resize: vertical; line-height: 1.6; font-family: inherit; }
+        /* 占位符 chip（可点击插入） */
+        .var-chip {
+            display: inline-flex; padding: 3px 9px; font-size: 11.5px;
+            border: 1px solid #cfe0f7; border-radius: 6px;
+            color: var(--c-info); background: var(--c-info-soft);
+            cursor: pointer; user-select: none; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+        .var-chip:hover { border-color: var(--c-info); }
+        .muted-pill { font-size: 11px; color: var(--c-text-3); }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page" id="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">通知中心</h1>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" id="btnAdd">
+                        <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
+                        <span id="btnAddText">新增规则</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" id="tabRulesBtn" data-tab="rules">通知规则</button>
+                <button class="tab" id="tabTemplatesBtn" data-tab="templates">消息模板</button>
+            </div>
+
+            <div id="tab-rules">
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th style="width:190px">规则</th>
+                            <th style="width:120px">事件类型</th>
+                            <th style="width:80px">级别</th>
+                            <th style="width:150px">渠道</th>
+                            <th style="width:160px">接收人</th>
+                            <th>触发条件</th>
+                            <th style="width:64px">状态</th>
+                            <th class="col-actions" style="width:120px">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+
+            <div id="tab-templates" class="hidden">
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th style="width:190px">模板编码</th>
+                            <th style="width:190px">模板名称</th>
+                            <th style="width:220px">标题</th>
+                            <th>正文</th>
+                            <th style="width:90px">适用渠道</th>
+                            <th class="col-actions" style="width:120px">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tplTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal wide">
+        <h3 id="modalTitle">新增规则</h3>
+        <p class="modal-desc">配置事件触发条件、通知渠道与接收人；条件为空时命中该事件的所有实例</p>
+
+        <div class="rule-section">基本信息</div>
+        <div class="field-row">
+            <div class="field">
+                <label>规则编码<span class="req">*</span></label>
+                <input type="text" class="input" id="fRuleCode" maxlength="64" placeholder="如 TRIP_CANCEL_RULE">
+            </div>
+            <div class="field">
+                <label>规则名称<span class="req">*</span></label>
+                <input type="text" class="input" id="fRuleName" maxlength="128" placeholder="如 班次停运通知">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>事件类型<span class="req">*</span></label>
+                <select class="select" id="fEventType"></select>
+            </div>
+            <div class="field">
+                <label>消息模板</label>
+                <select class="select" id="fTemplate"></select>
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>触发模式</label>
+                <select class="select" id="fTriggerMode"></select>
+            </div>
+            <div class="field">
+                <label>通知级别</label>
+                <select class="select" id="fSeverity"></select>
+            </div>
+            <div class="field">
+                <label>发送策略</label>
+                <select class="select" id="fDeliveryPolicy"></select>
+            </div>
+            <div class="field">
+                <label>优先级</label>
+                <input type="number" class="input" id="fPriority" value="0">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>生效开始（可空）</label>
+                <input type="datetime-local" class="input" id="fEffStart">
+            </div>
+            <div class="field">
+                <label>生效结束（可空）</label>
+                <input type="datetime-local" class="input" id="fEffEnd">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;justify-content:flex-end">
+                <label>启用</label>
+                <label class="switch" style="margin:6px 0 2px">
+                    <input type="checkbox" id="fEnabled" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="rule-section">通知渠道 <span class="sub">勾选将发送到的渠道</span></div>
+        <div class="chips" id="channelChips"></div>
+
+        <div class="rule-section">接收人 <span class="sub">按解析器动态决定，可配置多条</span></div>
+        <div id="recipientList"></div>
+        <button class="btn btn-sm" id="btnAddRecipient">
+            <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
+            添加接收人
+        </button>
+
+        <div class="rule-section">触发条件 <span class="sub">支持 AND / OR 嵌套与取反</span></div>
+        <div class="cond-editor" id="condEditor"></div>
+
+        <div class="btn-row">
+            <button class="btn" id="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="tplModal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="tplModalTitle">新增模板</h3>
+        <p class="modal-desc">标题与正文支持 {{变量名}} 占位符，生成通知时从事件数据取值替换</p>
+        <div class="field">
+            <label>模板编码<span class="req">*</span></label>
+            <input type="text" class="input" id="fTplCode" maxlength="64" placeholder="如 trip_cancelled_tpl">
+        </div>
+        <div class="field">
+            <label>模板名称<span class="req">*</span></label>
+            <input type="text" class="input" id="fTplName" maxlength="128" placeholder="如 班次停运通知模板">
+        </div>
+        <div class="field">
+            <label>标题（可含占位符）</label>
+            <input type="text" class="input" id="fTplTitle" maxlength="255" placeholder="如 【班车停运通知】">
+        </div>
+        <div class="field">
+            <label>正文<span class="req">*</span>（可含占位符）</label>
+            <textarea class="input" id="fTplContent" placeholder="如 线路 {{routeShortName}} 的班次 {{tripLabel}} 已取消"></textarea>
+        </div>
+        <div class="field">
+            <label>适用渠道（空 = 通用）</label>
+            <select class="select" id="fTplChannel"></select>
+        </div>
+        <div class="field">
+            <label>可用占位符（点击插入到正文）</label>
+            <div class="chips" id="tplVars"></div>
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnTplCancel">取消</button>
+            <button class="btn btn-primary" id="btnTplSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    const API = {
+        rules: '/api/notification-rules',
+        templates: '/api/notification-templates'
+    };
+
+    let meta = null;
+    let templates = [];
+    let rules = [];
+    let details = {};   // { ruleId: { channels:[], recipients:[] } }
+    let editingId = null;
+    let editingTplId = null;
+    let currentTab = 'rules';
+
+    // 条件树运行时节点：{ kind:'group'|'leaf', _id, ... }
+    let condTree = null;
+    let _seq = 0;
+    const nid = () => ++_seq;
+
+    /* ---------- 元数据加载 ---------- */
+    async function loadMeta() {
+        meta = await api(API.rules + '/meta');
+        templates = await api(API.templates) || [];
+    }
+
+    function eventMeta(code) {
+        return (meta.eventTypes || []).find(e => e.code === code);
+    }
+    function eventName(code) {
+        const m = eventMeta(code);
+        return m ? m.name : code;
+    }
+    function fieldMeta(eventType, name) {
+        const m = eventMeta(eventType);
+        if (!m) return null;
+        return (m.fields || []).find(f => f.name === name);
+    }
+    function resolverMeta(code) {
+        return (meta.resolvers || []).find(r => r.code === code);
+    }
+    function enumName(list, code) {
+        const it = (list || []).find(x => x.code === code);
+        return it ? it.name : code;
+    }
+
+    /* ---------- 列表 ---------- */
+    async function load() {
+        try {
+            const list = await api(API.rules) || [];
+            rules = list;
+            details = {};
+            await Promise.all(rules.map(async r => {
+                const [ch, rc] = await Promise.all([
+                    api(API.rules + '/' + r.id + '/channels'),
+                    api(API.rules + '/' + r.id + '/recipients')
+                ]);
+                details[r.id] = { channels: ch || [], recipients: rc || [] };
+            }));
+            render();
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function severityPill(sev) {
+        const map = {
+            CRITICAL: 'pill-danger', HIGH: 'pill-warn', NORMAL: 'pill-neutral', LOW: 'pill-info'
+        };
+        return '<span class="pill ' + (map[sev] || 'pill-neutral') + '">' + esc(enumName(meta.severities, sev)) + '</span>';
+    }
+
+    function summarizeCondition(jsonStr, eventType) {
+        if (!jsonStr) return '<span class="muted">无条件</span>';
+        try {
+            const node = JSON.parse(jsonStr);
+            return esc(describeNode(node, eventType));
+        } catch (e) { return '<span class="muted">条件</span>'; }
+    }
+
+    function describeNode(node, eventType) {
+        if (!node) return '无条件';
+        const op = node.operator;
+        if (op === 'AND' || op === 'OR') {
+            const kids = (node.children || []).map(c => describeNode(c, eventType));
+            if (!kids.length) return '无条件';
+            const joiner = op === 'AND' ? ' 且 ' : ' 或 ';
+            return (kids.length > 1 ? '(' : '') + kids.join(joiner) + (kids.length > 1 ? ')' : '');
+        }
+        if (op === 'NOT') {
+            return '非(' + describeNode((node.children || [])[0], eventType) + ')';
+        }
+        // 叶子
+        const fm = fieldMeta(eventType, node.field);
+        const label = fm ? fm.label : node.field;
+        const opName = enumName(meta.operators, op);
+        if (op === 'IS_NULL' || op === 'IS_NOT_NULL') {
+            return label + ' ' + opName;
+        }
+        let v = node.value;
+        if (Array.isArray(v)) v = v.join('、');
+        return label + ' ' + opName + ' ' + (v == null ? '' : v);
+    }
+
+    function render() {
+        const tbody = $('tbody');
+        if (!rules.length) {
+            tbody.innerHTML = '<tr><td colspan="8">' +
+                '<div class="empty-state"><div class="em-title">还没有通知规则</div>' +
+                '<div class="em-desc">点击右上角「新增规则」创建第一条</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = rules.map(r => {
+            const d = details[r.id] || { channels: [], recipients: [] };
+            const chanTags = d.channels.length
+                ? d.channels.map(c => '<span class="ct">' + esc(c.channel) + '</span>').join('')
+                : '<span class="muted">—</span>';
+            const recips = d.recipients.length
+                ? d.recipients.map(rc => {
+                    const rm = resolverMeta(rc.resolverType);
+                    const nm = rm ? rm.name : rc.resolverType;
+                    return nm + (rc.customValue ? '(' + esc(rc.customValue) + ')' : '');
+                }).join('、')
+                : '<span class="muted">—</span>';
+            return '<tr>' +
+                '<td><div class="cell-stack"><span class="strong">' + esc(r.ruleName) + '</span>' +
+                '<span class="sub mono">' + esc(r.ruleCode) + '</span></div></td>' +
+                '<td><span class="pill pill-info">' + esc(eventName(r.eventType)) + '</span></td>' +
+                '<td>' + severityPill(r.severity) + '</td>' +
+                '<td><div class="chan-tags">' + chanTags + '</div></td>' +
+                '<td class="muted" style="font-size:12px">' + recips + '</td>' +
+                '<td style="font-size:12px">' + summarizeCondition(r.conditionExpression, r.eventType) + '</td>' +
+                '<td><label class="switch">' +
+                '<input type="checkbox" data-toggle="' + r.id + '"' + (r.enabled ? ' checked' : '') + '>' +
+                '<span class="slider"></span></label></td>' +
+                '<td class="col-actions">' +
+                '<button class="btn btn-sm" data-edit="' + r.id + '">编辑</button> ' +
+                '<button class="btn btn-sm btn-danger" data-del="' + r.id + '">删除</button></td>' +
+                '</tr>';
+        }).join('');
+
+        tbody.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('change', () => toggle(parseInt(b.dataset.toggle), b.checked)));
+        tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    async function toggle(id, enabled) {
+        try {
+            await api(API.rules + '/' + id + '/enabled?enabled=' + enabled, { method: 'PUT' });
+            const r = rules.find(x => x.id === id);
+            if (r) r.enabled = enabled;
+            toast(enabled ? '已启用' : '已停用');
+        } catch (err) {
+            toast('操作失败：' + err.message, true);
+            await load();
+        }
+    }
+
+    async function remove(id) {
+        const r = rules.find(x => x.id === id);
+        if (!r) return;
+        if (!confirm('确定删除规则「' + r.ruleName + '」？已生成的通知不受影响，此操作不可恢复。')) return;
+        try {
+            await api(API.rules + '/' + id, { method: 'DELETE' });
+            toast('已删除：' + r.ruleName);
+            await load();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
+    /* ---------- 弹窗 ---------- */
+    function fillSelect(el, list, valueKey, labelKey, emptyLabel) {
+        let html = '';
+        if (emptyLabel) html += '<option value="">' + emptyLabel + '</option>';
+        (list || []).forEach(it => {
+            html += '<option value="' + esc(it[valueKey]) + '">' + esc(it[labelKey]) + '</option>';
+        });
+        el.innerHTML = html;
+    }
+
+    function buildFormMeta() {
+        fillSelect($('fEventType'), meta.eventTypes, 'code', 'name');
+        fillSelect($('fTriggerMode'), meta.triggerModes, 'code', 'name');
+        fillSelect($('fSeverity'), meta.severities, 'code', 'name');
+        fillSelect($('fDeliveryPolicy'), meta.deliveryPolicies, 'code', 'name');
+        fillSelect($('fTemplate'), templates, 'templateCode', 'name', '（不使用模板）');
+        renderChannelChips();
+        renderRecipients([]);
+    }
+
+    function renderChannelChips() {
+        $('channelChips').innerHTML = (meta.channels || []).map(c =>
+            '<label class="chip"><input type="checkbox" value="' + esc(c.code) + '" data-chan>' +
+            '<span>' + esc(c.name) + '</span></label>').join('');
+    }
+
+    function openModal(id) {
+        editingId = id || null;
+        $('modalTitle').textContent = id ? '编辑规则' : '新增规则';
+        buildFormMeta();
+
+        if (id) {
+            const r = rules.find(x => x.id === id);
+            const d = details[id] || { channels: [], recipients: [] };
+            $('fRuleCode').value = r.ruleCode || '';
+            $('fRuleCode').readOnly = true;
+            $('fRuleName').value = r.ruleName || '';
+            $('fEventType').value = r.eventType || '';
+            $('fTemplate').value = r.templateCode || '';
+            $('fTriggerMode').value = r.triggerMode || 'AUTO';
+            $('fSeverity').value = r.severity || 'NORMAL';
+            $('fDeliveryPolicy').value = r.deliveryPolicy || 'ALL';
+            $('fPriority').value = r.priority != null ? r.priority : 0;
+            $('fEffStart').value = r.effectiveStart ? r.effectiveStart.slice(0, 16) : '';
+            $('fEffEnd').value = r.effectiveEnd ? r.effectiveEnd.slice(0, 16) : '';
+            $('fEnabled').checked = r.enabled !== false;
+            // 渠道勾选
+            document.querySelectorAll('#channelChips [data-chan]').forEach(cb => {
+                cb.checked = d.channels.some(c => c.channel === cb.value);
+            });
+            renderRecipients(d.recipients);
+            condTree = parseAst(r.conditionExpression);
+        } else {
+            $('fRuleCode').value = '';
+            $('fRuleCode').readOnly = false;
+            $('fRuleName').value = '';
+            $('fEventType').value = (meta.eventTypes[0] || {}).code || '';
+            $('fTemplate').value = '';
+            $('fTriggerMode').value = 'AUTO';
+            $('fSeverity').value = 'NORMAL';
+            $('fDeliveryPolicy').value = 'ALL';
+            $('fPriority').value = 0;
+            $('fEffStart').value = '';
+            $('fEffEnd').value = '';
+            $('fEnabled').checked = true;
+            document.querySelectorAll('#channelChips [data-chan]').forEach(cb => cb.checked = false);
+            renderRecipients([]);
+            condTree = emptyGroup();
+        }
+        renderCondEditor();
+        $('modal').style.display = '';
+        $('fRuleName').focus();
+    }
+
+    function closeModal() { $('modal').style.display = 'none'; }
+
+    /* ---------- tab 切换 ---------- */
+    function switchTab(tab) {
+        currentTab = tab;
+        $('tabRulesBtn').classList.toggle('active', tab === 'rules');
+        $('tabTemplatesBtn').classList.toggle('active', tab === 'templates');
+        $('tab-rules').classList.toggle('hidden', tab !== 'rules');
+        $('tab-templates').classList.toggle('hidden', tab !== 'templates');
+        $('btnAddText').textContent = tab === 'rules' ? '新增规则' : '新增模板';
+    }
+
+    /* ---------- 模板管理 ---------- */
+    function collectVars() {
+        const set = new Set();
+        (meta.eventTypes || []).forEach(et => (et.fields || []).forEach(f => set.add(f.name)));
+        return [...set];
+    }
+
+    function renderTplVars() {
+        $('tplVars').innerHTML = collectVars().map(v =>
+            '<span class="var-chip" data-var="' + esc(v) + '">{{' + esc(v) + '}}</span>').join('');
+        $('tplVars').querySelectorAll('.var-chip').forEach(c => c.addEventListener('click', () => {
+            insertAtCursor($('fTplContent'), '{{' + c.dataset.var + '}}');
+        }));
+    }
+
+    function insertAtCursor(ta, text) {
+        const start = ta.selectionStart, end = ta.selectionEnd;
+        ta.value = ta.value.substring(0, start) + text + ta.value.substring(end);
+        ta.focus();
+        ta.selectionStart = ta.selectionEnd = start + text.length;
+    }
+
+    function renderTemplates() {
+        const tbody = $('tplTbody');
+        if (!templates.length) {
+            tbody.innerHTML = '<tr><td colspan="6">' +
+                '<div class="empty-state"><div class="em-title">还没有消息模板</div>' +
+                '<div class="em-desc">点击右上角「新增模板」创建</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = templates.map(t => {
+            const chan = t.channel ? enumName(meta.channels, t.channel) : '通用';
+            const body = t.content || '';
+            return '<tr>' +
+                '<td class="mono strong">' + esc(t.templateCode) + '</td>' +
+                '<td>' + esc(t.name) + '</td>' +
+                '<td class="muted" style="font-size:12px">' + esc(t.title || '—') + '</td>' +
+                '<td class="muted" style="font-size:12px">' + esc(body.length > 44 ? body.slice(0, 44) + '…' : body) + '</td>' +
+                '<td><span class="chan-tags"><span class="ct">' + esc(chan) + '</span></span></td>' +
+                '<td class="col-actions">' +
+                '<button class="btn btn-sm" data-tpledit="' + t.id + '">编辑</button> ' +
+                '<button class="btn btn-sm btn-danger" data-tpldel="' + t.id + '">删除</button></td>' +
+                '</tr>';
+        }).join('');
+        tbody.querySelectorAll('[data-tpledit]').forEach(b => b.addEventListener('click', () => openTplModal(parseInt(b.dataset.tpledit))));
+        tbody.querySelectorAll('[data-tpldel]').forEach(b => b.addEventListener('click', () => removeTpl(parseInt(b.dataset.tpldel))));
+    }
+
+    async function loadTemplates() {
+        try {
+            templates = await api(API.templates) || [];
+            renderTemplates();
+        } catch (err) { toast('加载模板失败：' + err.message, true); }
+    }
+
+    function openTplModal(id) {
+        editingTplId = id || null;
+        $('tplModalTitle').textContent = id ? '编辑模板' : '新增模板';
+        if ($('fTplChannel').options.length === 0) {
+            fillSelect($('fTplChannel'), meta.channels, 'code', 'name', '（通用）');
+        }
+        renderTplVars();
+        const t = id ? templates.find(x => x.id === id) : null;
+        $('fTplCode').value = t ? t.templateCode : '';
+        $('fTplCode').readOnly = !!t;   // 编码是规则引用键，编辑时不可改
+        $('fTplName').value = t ? (t.name || '') : '';
+        $('fTplTitle').value = t ? (t.title || '') : '';
+        $('fTplContent').value = t ? (t.content || '') : '';
+        $('fTplChannel').value = t ? (t.channel || '') : '';
+        $('tplModal').style.display = '';
+        $('fTplCode').focus();
+    }
+
+    function closeTplModal() { $('tplModal').style.display = 'none'; }
+
+    async function saveTpl() {
+        const templateCode = $('fTplCode').value.trim();
+        const name = $('fTplName').value.trim();
+        const content = $('fTplContent').value.trim();
+        if (!templateCode) { toast('模板编码不能为空', true); return; }
+        if (!name) { toast('模板名称不能为空', true); return; }
+        if (!content) { toast('模板正文不能为空', true); return; }
+        const payload = {
+            templateCode: templateCode,
+            name: name,
+            title: $('fTplTitle').value.trim() || null,
+            content: content,
+            channel: $('fTplChannel').value || null
+        };
+        try {
+            if (editingTplId) {
+                await api(API.templates + '/' + editingTplId, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                });
+                toast('已更新：' + name);
+            } else {
+                await api(API.templates, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                });
+                toast('已新增：' + name);
+            }
+            closeTplModal();
+            await loadTemplates();
+        } catch (err) { toast('保存失败：' + err.message, true); }
+    }
+
+    async function removeTpl(id) {
+        const t = templates.find(x => x.id === id);
+        if (!t) return;
+        if (!confirm('确定删除模板「' + (t.name || t.templateCode) + '」？此操作不可恢复。')) return;
+        try {
+            await api(API.templates + '/' + id, { method: 'DELETE' });
+            toast('已删除：' + (t.name || t.templateCode));
+            await loadTemplates();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
+    /* ---------- 接收人 ---------- */
+    let recipients = [];
+
+    function renderRecipients(list) {
+        recipients = list.map(rc => ({
+            resolverType: rc.resolverType || '',
+            customValue: rc.customValue || ''
+        }));
+        paintRecipients();
+    }
+
+    function paintRecipients() {
+        const wrap = $('recipientList');
+        if (!recipients.length) {
+            wrap.innerHTML = '<div class="muted" style="font-size:12px;padding:2px 0 4px">未配置接收人</div>';
+            return;
+        }
+        wrap.innerHTML = recipients.map((rc, i) => {
+            const rm = resolverMeta(rc.resolverType);
+            const need = rm && rm.needCustomValue;
+            return '<div class="recip-row" data-idx="' + i + '">' +
+                '<select data-ridx="' + i + '" class="recip-resolver">' +
+                (meta.resolvers || []).map(r =>
+                    '<option value="' + esc(r.code) + '"' + (rc.resolverType === r.code ? ' selected' : '') + '>' +
+                    esc(r.name) + '</option>').join('') +
+                '</select>' +
+                '<input type="text" class="recip-value" data-vidx="' + i + '" placeholder="手机号，逗号分隔" ' +
+                'value="' + esc(rc.customValue) + '" style="' + (need ? '' : 'display:none') + '">' +
+                '<button class="icon-btn" data-delrec="' + i + '" title="移除">' +
+                '<svg class="ico" viewBox="0 0 20 20"><path d="M5.2 5.2l9.6 9.6M14.8 5.2l-9.6 9.6"/></svg></button>' +
+                '</div>';
+        }).join('');
+
+        wrap.querySelectorAll('.recip-resolver').forEach(sel => sel.addEventListener('change', () => {
+            recipients[parseInt(sel.dataset.ridx)].resolverType = sel.value;
+            paintRecipients();
+        }));
+        wrap.querySelectorAll('.recip-value').forEach(inp => inp.addEventListener('change', () => {
+            recipients[parseInt(inp.dataset.vidx)].customValue = inp.value;
+        }));
+        wrap.querySelectorAll('[data-delrec]').forEach(b => b.addEventListener('click', () => {
+            recipients.splice(parseInt(b.dataset.delrec), 1);
+            paintRecipients();
+        }));
+    }
+
+    function addRecipient() {
+        recipients.push({ resolverType: (meta.resolvers[0] || {}).code || '', customValue: '' });
+        paintRecipients();
+    }
+
+    /* ---------- 条件树 ---------- */
+    function emptyGroup() {
+        return { kind: 'group', operator: 'AND', negate: false, children: [], _id: nid() };
+    }
+    function emptyLeaf(eventType) {
+        const em = eventMeta(eventType);
+        const firstField = (em && em.fields && em.fields[0]) ? em.fields[0].name : '';
+        return { kind: 'leaf', field: firstField, operator: 'EQ', value: '', _id: nid() };
+    }
+
+    function parseAst(jsonStr) {
+        if (!jsonStr) return emptyGroup();
+        try {
+            return fromAst(JSON.parse(jsonStr));
+        } catch (e) {
+            return emptyGroup();
+        }
+    }
+    function fromAst(node) {
+        if (!node) return emptyGroup();
+        if (node.operator === 'AND' || node.operator === 'OR') {
+            return { kind: 'group', operator: node.operator, negate: false, children: (node.children || []).map(fromAst), _id: nid() };
+        }
+        if (node.operator === 'NOT') {
+            const child = (node.children || [])[0];
+            if (child && (child.operator === 'AND' || child.operator === 'OR')) {
+                return { kind: 'group', operator: child.operator, negate: true, children: (child.children || []).map(fromAst), _id: nid() };
+            }
+            return fromAst(child);
+        }
+        return { kind: 'leaf', field: node.field || '', operator: node.operator || 'EQ', value: node.value == null ? '' : node.value, _id: nid() };
+    }
+
+    function toAst(node) {
+        if (node.kind === 'group') {
+            const obj = { operator: node.operator, children: node.children.map(toAst) };
+            return node.negate ? { operator: 'NOT', children: [obj] } : obj;
+        }
+        const leaf = { field: node.field, operator: node.operator };
+        if (node.operator !== 'IS_NULL' && node.operator !== 'IS_NOT_NULL') {
+            leaf.value = leafValue(node);
+        }
+        return leaf;
+    }
+
+    function leafValue(node) {
+        const fm = fieldMeta(currentEventType(), node.field);
+        const type = fm ? fm.type : 'STRING';
+        const raw = node.value;
+        if (node.operator === 'IN' || node.operator === 'NOT_IN') {
+            return String(raw == null ? '' : raw).split(/[,，]/).map(s => s.trim()).filter(Boolean)
+                .map(v => coerce(v, type));
+        }
+        return coerce(raw == null ? '' : raw, type);
+    }
+    function coerce(v, type) {
+        if ((type === 'LONG' || type === 'INTEGER') && v !== '' && v != null) {
+            const n = Number(v);
+            if (!isNaN(n)) return n;
+        }
+        return v;
+    }
+
+    function serializeTree(root) {
+        if (!root || root.kind !== 'group') return null;
+        if (!root.negate && root.children.length === 0) return null;
+        return JSON.stringify(toAst(root));
+    }
+
+    function currentEventType() { return $('fEventType').value; }
+
+    function operatorsForField(fm) {
+        if (!fm) return meta.operators || [];
+        const allow = ['EQ', 'NE'];
+        if (fm.type === 'STRING') allow.push('CONTAINS', 'NOT_CONTAINS', 'IN', 'NOT_IN');
+        if (fm.type === 'LONG' || fm.type === 'INTEGER') allow.push('GT', 'LT', 'GTE', 'LTE', 'IN', 'NOT_IN');
+        allow.push('IS_NULL', 'IS_NOT_NULL');
+        return (meta.operators || []).filter(o => allow.includes(o.code));
+    }
+
+    function renderCondEditor() {
+        const wrap = $('condEditor');
+        wrap.innerHTML = renderGroup(condTree, true);
+        bindCondEvents(wrap);
+    }
+
+    function renderGroup(g, isRoot) {
+        const opOptions = ['AND', 'OR'].map(o =>
+            '<option value="' + o + '"' + (g.operator === o ? ' selected' : '') + '>' +
+            (o === 'AND' ? '全部(且)' : '任一(或)') + '</option>').join('');
+        const negateChecked = g.negate ? ' checked' : '';
+        let kidsHtml = '';
+        if (!g.children.length) {
+            kidsHtml = '<div class="cond-empty">暂无条件，将命中该事件的所有实例</div>';
+        } else {
+            kidsHtml = '<div class="cond-children">' + g.children.map(c =>
+                c.kind === 'group' ? renderGroup(c, false) : renderLeaf(c)).join('') + '</div>';
+        }
+        return '<div class="cond-group" data-gid="' + g._id + '">' +
+            '<div class="cond-head">' +
+            '<span class="g-label">' + (isRoot ? '当事件' : '且') + '</span>' +
+            '<select class="mini-select" data-gop="' + g._id + '">' + opOptions + '</select>' +
+            '<span class="g-label">以下条件时触发</span>' +
+            '<label class="negate"><input type="checkbox" data-gneg="' + g._id + '"' + negateChecked + '>取反(NOT)</label>' +
+            '<span class="spacer"></span>' +
+            (isRoot ? '' :
+                '<button class="icon-btn" data-delg="' + g._id + '" title="删除条件组">' +
+                '<svg class="ico" viewBox="0 0 20 20"><path d="M5.2 5.2l9.6 9.6M14.8 5.2l-9.6 9.6"/></svg></button>') +
+            '</div>' +
+            kidsHtml +
+            '<div class="cond-add">' +
+            '<button class="btn btn-sm" data-addleaf="' + g._id + '">+ 条件</button>' +
+            '<button class="btn btn-sm" data-addgroup="' + g._id + '">+ 条件组</button>' +
+            '</div>' +
+            '</div>';
+    }
+
+    function renderLeaf(l) {
+        const et = currentEventType();
+        const fm = fieldMeta(et, l.field);
+        const fields = (eventMeta(et) || {}).fields || [];
+        const fieldOptions = fields.map(f =>
+            '<option value="' + esc(f.name) + '"' + (l.field === f.name ? ' selected' : '') + '>' + esc(f.label) + '</option>').join('');
+        const ops = operatorsForField(fm);
+        const opOptions = ops.map(o =>
+            '<option value="' + esc(o.code) + '"' + (l.operator === o.code ? ' selected' : '') + '>' + esc(o.name) + '</option>').join('');
+        return '<div class="cond-leaf" data-lid="' + l._id + '">' +
+            '<select class="leaf-field" data-lfield="' + l._id + '">' + fieldOptions + '</select>' +
+            '<select class="leaf-op" data-lop="' + l._id + '">' + opOptions + '</select>' +
+            '<div class="leaf-value">' + renderValueInput(l, fm) + '</div>' +
+            '<button class="icon-btn" data-dell="' + l._id + '" title="删除条件">' +
+            '<svg class="ico" viewBox="0 0 20 20"><path d="M5.2 5.2l9.6 9.6M14.8 5.2l-9.6 9.6"/></svg></button>' +
+            '</div>';
+    }
+
+    function renderValueInput(l, fm) {
+        if (l.operator === 'IS_NULL' || l.operator === 'IS_NOT_NULL') {
+            return '<div class="no-value">（无需值）</div>';
+        }
+        const type = fm ? fm.type : 'STRING';
+        const enumVals = fm && fm.enumValues;
+        if (l.operator === 'IN' || l.operator === 'NOT_IN') {
+            const v = Array.isArray(l.value) ? l.value.join(',') : (l.value || '');
+            return '<input type="text" data-lval="' + l._id + '" placeholder="多个值逗号分隔" value="' + esc(v) + '">';
+        }
+        if (enumVals && enumVals.length) {
+            const cur = String(l.value == null ? '' : l.value);
+            return '<select data-lval="' + l._id + '">' +
+                '<option value="">— 请选择 —</option>' +
+                enumVals.map(v => '<option value="' + esc(v) + '"' + (cur === v ? ' selected' : '') + '>' + esc(v) + '</option>').join('') +
+                '</select>';
+        }
+        const inputType = (type === 'LONG' || type === 'INTEGER') ? 'number' : 'text';
+        return '<input type="' + inputType + '" data-lval="' + l._id + '" value="' + esc(l.value == null ? '' : l.value) + '">';
+    }
+
+    function findNode(node, id) {
+        if (!node) return null;
+        if (node._id === id) return node;
+        if (node.kind === 'group') {
+            for (const c of node.children) {
+                const hit = findNode(c, id);
+                if (hit) return hit;
+            }
+        }
+        return null;
+    }
+    function findParent(node, id) {
+        if (!node || node.kind !== 'group') return null;
+        for (const c of node.children) {
+            if (c._id === id) return node;
+            const hit = findParent(c, id);
+            if (hit) return hit;
+        }
+        return null;
+    }
+
+    function bindCondEvents(wrap) {
+        wrap.querySelectorAll('[data-gop]').forEach(sel => sel.addEventListener('change', () => {
+            const g = findNode(condTree, parseInt(sel.dataset.gop));
+            if (g) { g.operator = sel.value; }
+        }));
+        wrap.querySelectorAll('[data-gneg]').forEach(cb => cb.addEventListener('change', () => {
+            const g = findNode(condTree, parseInt(cb.dataset.gneg));
+            if (g) g.negate = cb.checked;
+        }));
+        wrap.querySelectorAll('[data-addleaf]').forEach(b => b.addEventListener('click', () => {
+            const g = findNode(condTree, parseInt(b.dataset.addleaf));
+            if (g) { g.children.push(emptyLeaf(currentEventType())); renderCondEditor(); }
+        }));
+        wrap.querySelectorAll('[data-addgroup]').forEach(b => b.addEventListener('click', () => {
+            const g = findNode(condTree, parseInt(b.dataset.addgroup));
+            if (g) { g.children.push(emptyGroup()); renderCondEditor(); }
+        }));
+        wrap.querySelectorAll('[data-delg]').forEach(b => b.addEventListener('click', () => {
+            const parent = findParent(condTree, parseInt(b.dataset.delg));
+            if (parent) { parent.children = parent.children.filter(c => c._id !== parseInt(b.dataset.delg)); renderCondEditor(); }
+        }));
+        wrap.querySelectorAll('[data-dell]').forEach(b => b.addEventListener('click', () => {
+            const parent = findParent(condTree, parseInt(b.dataset.dell));
+            if (parent) { parent.children = parent.children.filter(c => c._id !== parseInt(b.dataset.dell)); renderCondEditor(); }
+        }));
+        wrap.querySelectorAll('[data-lfield]').forEach(sel => sel.addEventListener('change', () => {
+            const l = findNode(condTree, parseInt(sel.dataset.lfield));
+            if (l) { l.field = sel.value; l.operator = 'EQ'; l.value = ''; renderCondEditor(); }
+        }));
+        wrap.querySelectorAll('[data-lop]').forEach(sel => sel.addEventListener('change', () => {
+            const l = findNode(condTree, parseInt(sel.dataset.lop));
+            if (l) { l.operator = sel.value; l.value = ''; renderCondEditor(); }
+        }));
+        wrap.querySelectorAll('[data-lval]').forEach(inp => inp.addEventListener('change', () => {
+            const l = findNode(condTree, parseInt(inp.dataset.lval));
+            if (l) l.value = inp.value;
+        }));
+    }
+
+    /* ---------- 保存 ---------- */
+    async function save() {
+        const ruleCode = $('fRuleCode').value.trim();
+        const ruleName = $('fRuleName').value.trim();
+        if (!ruleCode) { toast('规则编码不能为空', true); return; }
+        if (!ruleName) { toast('规则名称不能为空', true); return; }
+        if (!recipients.length) { toast('请至少配置一个接收人', true); return; }
+
+        const channels = [];
+        document.querySelectorAll('#channelChips [data-chan]:checked').forEach(cb => channels.push(cb.value));
+
+        const payload = {
+            ruleCode: ruleCode,
+            ruleName: ruleName,
+            eventType: currentEventType(),
+            triggerMode: $('fTriggerMode').value || 'AUTO',
+            severity: $('fSeverity').value || 'NORMAL',
+            deliveryPolicy: $('fDeliveryPolicy').value || 'ALL',
+            conditionExpression: serializeTree(condTree),
+            enabled: $('fEnabled').checked,
+            priority: parseInt($('fPriority').value, 10) || 0,
+            effectiveStart: $('fEffStart').value || null,
+            effectiveEnd: $('fEffEnd').value || null,
+            templateCode: $('fTemplate').value || null,
+            channels: channels,
+            recipients: recipients.filter(r => r.resolverType).map(r => ({
+                resolverType: r.resolverType,
+                customValue: r.customValue || null
+            }))
+        };
+
+        try {
+            if (editingId) {
+                await api(API.rules + '/' + editingId, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                toast('已更新：' + ruleName);
+            } else {
+                await api(API.rules, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                toast('已新增：' + ruleName);
+            }
+            closeModal();
+            await load();
+        } catch (err) { toast('保存失败：' + err.message, true); }
+    }
+
+    /* ---------- 事件绑定 ---------- */
+    $('btnAdd').addEventListener('click', () => {
+        if (currentTab === 'rules') openModal(null);
+        else openTplModal(null);
+    });
+    $('btnCancel').addEventListener('click', closeModal);
+    $('btnSave').addEventListener('click', save);
+    $('btnAddRecipient').addEventListener('click', addRecipient);
+    $('tabRulesBtn').addEventListener('click', () => switchTab('rules'));
+    $('tabTemplatesBtn').addEventListener('click', () => switchTab('templates'));
+    $('btnTplCancel').addEventListener('click', closeTplModal);
+    $('btnTplSave').addEventListener('click', saveTpl);
+    $('fEventType').addEventListener('change', () => {
+        // 切换事件类型时，字段集合变化，若已有条件则清空
+        if (condTree && condTree.children && condTree.children.length) {
+            if (confirm('切换事件类型将清空已配置的触发条件，是否继续？')) {
+                condTree = emptyGroup();
+                renderCondEditor();
+            } else {
+                // 还原选择
+                const r = editingId ? rules.find(x => x.id === editingId) : null;
+                $('fEventType').value = r ? r.eventType : '';
+            }
+        }
+    });
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+    $('tplModal').addEventListener('click', e => { if (e.target === $('tplModal')) closeTplModal(); });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            if ($('modal').style.display !== 'none') closeModal();
+            if ($('tplModal').style.display !== 'none') closeTplModal();
+        }
+    });
+
+    /* ---------- 启动 ---------- */
+    (async function init() {
+        try {
+            await loadMeta();
+            await load();
+            renderTemplates();
+        } catch (err) {
+            toast('初始化失败：' + err.message, true);
+        }
+    })();
+</script>
+</body>
+</html>
