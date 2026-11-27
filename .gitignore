@@ -36,3 +36,6 @@ hs_err_pid*
 src/main/resources/application-local.yml 
 /target/
 .kunlunxiaozhi/
+
+# 本地备份文件（如拉取冲突时的 .local 备份）
+*.local.md

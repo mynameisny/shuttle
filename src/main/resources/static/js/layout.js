@@ -101,9 +101,8 @@ const MENU = [
         items: [
             {
                 key: 'system', name: '系统管理', icon: 'settings', children: [
-                    { key: 'system.users', name: '用户', ready: false, note: '账号与人员绑定' },
-                    { key: 'system.roles', name: '角色', ready: false, note: '角色与权限组' },
-                    { key: 'system.perms', name: '权限', ready: false, note: '菜单与数据权限' }
+                    { key: 'system.users', name: '用户', href: 'users.html', ready: true },
+                    { key: 'system.roles', name: '角色', href: 'roles.html', ready: true }
                 ]
             }
         ]
@@ -188,6 +187,31 @@ function renderItem(it, activeKey, depth) {
     return html;
 }
 
+function buildUserBar() {
+    // 依赖 map-common.js 提供的 getAuthUser / clearAuth（login.html 不引入本文件，安全）
+    const user = (typeof getAuthUser === 'function') ? getAuthUser() : null;
+    if (!user || !user.username) return '';
+    const initial = (user.displayName || user.username || '?').charAt(0).toUpperCase();
+    const roles = (user.roles || []).slice(0, 2).join(' · ');
+    return '<div class="sb-user">' +
+        '<span class="sb-user-avatar">' + _e(initial) + '</span>' +
+        '<span class="sb-user-meta">' +
+        '<span class="sb-user-name">' + _e(user.displayName || user.username) + '</span>' +
+        (roles ? '<span class="sb-user-roles">' + _e(roles) + '</span>' : '') +
+        '</span>' +
+        '<button class="sb-user-out" id="btnLogout" type="button" title="退出登录">' + iconSvg('x') + '</button>' +
+        '</div>';
+}
+
+function bindLogout() {
+    const btn = document.getElementById('btnLogout');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        if (typeof clearAuth === 'function') clearAuth();
+        location.href = '/login.html';
+    });
+}
+
 function buildSidebar(mount, activeKey) {
     const activeParent = activeKey.split('.')[0];
 
@@ -209,6 +233,7 @@ function buildSidebar(mount, activeKey) {
         '<button class="sb-toggle" id="sbCollapse" type="button" title="收起侧边栏" aria-label="收起/展开侧边栏">' +
         iconSvg('chevronLeft') + '<span class="txt">收起侧边栏</span></button>' +
         '</div>' +
+        buildUserBar() +
         '<div class="sb-foot">数据源 GTFS · 本地台账</div>';
 
     mount.innerHTML = html;
@@ -264,7 +289,6 @@ function buildSidebar(mount, activeKey) {
 }
 
 // 在指定 items 里找 key 对应的名字路径（目录项 → 目标项，含三级）。
-// 命中返回 true 并填充 path；未命中返回 false（调用方负责回退 path）。
 function findNavPath(items, key, path) {
     for (const it of items) {
         if (it.key === key) { path.push(it.name); return true; }
@@ -316,4 +340,5 @@ function initShell() {
     const sb = document.getElementById('sidebar');
     if (sb) buildSidebar(sb, currentNavKey());
     buildCrumbs();
+    bindLogout();
 }

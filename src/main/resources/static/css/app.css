@@ -231,6 +231,53 @@ body {
     overflow: hidden;
 }
 
+/* 侧边栏底部当前登录用户条 */
+.sb-user {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-top: 1px solid var(--c-border);
+}
+.sb-user-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--c-primary-soft); color: var(--c-primary-ink);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 650;
+}
+.sb-user-meta {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; gap: 1px;
+    overflow: hidden;
+}
+.sb-user-name {
+    font-size: 12.5px; font-weight: 600; color: var(--c-text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sb-user-roles {
+    font-size: 10.5px; color: var(--c-text-3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sb-user-out {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border: none; background: transparent; border-radius: 6px;
+    color: var(--c-text-3); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+}
+.sb-user-out:hover { background: var(--c-danger-soft); color: var(--c-danger); }
+.sb-user-out .ico {
+    width: 14px; height: 14px; stroke: currentColor; fill: none;
+    stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
+}
+/* 折叠态只留头像（居中），隐藏文字与退出按钮 */
+html.sb-collapsed .sb-user { justify-content: center; padding: 8px 6px; }
+html.sb-collapsed .sb-user-meta,
+html.sb-collapsed .sb-user-out { display: none; }
+
 /* 折叠态只留图标。
    注意：.sb-toggle（恢复入口）不在隐藏列表里——折叠后必须仍可点击展开。
    .sb-sub（二级项）折叠态整体隐藏：二级项没有图标，隐藏文字后会残留

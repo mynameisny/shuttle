@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 · 班车调度管理</title>
+    <meta name="nav" content="system.users">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .role-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+        .role-tag {
+            display: inline-flex; align-items: center;
+            padding: 2px 8px; border-radius: var(--radius-pill);
+            background: var(--c-info-soft); color: var(--c-info);
+            font-size: 11px; font-weight: 550; white-space: nowrap;
+        }
+        .role-tag.empty { background: #f1f3f5; color: var(--c-text-3); }
+        .check-grid { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px 0 6px; }
+        .check-item {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 12px; border: 1px solid var(--c-border-strong);
+            border-radius: 8px; cursor: pointer; font-size: 12.5px;
+            color: var(--c-text-2); user-select: none; transition: all .12s;
+        }
+        .check-item:hover { border-color: #cdeee9; }
+        .check-item.on {
+            border-color: var(--c-primary); color: var(--c-primary-ink);
+            background: var(--c-primary-soft);
+        }
+        .check-item input { display: none; }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">用户管理</h1>
+                </div>
+                <div class="page-actions">
+                    <label class="search-wrap">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        <input type="text" class="search" id="searchInput" placeholder="搜索用户名 / 姓名…" style="width:220px">
+                    </label>
+                    <button class="btn btn-primary" id="btnAdd">
+                        <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
+                        新增用户
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>显示名</th>
+                            <th>电话</th>
+                            <th>邮箱</th>
+                            <th>角色</th>
+                            <th>状态</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- 新增 / 编辑用户 -->
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="modalTitle">新增用户</h3>
+        <div class="field">
+            <label>用户名<span class="req">*</span></label>
+            <input type="text" class="input" id="fUsername" maxlength="50" placeholder="登录用户名（唯一）">
+        </div>
+        <div class="field" id="pwField">
+            <label>初始密码<span class="req">*</span></label>
+            <input type="password" class="input" id="fPassword" maxlength="100" placeholder="至少 6 位" autocomplete="new-password">
+        </div>
+        <div class="field">
+            <label>显示名</label>
+            <input type="text" class="input" id="fDisplayName" maxlength="50" placeholder="真实姓名 / 昵称">
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label>电话</label>
+                <input type="text" class="input" id="fPhone" maxlength="20" placeholder="11 位手机号">
+            </div>
+            <div class="field">
+                <label>邮箱</label>
+                <input type="text" class="input" id="fEmail" maxlength="100" placeholder="name@example.com">
+            </div>
+        </div>
+        <div class="field" id="statusField" style="display:none">
+            <label>状态</label>
+            <select class="select" id="fStatus">
+                <option value="ACTIVE">正常</option>
+                <option value="DISABLED">禁用</option>
+                <option value="LOCKED">锁定</option>
+            </select>
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 重置密码 -->
+<div id="pwModal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3>重置密码</h3>
+        <div class="modal-desc" id="pwModalDesc">为该用户设置新密码</div>
+        <div class="field">
+            <label>新密码<span class="req">*</span></label>
+            <input type="password" class="input" id="fNewPw" maxlength="100" placeholder="至少 6 位" autocomplete="new-password">
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnPwCancel">取消</button>
+            <button class="btn btn-primary" id="btnPwSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 分配角色 -->
+<div id="roleModal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3>分配角色</h3>
+        <div class="modal-desc" id="roleModalDesc">勾选该用户拥有的角色，保存后全量替换</div>
+        <div class="check-grid" id="roleGrid"></div>
+        <div class="btn-row">
+            <button class="btn" id="btnRoleCancel">取消</button>
+            <button class="btn btn-primary" id="btnRoleSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    let users = [];
+    let allRoles = [];
+    let editingId = null;
+
+    function statusPill(s) {
+        if (s === 'DISABLED') return '<span class="pill pill-danger">禁用</span>';
+        if (s === 'LOCKED') return '<span class="pill pill-warn">锁定</span>';
+        return '<span class="pill pill-ok">正常</span>';
+    }
+
+    function roleTags(roles) {
+        roles = roles || [];
+        if (!roles.length) return '<span class="role-tag empty">未分配</span>';
+        return '<div class="role-tags">' + roles.map(r => '<span class="role-tag">' + esc(r) + '</span>').join('') + '</div>';
+    }
+
+    async function load() {
+        try {
+            const [u, r] = await Promise.all([api('/api/iam/users'), api('/api/iam/roles')]);
+            users = u || [];
+            allRoles = r || [];
+            // 角色附加到用户（需单独查每个用户的角色，为减少请求这里批量查询）
+            await attachRoles();
+            render();
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    async function attachRoles() {
+        await Promise.all(users.map(async u => {
+            try { u._roles = await api('/api/iam/users/' + u.id + '/roles') || []; }
+            catch (e) { u._roles = []; }
+        }));
+    }
+
+    function render() {
+        const kw = $('searchInput').value.trim().toLowerCase();
+        const list = users.filter(u => !kw ||
+            (u.username || '').toLowerCase().includes(kw) ||
+            (u.displayName || '').toLowerCase().includes(kw) ||
+            (u.phone || '').toLowerCase().includes(kw) ||
+            (u.email || '').toLowerCase().includes(kw));
+        const tbody = $('tbody');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">' +
+                '<div class="em-title">没有匹配的用户</div>' +
+                '<div class="em-desc">点击右上角「新增用户」创建</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(u =>
+            '<tr data-id="' + u.id + '">' +
+            '<td class="strong mono">' + esc(u.username || '—') + '</td>' +
+            '<td>' + esc(u.displayName || '—') + '</td>' +
+            '<td class="mono">' + (u.phone ? esc(u.phone) : '<span class="muted">—</span>') + '</td>' +
+            '<td>' + (u.email ? esc(u.email) : '<span class="muted">—</span>') + '</td>' +
+            '<td>' + roleTags(u._roles) + '</td>' +
+            '<td>' + statusPill(u.status) + '</td>' +
+            '<td class="col-actions">' +
+            '<button class="btn btn-sm" data-edit="' + u.id + '">编辑</button> ' +
+            '<button class="btn btn-sm" data-roles="' + u.id + '">角色</button> ' +
+            '<button class="btn btn-sm" data-pw="' + u.id + '">重置密码</button> ' +
+            '<button class="btn btn-sm btn-danger" data-del="' + u.id + '">删除</button></td>' +
+            '</tr>'
+        ).join('');
+        tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
+        tbody.querySelectorAll('[data-roles]').forEach(b => b.addEventListener('click', () => openRoles(parseInt(b.dataset.roles))));
+        tbody.querySelectorAll('[data-pw]').forEach(b => b.addEventListener('click', () => openPwModal(parseInt(b.dataset.pw))));
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    function openModal(id) {
+        editingId = id || null;
+        const u = id ? users.find(x => x.id === id) : null;
+        $('modalTitle').textContent = id ? '编辑用户' : '新增用户';
+        $('fUsername').value = u ? (u.username || '') : '';
+        $('fUsername').disabled = !!u; // 用户名不可改
+        $('pwField').style.display = id ? 'none' : '';
+        $('statusField').style.display = id ? '' : 'none';
+        $('fPassword').value = '';
+        $('fDisplayName').value = u ? (u.displayName || '') : '';
+        $('fPhone').value = u ? (u.phone || '') : '';
+        $('fEmail').value = u ? (u.email || '') : '';
+        $('fStatus').value = u ? (u.status || 'ACTIVE') : 'ACTIVE';
+        $('modal').style.display = '';
+        if (id) $('fDisplayName').focus(); else $('fUsername').focus();
+    }
+
+    function closeModal() { $('modal').style.display = 'none'; }
+
+    async function save() {
+        const username = $('fUsername').value.trim();
+        const displayName = $('fDisplayName').value.trim() || null;
+        const phone = $('fPhone').value.trim() || null;
+        const email = $('fEmail').value.trim() || null;
+        if (!editingId) {
+            const password = $('fPassword').value;
+            if (!username) { toast('用户名不能为空', true); return; }
+            if (!password || password.length < 6) { toast('密码至少 6 位', true); return; }
+            try {
+                await api('/api/iam/users', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, displayName, phone, email })
+                });
+                toast('已新增用户：' + username);
+            } catch (err) { toast('保存失败：' + err.message, true); return; }
+        } else {
+            try {
+                await api('/api/iam/users/' + editingId, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ displayName, phone, email, status: $('fStatus').value })
+                });
+                toast('已更新用户');
+            } catch (err) { toast('保存失败：' + err.message, true); return; }
+        }
+        closeModal();
+        await load();
+    }
+
+    function openPwModal(id) {
+        const u = users.find(x => x.id === id);
+        if (!u) return;
+        editingId = id;
+        $('pwModalDesc').textContent = '为用户「' + u.username + '」设置新密码';
+        $('fNewPw').value = '';
+        $('pwModal').style.display = '';
+        $('fNewPw').focus();
+    }
+    function closePwModal() { $('pwModal').style.display = 'none'; }
+    async function savePw() {
+        const pw = $('fNewPw').value;
+        if (!pw || pw.length < 6) { toast('密码至少 6 位', true); return; }
+        try {
+            await api('/api/iam/users/' + editingId + '/password', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pw })
+            });
+            toast('密码已重置');
+        } catch (err) { toast('重置失败：' + err.message, true); return; }
+        closePwModal();
+    }
+
+    function openRoles(id) {
+        const u = users.find(x => x.id === id);
+        if (!u) return;
+        editingId = id;
+        $('roleModalDesc').textContent = '为用户「' + u.username + '」分配角色（保存后全量替换）';
+        const checked = new Set(u._roles || []);
+        $('roleGrid').innerHTML = allRoles.map(r =>
+            '<label class="check-item' + (checked.has(r.code) ? ' on' : '') + '">' +
+            '<input type="checkbox" value="' + esc(r.code) + '"' + (checked.has(r.code) ? ' checked' : '') + '>' +
+            esc(r.name) + '</label>'
+        ).join('') || '<span class="muted">暂无可用角色</span>';
+        $('roleGrid').querySelectorAll('.check-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const cb = item.querySelector('input');
+                cb.checked = !cb.checked;
+                item.classList.toggle('on', cb.checked);
+            });
+        });
+        $('roleModal').style.display = '';
+    }
+    function closeRoleModal() { $('roleModal').style.display = 'none'; }
+    async function saveRoles() {
+        const roles = Array.from($('roleGrid').querySelectorAll('input:checked')).map(i => i.value);
+        try {
+            await api('/api/iam/users/' + editingId + '/roles', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ roles })
+            });
+            toast('角色已更新');
+        } catch (err) { toast('保存失败：' + err.message, true); return; }
+        closeRoleModal();
+        await load();
+    }
+
+    async function remove(id) {
+        const u = users.find(x => x.id === id);
+        if (!u) return;
+        if (!confirm('确定删除用户「' + (u.username || '') + '」？此操作不可恢复。')) return;
+        try {
+            await api('/api/iam/users/' + id, { method: 'DELETE' });
+            toast('已删除：' + u.username);
+            await load();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
+    $('searchInput').addEventListener('input', render);
+    $('btnAdd').addEventListener('click', () => openModal(null));
+    $('btnCancel').addEventListener('click', closeModal);
+    $('btnSave').addEventListener('click', save);
+    $('btnPwCancel').addEventListener('click', closePwModal);
+    $('btnPwSave').addEventListener('click', savePw);
+    $('btnRoleCancel').addEventListener('click', closeRoleModal);
+    $('btnRoleSave').addEventListener('click', saveRoles);
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+    $('pwModal').addEventListener('click', e => { if (e.target === $('pwModal')) closePwModal(); });
+    $('roleModal').addEventListener('click', e => { if (e.target === $('roleModal')) closeRoleModal(); });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { closeModal(); closePwModal(); closeRoleModal(); }
+    });
+
+    load();
+</script>
+</body>
+</html>

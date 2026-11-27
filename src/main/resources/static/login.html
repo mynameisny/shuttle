@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 · 班车调度管理</title>
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        html, body { height: 100%; background: var(--c-bg); }
+        .login-wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            background: #fff;
+            border: 1px solid var(--c-border);
+            border-radius: 16px;
+            padding: 36px 34px 30px;
+            box-shadow: var(--shadow-2);
+        }
+        .login-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+        .login-brand .logo {
+            width: 52px; height: 52px; border-radius: 14px;
+            background: linear-gradient(135deg, #16c2ad, #0f9f90);
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 700;
+        }
+        .login-brand .name { font-size: 17px; font-weight: 650; color: var(--c-text); }
+        .login-brand .sub { font-size: 12px; color: var(--c-text-3); }
+        .login-error {
+            display: none;
+            margin-bottom: 16px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: var(--c-danger-soft);
+            color: var(--c-danger);
+            font-size: 12.5px;
+            line-height: 1.5;
+        }
+        .login-card .field { margin-bottom: 16px; }
+        .login-card .field > label { display: block; margin-bottom: 6px; }
+        .login-submit {
+            width: 100%;
+            justify-content: center;
+            padding: 10px;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+        .login-submit:disabled { opacity: .6; cursor: not-allowed; }
+        .login-foot {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 11.5px;
+            color: var(--c-text-3);
+        }
+    </style>
+</head>
+<body>
+<div class="login-wrap">
+    <div class="login-card">
+        <div class="login-brand">
+            <div class="logo">班</div>
+            <div class="name">班车调度管理</div>
+            <div class="sub">Shuttle Operations Console</div>
+        </div>
+
+        <div class="login-error" id="loginError"></div>
+
+        <div class="field">
+            <label>用户名</label>
+            <input type="text" class="input" id="fUsername" autocomplete="username" placeholder="请输入用户名" autofocus>
+        </div>
+        <div class="field">
+            <label>密码</label>
+            <input type="password" class="input" id="fPassword" autocomplete="current-password" placeholder="请输入密码">
+        </div>
+
+        <button class="btn btn-primary login-submit" id="btnLogin">登 录</button>
+        <div class="login-foot">GTFS 数据源 · 本地台账</div>
+    </div>
+</div>
+
+<script src="js/map-common.js"></script>
+<script>
+    // 已登录直接进入工作台
+    if (isLoggedIn()) {
+        location.replace('dashboard.html');
+    }
+
+    // 注意：$ / esc / toast / setAuth 等已由 map-common.js 提供，勿重复声明
+
+    function showError(msg) {
+        const el = $('loginError');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+    function clearError() {
+        $('loginError').style.display = 'none';
+    }
+
+    async function doLogin() {
+        const username = $('fUsername').value.trim();
+        const password = $('fPassword').value;
+        if (!username) { showError('请输入用户名'); $('fUsername').focus(); return; }
+        if (!password) { showError('请输入密码'); $('fPassword').focus(); return; }
+
+        clearError();
+        const btn = $('btnLogin');
+        btn.disabled = true;
+        btn.textContent = '登录中…';
+
+        try {
+            const resp = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: username, password: password })
+            });
+            const data = await resp.json().catch(() => null);
+            if (!resp.ok) {
+                showError((data && data.message) || ('登录失败 HTTP ' + resp.status));
+                btn.disabled = false;
+                btn.textContent = '登 录';
+                return;
+            }
+            // 成功：缓存 token 与用户信息
+            setAuth(data.token, {
+                username: data.username,
+                displayName: data.displayName,
+                roles: data.roles || []
+            });
+            // 登录后原路返回（仅站内相对路径，防开放重定向）
+            const params = new URLSearchParams(location.search);
+            let redirect = params.get('redirect');
+            if (redirect && !redirect.startsWith('/')) redirect = null;
+            if (redirect && redirect.startsWith('//')) redirect = null;
+            location.replace(redirect || 'dashboard.html');
+        } catch (e) {
+            showError('网络异常：' + e.message);
+            btn.disabled = false;
+            btn.textContent = '登 录';
+        }
+    }
+
+    $('btnLogin').addEventListener('click', doLogin);
+    $('fPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    $('fUsername').addEventListener('keydown', e => { if (e.key === 'Enter') $('fPassword').focus(); });
+</script>
+</body>
+</html>

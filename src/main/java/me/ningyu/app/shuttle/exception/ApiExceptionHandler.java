@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -47,6 +49,14 @@ public class ApiExceptionHandler
     public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request)
     {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    /** 登录认证失败（密码错误 / 账号禁用 / 锁定）→ 401。 */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiError> handleAuthentication(AuthenticationException ex, HttpServletRequest request)
+    {
+        String message = ex instanceof BadCredentialsException ? "用户名或密码错误" : "认证失败或账号不可用";
+        return build(HttpStatus.UNAUTHORIZED, message, request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

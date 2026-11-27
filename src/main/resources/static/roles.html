@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色管理 · 班车调度管理</title>
+    <meta name="nav" content="system.roles">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        .perm-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; }
+        .perm-row + .perm-row { border-top: 1px solid #f4f6f8; }
+        .perm-res { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--c-primary-ink); flex: 1; min-width: 0; word-break: break-all; }
+        .perm-act { flex-shrink: 0; }
+        .perm-del { flex-shrink: 0; border: none; background: transparent; color: var(--c-text-3); cursor: pointer; padding: 3px; border-radius: 5px; }
+        .perm-del:hover { background: var(--c-danger-soft); color: var(--c-danger); }
+        .perm-del .ico { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+        .perm-hint { font-size: 11px; color: var(--c-text-3); margin: 4px 0 8px; line-height: 1.6; }
+        code.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; background: #f1f3f5; padding: 1px 5px; border-radius: 4px; color: var(--c-text-2); }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">角色管理</h1>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" id="btnAdd">
+                        <svg class="ico" viewBox="0 0 20 20"><path d="M10 4.2v11.6M4.2 10h11.6"/></svg>
+                        新增角色
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="tbl">
+                        <thead>
+                        <tr>
+                            <th>编码</th>
+                            <th>名称</th>
+                            <th>描述</th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- 新增 / 编辑角色 -->
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3 id="modalTitle">新增角色</h3>
+        <div class="field">
+            <label>角色编码<span class="req">*</span></label>
+            <input type="text" class="input" id="fCode" maxlength="50" placeholder="如 OPERATOR（大写，唯一）">
+        </div>
+        <div class="field">
+            <label>角色名称<span class="req">*</span></label>
+            <input type="text" class="input" id="fName" maxlength="50" placeholder="如 运营专员">
+        </div>
+        <div class="field">
+            <label>描述</label>
+            <input type="text" class="input" id="fDesc" maxlength="255" placeholder="角色职责说明">
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 角色权限管理 -->
+<div id="permModal" class="modal-mask" style="display:none">
+    <div class="modal">
+        <h3>权限管理</h3>
+        <div class="modal-desc" id="permModalDesc">管理该角色可访问的资源与动作</div>
+
+        <div class="field">
+            <label>授权规则</label>
+            <div class="field-row">
+                <div class="field" style="margin-bottom:0">
+                    <input type="text" class="input" id="fPermRes" placeholder="资源（正则），如 /api/vehicles.*">
+                </div>
+                <div class="field" style="margin-bottom:0; max-width:150px">
+                    <input type="text" class="input" id="fPermAct" placeholder="动作，如 GET" value=".*">
+                </div>
+            </div>
+            <div class="perm-hint">
+                资源/动作均为正则。示例：资源 <code class="mono">/api/vehicles.*</code> + 动作 <code class="mono">.*</code> 表示可对车辆接口执行任意操作；
+                资源 <code class="mono">/api/routes.*</code> + 动作 <code class="mono">GET</code> 表示只读线路。留空表示全部。
+            </div>
+        </div>
+
+        <div class="btn-row" style="justify-content:flex-start; margin-top:4px">
+            <button class="btn btn-primary btn-sm" id="btnGrant">添加权限</button>
+        </div>
+
+        <div class="card" style="box-shadow:none; border:1px solid var(--c-border); margin-top:10px">
+            <div class="table-wrap">
+                <table class="tbl">
+                    <thead><tr><th>资源</th><th>动作</th><th class="col-actions">操作</th></tr></thead>
+                    <tbody id="permTbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn" id="btnPermClose">关闭</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    let roles = [];
+    let editingId = null;
+    let permCode = null;   // 当前管理权限的角色编码
+    let perms = [];        // 当前角色的权限行 [sub, obj, act]
+
+    async function load() {
+        try {
+            roles = await api('/api/iam/roles') || [];
+            render();
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function render() {
+        const tbody = $('tbody');
+        if (!roles.length) {
+            tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">' +
+                '<div class="em-title">暂无角色</div>' +
+                '<div class="em-desc">点击右上角「新增角色」创建</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = roles.map(r =>
+            '<tr data-id="' + r.id + '">' +
+            '<td class="strong mono">' + esc(r.code || '—') + '</td>' +
+            '<td>' + esc(r.name || '—') + '</td>' +
+            '<td>' + (r.description ? esc(r.description) : '<span class="muted">—</span>') + '</td>' +
+            '<td class="col-actions">' +
+            '<button class="btn btn-sm" data-perm="' + esc(r.code) + '">权限</button> ' +
+            '<button class="btn btn-sm" data-edit="' + r.id + '">编辑</button> ' +
+            '<button class="btn btn-sm btn-danger" data-del="' + r.id + '">删除</button></td>' +
+            '</tr>'
+        ).join('');
+        tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(parseInt(b.dataset.edit))));
+        tbody.querySelectorAll('[data-perm]').forEach(b => b.addEventListener('click', () => openPerms(b.dataset.perm)));
+        tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => remove(parseInt(b.dataset.del))));
+    }
+
+    function openModal(id) {
+        editingId = id || null;
+        const r = id ? roles.find(x => x.id === id) : null;
+        $('modalTitle').textContent = id ? '编辑角色' : '新增角色';
+        $('fCode').value = r ? (r.code || '') : '';
+        $('fCode').disabled = !!r; // 编码不可改
+        $('fName').value = r ? (r.name || '') : '';
+        $('fDesc').value = r ? (r.description || '') : '';
+        $('modal').style.display = '';
+        if (id) $('fName').focus(); else $('fCode').focus();
+    }
+    function closeModal() { $('modal').style.display = 'none'; }
+
+    async function save() {
+        const code = $('fCode').value.trim();
+        const name = $('fName').value.trim();
+        const description = $('fDesc').value.trim() || null;
+        if (!editingId) {
+            if (!code) { toast('角色编码不能为空', true); return; }
+            if (!name) { toast('角色名称不能为空', true); return; }
+            try {
+                await api('/api/iam/roles', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, name, description })
+                });
+                toast('已新增角色：' + name);
+            } catch (err) { toast('保存失败：' + err.message, true); return; }
+        } else {
+            if (!name) { toast('角色名称不能为空', true); return; }
+            try {
+                await api('/api/iam/roles/' + editingId, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description })
+                });
+                toast('已更新角色');
+            } catch (err) { toast('保存失败：' + err.message, true); return; }
+        }
+        closeModal();
+        await load();
+    }
+
+    async function openPerms(code) {
+        permCode = code;
+        $('permModalDesc').textContent = '角色「' + code + '」的授权规则';
+        $('fPermRes').value = '';
+        $('fPermAct').value = '.*';
+        await loadPerms();
+        $('permModal').style.display = '';
+        $('fPermRes').focus();
+    }
+    function closePermModal() { $('permModal').style.display = 'none'; permCode = null; }
+
+    async function loadPerms() {
+        try {
+            perms = await api('/api/iam/roles/' + encodeURIComponent(permCode) + '/permissions') || [];
+            renderPerms();
+        } catch (err) { toast('加载权限失败：' + err.message, true); }
+    }
+
+    function renderPerms() {
+        const tbody = $('permTbody');
+        if (!perms.length) {
+            tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state" style="padding:24px">' +
+                '<div class="em-title">暂无授权规则</div>' +
+                '<div class="em-desc">添加规则后该角色才能访问对应资源</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = perms.map(p =>
+            '<tr>' +
+            '<td class="perm-res">' + esc(p[1] || '') + '</td>' +
+            '<td class="perm-act"><span class="pill pill-neutral no-dot">' + esc(p[2] || '') + '</span></td>' +
+            '<td class="col-actions">' +
+            '<button class="perm-del" data-res="' + esc(p[1] || '') + '" data-act="' + esc(p[2] || '') + '" title="撤销">' +
+            '<svg class="ico" viewBox="0 0 20 20"><path d="M4 6.4h12M8 6.4V4.2h4v2.2M5.6 6.4l.7 10a1 1 0 0 0 1 .9h5.4a1 1 0 0 0 1-.9l.7-10"/></svg>' +
+            '</button></td>' +
+            '</tr>'
+        ).join('');
+        tbody.querySelectorAll('.perm-del').forEach(b => b.addEventListener('click', () => revokePerm(b.dataset.res, b.dataset.act)));
+    }
+
+    async function grantPerm() {
+        const resource = $('fPermRes').value.trim();
+        const action = $('fPermAct').value.trim() || '.*';
+        if (!resource) { toast('请填写资源（正则）', true); return; }
+        try {
+            await api('/api/iam/roles/' + encodeURIComponent(permCode) + '/permissions', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resource, action })
+            });
+            toast('已授权');
+            $('fPermRes').value = '';
+            await loadPerms();
+        } catch (err) { toast('授权失败：' + err.message, true); }
+    }
+
+    async function revokePerm(resource, action) {
+        try {
+            await api('/api/iam/roles/' + encodeURIComponent(permCode) + '/permissions', {
+                method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resource, action })
+            });
+            toast('已撤销');
+            await loadPerms();
+        } catch (err) { toast('撤销失败：' + err.message, true); }
+    }
+
+    async function remove(id) {
+        const r = roles.find(x => x.id === id);
+        if (!r) return;
+        if (!confirm('确定删除角色「' + (r.name || '') + '」？其授权规则与用户角色映射将一并清除。')) return;
+        try {
+            await api('/api/iam/roles/' + id, { method: 'DELETE' });
+            toast('已删除：' + r.name);
+            await load();
+        } catch (err) { toast('删除失败：' + err.message, true); }
+    }
+
+    $('btnAdd').addEventListener('click', () => openModal(null));
+    $('btnCancel').addEventListener('click', closeModal);
+    $('btnSave').addEventListener('click', save);
+    $('btnGrant').addEventListener('click', grantPerm);
+    $('btnPermClose').addEventListener('click', closePermModal);
+    $('fPermAct').addEventListener('keydown', e => { if (e.key === 'Enter') grantPerm(); });
+    $('fPermRes').addEventListener('keydown', e => { if (e.key === 'Enter') grantPerm(); });
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+    $('permModal').addEventListener('click', e => { if (e.target === $('permModal')) closePermModal(); });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { closeModal(); closePermModal(); }
+    });
+
+    load();
+</script>
+</body>
+</html>

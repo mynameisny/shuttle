@@ -10,9 +10,53 @@ function esc(s) {
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-// REST 封装：非 2xx 抛错（优先取 body.message）；204/空响应体返回 null（如 DELETE 形状）
+// ==========================================================================
+// 认证辅助（JWT 无状态会话）。token 与当前用户缓存在 localStorage，所有页面共享。
+// ==========================================================================
+const AUTH_TOKEN_KEY = 'shuttle.auth.token';
+const AUTH_USER_KEY = 'shuttle.auth.user';
+
+function getToken() {
+    try { return localStorage.getItem(AUTH_TOKEN_KEY) || ''; } catch (e) { return ''; }
+}
+function setAuth(token, user) {
+    try {
+        localStorage.setItem(AUTH_TOKEN_KEY, token);
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user || null));
+    } catch (e) { /* ignore */ }
+}
+function clearAuth() {
+    try {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_USER_KEY);
+    } catch (e) { /* ignore */ }
+}
+function getAuthUser() {
+    try { return JSON.parse(localStorage.getItem(AUTH_USER_KEY) || 'null'); } catch (e) { return null; }
+}
+function isLoggedIn() {
+    return !!getToken();
+}
+// 跳转登录页（携带当前地址，登录后原路返回）
+function gotoLogin() {
+    if (location.pathname === '/login.html') return;
+    const back = encodeURIComponent(location.pathname + location.search);
+    location.href = '/login.html?redirect=' + back;
+}
+
+// REST 封装：非 2xx 抛错（优先取 body.message）；204/空响应体返回 null（如 DELETE 形状）。
+// 自动携带 Authorization: Bearer <token>；401/403 视为登录失效，清凭据并跳登录页。
 async function api(url, options) {
-    const resp = await fetch(url, options);
+    options = options || {};
+    const headers = Object.assign({}, options.headers || {});
+    const token = getToken();
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const resp = await fetch(url, Object.assign({}, options, { headers }));
+    if (resp.status === 401 || resp.status === 403) {
+        clearAuth();
+        gotoLogin();
+        throw new Error('登录已失效，请重新登录');
+    }
     if (!resp.ok) {
         let detail = 'HTTP ' + resp.status;
         try { const body = await resp.json(); if (body && body.message) detail = body.message; } catch (e) { /* ignore */ }
