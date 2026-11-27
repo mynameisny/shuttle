@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.ningyu.app.shuttle.event.core.EventTypeRegistry;
-import me.ningyu.app.shuttle.event.core.EventTypes;
+import me.ningyu.app.shuttle.event.meta.EventMetaProvider;
 import me.ningyu.app.shuttle.model.notification.NotificationRuleRecipientRequest;
 import me.ningyu.app.shuttle.model.notification.NotificationRuleRequest;
 import me.ningyu.app.shuttle.notification.ChannelType;
@@ -42,47 +42,15 @@ public class NotificationRuleService
     private final NotificationRuleChannelRepository channelRepository;
     private final NotificationRuleRecipientRepository recipientRepository;
     private final EventTypeRegistry eventTypeRegistry;
+    private final EventMetaProvider eventMetaProvider;
     private final ObjectMapper objectMapper;
     private final List<RecipientResolver> recipientResolvers;
-
-    /** 事件编码 → 中文名。 */
-    private static final Map<String, String> EVENT_NAMES = new LinkedHashMap<>();
-
-    /** 事件编码 → 可用字段元数据。 */
-    private static final Map<String, List<FieldMeta>> EVENT_FIELDS = new LinkedHashMap<>();
 
     /** 接收人解析器编码 → 中文名与是否需要自定义值。 */
     private static final Map<String, ResolverMeta> RESOLVER_META = new LinkedHashMap<>();
 
     static
     {
-        EVENT_NAMES.put(EventTypes.TRIP_CANCELLED, "班次停运");
-        EVENT_NAMES.put(EventTypes.DRIVER_STATUS_CHANGED, "司机状态变更");
-        EVENT_NAMES.put(EventTypes.DRIVER_UPDATED, "司机信息更新");
-        EVENT_NAMES.put(EventTypes.CAPTAIN_UPDATED, "车长信息更新");
-
-        EVENT_FIELDS.put(EventTypes.TRIP_CANCELLED, List.of(
-                field("tripId", "班次ID", "LONG"),
-                field("gtfsTripId", "GTFS班次ID", "STRING"),
-                field("tripLabel", "班次标识", "STRING"),
-                field("routeId", "线路ID", "STRING"),
-                field("routeShortName", "线路短名", "STRING"),
-                field("directionId", "方向(0去/1返)", "INTEGER")));
-
-        EVENT_FIELDS.put(EventTypes.DRIVER_STATUS_CHANGED, List.of(
-                field("driverId", "司机ID", "LONG"),
-                field("name", "司机姓名", "STRING"),
-                field("oldStatus", "原状态", "STRING", List.of("在岗", "休假", "停用")),
-                field("newStatus", "新状态", "STRING", List.of("在岗", "休假", "停用"))));
-
-        EVENT_FIELDS.put(EventTypes.DRIVER_UPDATED, List.of(
-                field("driverId", "司机ID", "LONG"),
-                field("name", "司机姓名", "STRING")));
-
-        EVENT_FIELDS.put(EventTypes.CAPTAIN_UPDATED, List.of(
-                field("captainId", "车长ID", "LONG"),
-                field("name", "车长姓名", "STRING")));
-
         RESOLVER_META.put("TRIP_DRIVER", new ResolverMeta("班次司机", false));
         RESOLVER_META.put("TRIP_CONDUCTOR", new ResolverMeta("班次车长", false));
         RESOLVER_META.put("CUSTOM_USERS", new ResolverMeta("指定人员(手机号)", true));
@@ -153,16 +121,7 @@ public class NotificationRuleService
     {
         Map<String, Object> meta = new LinkedHashMap<>();
 
-        List<Map<String, Object>> eventTypes = new ArrayList<>();
-        for (Map.Entry<String, String> e : EVENT_NAMES.entrySet())
-        {
-            Map<String, Object> et = new LinkedHashMap<>();
-            et.put("code", e.getKey());
-            et.put("name", e.getValue());
-            et.put("fields", EVENT_FIELDS.getOrDefault(e.getKey(), List.of()));
-            eventTypes.add(et);
-        }
-        meta.put("eventTypes", eventTypes);
+        meta.put("eventTypes", eventMetaProvider.eventTypes());
 
         meta.put("operators", List.of(
                 op("EQ", "等于", "single"),
@@ -278,16 +237,6 @@ public class NotificationRuleService
         }
     }
 
-    private static FieldMeta field(String name, String label, String type)
-    {
-        return new FieldMeta(name, label, type, null);
-    }
-
-    private static FieldMeta field(String name, String label, String type, List<String> enumValues)
-    {
-        return new FieldMeta(name, label, type, enumValues);
-    }
-
     private static Map<String, Object> op(String code, String name, String valueType)
     {
         Map<String, Object> m = new LinkedHashMap<>();
@@ -317,11 +266,6 @@ public class NotificationRuleService
             list.add(m);
         }
         return list;
-    }
-
-    /** 条件字段元数据。 */
-    public record FieldMeta(String name, String label, String type, List<String> enumValues)
-    {
     }
 
     /** 接收人解析器元数据。 */

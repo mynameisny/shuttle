@@ -155,12 +155,26 @@
         textarea.input { min-height: 96px; resize: vertical; line-height: 1.6; font-family: inherit; }
         /* 占位符 chip（可点击插入） */
         .var-chip {
-            display: inline-flex; padding: 3px 9px; font-size: 11.5px;
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 9px; font-size: 11.5px;
             border: 1px solid #cfe0f7; border-radius: 6px;
             color: var(--c-info); background: var(--c-info-soft);
-            cursor: pointer; user-select: none; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            cursor: pointer; user-select: none;
+        }
+        .var-chip .v-label { font-family: inherit; }
+        .var-chip .v-code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 10.5px; opacity: .7;
         }
         .var-chip:hover { border-color: var(--c-info); }
+        /* 占位符按事件类型分组展示 */
+        .var-group { margin-bottom: 12px; }
+        .var-group:last-child { margin-bottom: 0; }
+        .var-group-title {
+            font-size: 11px; font-weight: 620; color: var(--c-text-3);
+            margin-bottom: 6px; letter-spacing: .02em;
+        }
+        .var-chips { display: flex; flex-wrap: wrap; gap: 5px; }
         .muted-pill { font-size: 11px; color: var(--c-text-3); }
     </style>
 </head>
@@ -609,15 +623,21 @@
     }
 
     /* ---------- 模板管理 ---------- */
-    function collectVars() {
-        const set = new Set();
-        (meta.eventTypes || []).forEach(et => (et.fields || []).forEach(f => set.add(f.name)));
-        return [...set];
-    }
-
     function renderTplVars() {
-        $('tplVars').innerHTML = collectVars().map(v =>
-            '<span class="var-chip" data-var="' + esc(v) + '">{{' + esc(v) + '}}</span>').join('');
+        // 按事件类型分组展示，每个字段用事件特定的中文 label（name 在司机/车长事件里含义不同）
+        const groups = (meta.eventTypes || []).map(et => ({
+            name: et.name,
+            fields: (et.fields || []).map(f => ({ name: f.name, label: f.label || f.name }))
+        }));
+        $('tplVars').innerHTML = groups.map(g =>
+            '<div class="var-group">' +
+            '<div class="var-group-title">' + esc(g.name) + '</div>' +
+            '<div class="var-chips">' + g.fields.map(f =>
+                '<span class="var-chip" data-var="' + esc(f.name) + '" title="插入 {{' + esc(f.name) + '}}">' +
+                '<span class="v-label">' + esc(f.label) + '</span>' +
+                '<span class="v-code">{{' + esc(f.name) + '}}</span>' +
+                '</span>').join('') +
+            '</div></div>').join('');
         $('tplVars').querySelectorAll('.var-chip').forEach(c => c.addEventListener('click', () => {
             insertAtCursor($('fTplContent'), '{{' + c.dataset.var + '}}');
         }));
