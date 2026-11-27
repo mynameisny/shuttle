@@ -213,6 +213,21 @@ function buildSidebar(mount, activeKey) {
 
     mount.innerHTML = html;
 
+    // 点击指向当前页的菜单项时，阻止 <a href> 重新导航——否则整页刷新、滚动条回顶。
+    // 用 href 解析后的 pathname 与当前页比较（比 data-nav 更通用，能覆盖父项 href 指向当前子页的情况）。
+    // 委托在 .sb-nav 上，兼容后续动态展开的子菜单。
+    mount.querySelector('.sb-nav').addEventListener('click', e => {
+        const a = e.target.closest('a.sb-item');
+        if (!a) return;
+        const href = a.getAttribute('href');
+        if (!href || href === '#') return;
+        try {
+            if (new URL(href, location.href).pathname === location.pathname) {
+                e.preventDefault();
+            }
+        } catch (ignore) { /* 非法 href 忽略 */ }
+    });
+
     // 折叠/展开：按钮在侧边栏底部，任何状态下都可见可点（折叠后靠它恢复展开）。
     // 状态 class 挂在 <html>（sb-collapsed），与各页 <head> 的防闪烁内联脚本共用，
     // 保证刷新/跳转时首帧即折叠，不出现"先展开再缩回"的 FOUC。
@@ -231,6 +246,20 @@ function buildSidebar(mount, activeKey) {
             localStorage.setItem(SB_KEY, collapsed ? '1' : '0');
             syncTitle();
         });
+    }
+
+    // 让当前高亮菜单项滚入侧边栏可视区：菜单多时「通知中心」等分组在底部，
+    // 若不做定位，页面跳转后侧边栏滚动位置归零，用户看不到自己当前所处目录。
+    const navEl = mount.querySelector('.sb-nav');
+    const activeEl = mount.querySelector('.sb-item.active');
+    if (navEl && activeEl) {
+        const navRect = navEl.getBoundingClientRect();
+        const aRect = activeEl.getBoundingClientRect();
+        if (aRect.top < navRect.top) {
+            navEl.scrollTop += aRect.top - navRect.top - 8;
+        } else if (aRect.bottom > navRect.bottom) {
+            navEl.scrollTop += aRect.bottom - navRect.bottom + 8;
+        }
     }
 }
 
