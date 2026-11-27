@@ -93,7 +93,7 @@ const MENU = [
         group: '通知中心',
         items: [
             { key: 'notification.rules', name: '通知规则', icon: 'alert', href: 'notification-rules.html', ready: true },
-            { key: 'notification.records', name: '通知记录', icon: 'inBox', ready: false, note: '通知发送记录与站内信' }
+            { key: 'notification.records', name: '通知记录', icon: 'inBox', href: 'notification-records.html', ready: true }
         ]
     },
     {

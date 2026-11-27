@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通知记录 · 班车调度管理</title>
+    <meta name="nav" content="notification.records">
+    <link rel="stylesheet" href="css/app.css">
+    <script>try{if(localStorage.getItem('shuttle.sidebar.collapsed')==='1')document.documentElement.classList.add('sb-collapsed');}catch(e){}</script>
+    <style>
+        /* tab 导航 */
+        .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--c-border); margin-bottom: 16px; }
+        .tab {
+            padding: 8px 16px; font-size: 13.5px; font-family: inherit;
+            background: none; border: none; cursor: pointer;
+            color: var(--c-text-2); border-bottom: 2px solid transparent;
+            margin-bottom: -1px; transition: color .13s, border-color .13s;
+        }
+        .tab:hover { color: var(--c-text); }
+        .tab.active { color: var(--c-primary-ink); font-weight: 600; border-bottom-color: var(--c-primary); }
+
+        /* 站内信查询区 */
+        .inbox-query { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .inbox-query .search { width: 260px; }
+        .unread-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px; border-radius: 999px;
+            background: var(--c-primary-soft); color: var(--c-primary-ink);
+            font-size: 12px; font-weight: 600;
+        }
+
+        /* 详情弹窗字段块 */
+        .detail-block { margin-bottom: 16px; }
+        .detail-block h4 {
+            font-size: 12px; font-weight: 620; color: var(--c-text-3);
+            text-transform: uppercase; letter-spacing: .03em;
+            margin: 0 0 8px;
+        }
+        .detail-kv { display: flex; font-size: 13px; line-height: 1.7; }
+        .detail-kv .k { width: 92px; color: var(--c-text-3); flex-shrink: 0; }
+        .detail-kv .v { color: var(--c-text); word-break: break-all; }
+        .detail-content {
+            background: var(--c-surface-2); border: 1px solid var(--c-border);
+            border-radius: 6px; padding: 12px 14px; font-size: 13px; line-height: 1.7;
+            color: var(--c-text); white-space: pre-wrap; word-break: break-all;
+        }
+        .recipient-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            padding: 8px 10px; border: 1px solid var(--c-border); border-radius: 6px; margin-bottom: 6px;
+            font-size: 13px;
+        }
+        .recipient-row .r-main { display: flex; align-items: center; gap: 8px; }
+        .recipient-row .r-contacts { font-size: 11.5px; color: var(--c-text-3); }
+
+        /* 站内信正文列单行省略，避免窄列逐字竖排换行 */
+        td.td-body { max-width: 340px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="main-area">
+        <div class="page" id="page">
+
+            <div class="page-head">
+                <div>
+                    <div class="crumbs" data-auto-crumbs></div>
+                    <h1 class="page-title">通知中心</h1>
+                </div>
+                <div class="page-actions">
+                    <a class="btn" href="notification-rules.html">规则配置</a>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" id="tabRecordsBtn" data-tab="records">通知记录</button>
+                <button class="tab" id="tabInboxBtn" data-tab="inbox">站内信</button>
+            </div>
+
+            <!-- 通知记录 -->
+            <div id="tab-records">
+                <div class="card">
+                    <div class="table-wrap">
+                        <table class="tbl">
+                            <thead>
+                            <tr>
+                                <th style="width:220px">通知</th>
+                                <th style="width:120px">事件类型</th>
+                                <th style="width:80px">级别</th>
+                                <th style="width:96px">状态</th>
+                                <th style="width:150px">发生时间</th>
+                                <th class="col-actions" style="width:90px">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 站内信 -->
+            <div id="tab-inbox" class="hidden">
+                <div class="inbox-query">
+                    <label class="search-wrap">
+                        <svg class="ico" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.4"/><path d="M13 13l3.4 3.4"/></svg>
+                        <input type="text" class="search" id="inboxRecipient" placeholder="输入接收人手机号查询站内信…">
+                    </label>
+                    <button class="btn btn-primary" id="btnQueryInbox">查询</button>
+                    <span class="unread-badge hidden" id="unreadBadge"></span>
+                </div>
+                <div class="card">
+                    <div class="table-wrap">
+                        <table class="tbl">
+                            <thead>
+                            <tr>
+                                <th style="width:240px">标题</th>
+                                <th>正文</th>
+                                <th style="width:90px">接收人</th>
+                                <th style="width:80px">状态</th>
+                                <th style="width:150px">时间</th>
+                                <th class="col-actions" style="width:130px">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="inboxTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- 通知详情弹窗 -->
+<div id="modal" class="modal-mask" style="display:none">
+    <div class="modal" style="width:560px">
+        <h3 id="detailTitle">通知详情</h3>
+        <p class="modal-desc" id="detailSub"></p>
+
+        <div class="detail-block">
+            <h4>通知内容</h4>
+            <div class="detail-content" id="detailContent"></div>
+        </div>
+
+        <div class="detail-block">
+            <h4>规则信息</h4>
+            <div class="detail-kv"><span class="k">规则名称</span><span class="v" id="dRuleName"></span></div>
+            <div class="detail-kv"><span class="k">规则编码</span><span class="v mono" id="dRuleCode"></span></div>
+            <div class="detail-kv"><span class="k">规则版本</span><span class="v" id="dRuleVersion"></span></div>
+        </div>
+
+        <div class="detail-block">
+            <h4>事件信息</h4>
+            <div class="detail-kv"><span class="k">事件类型</span><span class="v" id="dEventType"></span></div>
+            <div class="detail-kv"><span class="k">事件ID</span><span class="v mono" id="dEventId"></span></div>
+            <div class="detail-kv"><span class="k">业务实体</span><span class="v mono" id="dSubject"></span></div>
+        </div>
+
+        <div class="detail-block">
+            <h4>接收人（<span id="dRecipientCount">0</span>）</h4>
+            <div id="dRecipients"></div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn" id="btnClose">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 站内信详情弹窗 -->
+<div id="inboxModal" class="modal-mask" style="display:none">
+    <div class="modal" style="width:520px">
+        <h3 id="inboxTitle"></h3>
+        <p class="modal-desc" id="inboxSub"></p>
+        <div class="detail-content" id="inboxContent"></div>
+        <div class="btn-row">
+            <button class="btn" id="btnInboxClose">关闭</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/map-common.js"></script>
+<script src="js/layout.js"></script>
+<script>
+    initShell();
+
+    const API = {
+        notifications: '/api/notifications',
+        inbox: '/api/notifications/inbox',
+        meta: '/api/notification-rules/meta'
+    };
+
+    let meta = null;
+    let currentTab = 'records';
+    let inboxRecipient = '';
+
+    const STATUS = {
+        PENDING_CONFIRMATION: { name: '待人工确认', cls: 'pill-warn' },
+        PENDING_DELIVERY: { name: '待发送', cls: 'pill-info' },
+        COMPLETED: { name: '已完成', cls: 'pill-ok' },
+        FAILED: { name: '失败', cls: 'pill-danger' },
+        SKIPPED: { name: '已跳过', cls: 'pill-neutral' }
+    };
+    const SEVERITY_CLS = { CRITICAL: 'pill-danger', HIGH: 'pill-warn', NORMAL: 'pill-neutral', LOW: 'pill-info' };
+
+    function statusPill(s) {
+        const m = STATUS[s] || { name: s || '—', cls: 'pill-neutral' };
+        return '<span class="pill ' + m.cls + '">' + esc(m.name) + '</span>';
+    }
+    function severityPill(s) {
+        const cls = SEVERITY_CLS[s] || 'pill-neutral';
+        const name = enumName(meta && meta.severities, s);
+        return '<span class="pill ' + cls + '">' + esc(name) + '</span>';
+    }
+    function eventName(code) {
+        if (meta) {
+            const e = (meta.eventTypes || []).find(x => x.code === code);
+            if (e) return e.name;
+        }
+        return code || '—';
+    }
+    function enumName(list, code) {
+        const it = (list || []).find(x => x.code === code);
+        return it ? it.name : (code || '—');
+    }
+    function fmtTime(s) {
+        return s ? String(s).replace('T', ' ').slice(0, 16) : '—';
+    }
+
+    /* ---------- tab ---------- */
+    function switchTab(tab) {
+        currentTab = tab;
+        $('tabRecordsBtn').classList.toggle('active', tab === 'records');
+        $('tabInboxBtn').classList.toggle('active', tab === 'inbox');
+        $('tab-records').classList.toggle('hidden', tab !== 'records');
+        $('tab-inbox').classList.toggle('hidden', tab !== 'inbox');
+    }
+
+    /* ---------- 通知记录 ---------- */
+    async function loadRecords() {
+        try {
+            const list = await api(API.notifications) || [];
+            renderRecords(list);
+        } catch (err) { toast('加载失败：' + err.message, true); }
+    }
+
+    function renderRecords(list) {
+        const tbody = $('tbody');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="6">' +
+                '<div class="empty-state"><div class="em-title">还没有通知记录</div>' +
+                '<div class="em-desc">事件触发并命中规则后会自动生成通知</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(n => {
+            return '<tr>' +
+                '<td><div class="cell-stack"><span class="strong">' + esc(n.title || '（无标题）') + '</span>' +
+                '<span class="sub">' + esc(n.ruleName || '—') + '</span></div></td>' +
+                '<td><span class="pill pill-info">' + esc(eventName(n.eventType)) + '</span></td>' +
+                '<td>' + severityPill(n.severity) + '</td>' +
+                '<td>' + statusPill(n.status) + '</td>' +
+                '<td class="muted" style="font-size:12px">' + esc(fmtTime(n.occurredAt || n.createdDate)) + '</td>' +
+                '<td class="col-actions"><button class="btn btn-sm" data-detail="' + n.id + '">详情</button></td>' +
+                '</tr>';
+        }).join('');
+        tbody.querySelectorAll('[data-detail]').forEach(b => b.addEventListener('click', () => openDetail(parseInt(b.dataset.detail))));
+    }
+
+    async function openDetail(id) {
+        try {
+            const [n, recipients] = await Promise.all([
+                api(API.notifications + '/' + id),
+                api(API.notifications + '/' + id + '/recipients')
+            ]);
+            $('detailTitle').textContent = n.title || '（无标题）';
+            $('detailSub').textContent = n.ruleName + ' · ' + eventName(n.eventType) + ' · ' + fmtTime(n.occurredAt);
+            $('detailContent').textContent = n.content || '（无正文）';
+            $('dRuleName').textContent = n.ruleName || '—';
+            $('dRuleCode').textContent = n.ruleCode || '—';
+            $('dRuleVersion').textContent = n.ruleVersion != null ? 'v' + n.ruleVersion : '—';
+            $('dEventType').textContent = eventName(n.eventType);
+            $('dEventId').textContent = n.eventId || '—';
+            $('dSubject').textContent = n.subject || '—';
+            $('dRecipientCount').textContent = (recipients || []).length;
+            renderRecipients(recipients || []);
+            $('modal').style.display = '';
+        } catch (err) { toast('加载详情失败：' + err.message, true); }
+    }
+
+    function renderRecipients(list) {
+        const wrap = $('dRecipients');
+        if (!list.length) {
+            wrap.innerHTML = '<div class="muted" style="font-size:12px">无接收人</div>';
+            return;
+        }
+        wrap.innerHTML = list.map(r => {
+            let contacts = '';
+            try {
+                const c = r.contacts ? JSON.parse(r.contacts) : {};
+                contacts = Object.entries(c).map(([k, v]) => k + ': ' + v).join(' · ');
+            } catch (e) { /* ignore */ }
+            return '<div class="recipient-row">' +
+                '<div class="r-main"><span class="strong">' + esc(r.recipientName || r.recipientId) + '</span>' +
+                '<span class="muted" style="font-size:11.5px">' + esc(r.recipientType || '') + '</span></div>' +
+                '<div class="r-contacts">' + esc(contacts || r.recipientId || '') + '</div>' +
+                '</div>';
+        }).join('');
+    }
+
+    /* ---------- 站内信 ---------- */
+    async function queryInbox() {
+        const v = $('inboxRecipient').value.trim();
+        if (!v) { toast('请输入接收人手机号', true); return; }
+        inboxRecipient = v;
+        try {
+            const [list, unread] = await Promise.all([
+                api(API.inbox + '?recipientId=' + encodeURIComponent(v)),
+                api(API.inbox + '/unread-count?recipientId=' + encodeURIComponent(v))
+            ]);
+            renderInbox(list || [], unread || 0);
+        } catch (err) { toast('查询失败：' + err.message, true); }
+    }
+
+    function renderInbox(list, unread) {
+        _inboxCache = list || [];
+        const badge = $('unreadBadge');
+        if (unread > 0) {
+            badge.textContent = '未读 ' + unread + ' 条';
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+        const tbody = $('inboxTbody');
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="6">' +
+                '<div class="empty-state"><div class="em-title">该手机号暂无站内信</div>' +
+                '<div class="em-desc">接收人：' + esc(inboxRecipient) + '</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(m => {
+            const body = m.content || '';
+            const isRead = m.isRead;
+            return '<tr>' +
+                '<td class="strong">' + esc(m.title || '（无标题）') + '</td>' +
+                '<td class="muted td-body" title="' + esc(body) + '">' + esc(body) + '</td>' +
+                '<td>' + esc(m.recipientName || m.recipientId || '—') + '</td>' +
+                '<td>' + (isRead
+                    ? '<span class="pill pill-neutral no-dot">已读</span>'
+                    : '<span class="pill pill-info">未读</span>') + '</td>' +
+                '<td class="muted" style="font-size:12px">' + esc(fmtTime(m.createdDate)) + '</td>' +
+                '<td class="col-actions">' +
+                '<button class="btn btn-sm" data-view="' + m.id + '">查看</button> ' +
+                (isRead ? '' : '<button class="btn btn-sm btn-primary" data-read="' + m.id + '">标记已读</button>') +
+                '</td></tr>';
+        }).join('');
+        tbody.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => openInbox(parseInt(b.dataset.view))));
+        tbody.querySelectorAll('[data-read]').forEach(b => b.addEventListener('click', () => markRead(parseInt(b.dataset.read))));
+    }
+
+    function openInbox(id) {
+        // 从当前列表找，避免额外请求
+        const row = findInboxById(id);
+        if (!row) return;
+        $('inboxTitle').textContent = row.title || '（无标题）';
+        $('inboxSub').textContent = (row.recipientName || row.recipientId || '') + ' · ' + fmtTime(row.createdDate);
+        $('inboxContent').textContent = row.content || '（无正文）';
+        $('inboxModal').style.display = '';
+    }
+
+    let _inboxCache = [];
+    function findInboxById(id) { return _inboxCache.find(m => m.id === id); }
+
+    async function markRead(id) {
+        try {
+            await api(API.inbox + '/' + id + '/read', { method: 'PUT' });
+            toast('已标记为已读');
+            await queryInbox();
+        } catch (err) { toast('操作失败：' + err.message, true); }
+    }
+
+    /* ---------- 事件绑定 ---------- */
+    $('tabRecordsBtn').addEventListener('click', () => switchTab('records'));
+    $('tabInboxBtn').addEventListener('click', () => switchTab('inbox'));
+    $('btnClose').addEventListener('click', () => $('modal').style.display = 'none');
+    $('btnInboxClose').addEventListener('click', () => $('inboxModal').style.display = 'none');
+    $('btnQueryInbox').addEventListener('click', queryInbox);
+    $('inboxRecipient').addEventListener('keydown', e => { if (e.key === 'Enter') queryInbox(); });
+    $('modal').addEventListener('click', e => { if (e.target === $('modal')) $('modal').style.display = 'none'; });
+    $('inboxModal').addEventListener('click', e => { if (e.target === $('inboxModal')) $('inboxModal').style.display = 'none'; });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            if ($('modal').style.display !== 'none') $('modal').style.display = 'none';
+            if ($('inboxModal').style.display !== 'none') $('inboxModal').style.display = 'none';
+        }
+    });
+
+    /* ---------- 启动 ---------- */
+    (async function init() {
+        try {
+            meta = await api(API.meta);
+            await loadRecords();
+        } catch (err) {
+            toast('初始化失败：' + err.message, true);
+        }
+    })();
+</script>
+</body>
+</html>
